@@ -648,24 +648,14 @@ while ((c = getopt(argc, argv, "s:p:o:")) != -1)
 		exit(1);
 	}
 
-
-	/* see what we have */
-	printf("sequ = %s\n", sName);
-	printf("mkdbp = \"%s\"\n", params);
-	printf("outName = \"%s\"\n", outName);
-	
-
-   PASCAL_MAIN(argc, argv); 
+  PASCAL_MAIN(argc, argv); 
   if (setjmp(_JL1))
     goto _L1;
   entries.f = NULL;
-  // strcpy(entries.name, "entries");
   strcpy(entries.name, outName);
   mkdbp.f = NULL;
-  // strcpy(mkdbp.name, "mkdbp");
   strcpy(mkdbp.name, params);
   sequ.f = NULL;
-  // strcpy(sequ.name, "sequ");
   strcpy(sequ.name, sName);
   themain(&sequ, &mkdbp, &entries);
 _L1:
