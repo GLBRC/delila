@@ -1,9 +1,12 @@
 /* Output from p2c 2.00.Oct.15, the Pascal-to-C translator */
 /* From input file "dbbk.p" */
 
-#include <stdio.h> /* printf */
 #include <getopt.h>  /* getopt API */ 
+#include <stdio.h> /* printf */
+#include <stdbool.h>
 #include <stdlib.h> 
+#include <string.h>
+#include <time.h>
 #include </home/mplace/bin/p2c/src/p2c.h>
 
 #define version         3.50
@@ -408,59 +411,16 @@ long number, logplace;
 }
 
 
-Static Void getdatetime(adatetime)
-Char *adatetime;
+Static Void getdatetime(Char *adatetime)
 {
-/* p2c: dbbk.p, line 295: Warning: Expected '..', found a semicolon [227] */
-  long t;
-  _PROCEDURE TEMP;
+  char temp[18];      
+	time_t current_time = time(NULL);           /* stores calendar time  */
+	struct tm *tm = localtime(&current_time);   /* value of timer is stored in the struct */
+	strftime(temp, sizeof(temp), "%x %H:%M %p", tm );
+	printf("\n %s \n", temp);
+  strcpy(adatetime, temp);
 
-
-  GetTimeStamp(t);
-/* p2c: dbbk.p, line 346:
- * Warning: Symbol 'GETTIMESTAMP' is not defined [221] */
-
-/* p2c: dbbk.p, line 348: Warning: Argument of WITH is not a RECORD [264] */
-
-  if (!TimeValid) {
-    printf("getdatetime: invalid time!\n");
-    halt();
-    return;
-  }
-/* p2c: dbbk.p, line 349:
- * Warning: Symbol 'TIMEVALID' is not defined [221] */
-  memcpy(adatetime, "year/mm/dd hh:mm:ss", sizeof(datetimearray));
-  adatetime[0] = pluckdigit(year, 3L);
-/* p2c: dbbk.p, line 351: Warning: Symbol 'YEAR' is not defined [221] */
-  adatetime[1] = pluckdigit(year, 2L);
-/* p2c: dbbk.p, line 352: Warning: Symbol 'YEAR' is not defined [221] */
-  adatetime[2] = pluckdigit(year, 1L);
-/* p2c: dbbk.p, line 353: Warning: Symbol 'YEAR' is not defined [221] */
-  adatetime[3] = pluckdigit(year, 0L);
-/* p2c: dbbk.p, line 354: Warning: Symbol 'YEAR' is not defined [221] */
-  adatetime[5] = pluckdigit(month, 1L);
-/* p2c: dbbk.p, line 355: Warning: Symbol 'MONTH' is not defined [221] */
-  adatetime[6] = pluckdigit(month, 0L);
-/* p2c: dbbk.p, line 356: Warning: Symbol 'MONTH' is not defined [221] */
-  adatetime[8] = pluckdigit(day, 1L);
-/* p2c: dbbk.p, line 357: Warning: Symbol 'DAY' is not defined [221] */
-  adatetime[9] = pluckdigit(day, 0L);
-/* p2c: dbbk.p, line 358: Warning: Symbol 'DAY' is not defined [221] */
-  adatetime[11] = pluckdigit(hour, 1L);
-/* p2c: dbbk.p, line 359: Warning: Symbol 'HOUR' is not defined [221] */
-  adatetime[12] = pluckdigit(hour, 0L);
-/* p2c: dbbk.p, line 360: Warning: Symbol 'HOUR' is not defined [221] */
-  adatetime[14] = pluckdigit(minute, 1L);
-/* p2c: dbbk.p, line 361: Warning: Symbol 'MINUTE' is not defined [221] */
-  adatetime[15] = pluckdigit(minute, 0L);
-/* p2c: dbbk.p, line 362: Warning: Symbol 'MINUTE' is not defined [221] */
-  adatetime[17] = pluckdigit(second, 1L);
-/* p2c: dbbk.p, line 363: Warning: Symbol 'SECOND' is not defined [221] */
-  adatetime[18] = pluckdigit(second, 0L);
-/* p2c: dbbk.p, line 364: Warning: Symbol 'SECOND' is not defined [221] */
 }
-
-
 
 Static Void writedatetime(thefile, adatetime)
 FILE **thefile;
@@ -471,8 +431,6 @@ Char *adatetime;
   for (index = 0; index < datetimearraylength; index++)
     putc(adatetime[index], *thefile);
 }
-
-
 
 Static Void readdatetime(thefile, adatetime)
 FILE **thefile;
@@ -494,17 +452,14 @@ Char *adatetime;
  * Format for packed-array-of-char will work only if width < length [321] */
 }
 
-
-#define tab             9
-
-
-Static boolean isblank(c)
-Char c;
-{
-  return (c == ' ' || c == tab);
+Static boolean isblank(c){
+  Char c;
+  if( c == ' ' ||  c == 9){
+    return true;
+  } else {
+    return false;
+  }
 }
-
-#undef tab
 
 
 Static Void skipblanks(thefile)
@@ -952,9 +907,7 @@ FILE **fin, **fout;
 }
 
 
-main(argc, argv)
-int argc;
-Char *argv[];
+int main(int argc, Char **argv)
 {
   PASCAL_MAIN(argc, argv);
   if (setjmp(_JL1))
