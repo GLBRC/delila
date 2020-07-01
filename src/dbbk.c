@@ -1,51 +1,164 @@
 /* Output from p2c 2.00.Oct.15, the Pascal-to-C translator */
 /* From input file "dbbk.p" */
 
+
+
+
+
+
+
+/* 
+To COMPILE:
+
+gcc  dbbk.c -o dbbk  -I/home/mplace/bin/p2c/src -L /home/mplace/bin/p2c/src -lm -lp2c
+
+TO RUN:
+./dbbk -f ../rhodo_genome.gbff -o dbbk_OUTTEST  -c changes_OUTTEST.txt
+
+ */
+
+
 #include <getopt.h>  /* getopt API */ 
 #include <stdio.h> /* printf */
-#include <stdbool.h>
 #include <stdlib.h> 
-#include <string.h>
-#include <time.h>
 #include </home/mplace/bin/p2c/src/p2c.h>
 
 #define version         3.50
+
+
+/*
+
+
+*/
+
+
+
 #define datetimearraylength  19
+/*
+
+*/
+
+
+
+
+
 #define idlength        100
+/*
+*/
 #define namelength      idlength
 #define lclength        3
+/*
+*/
+
+/*
+
+
+*/
+
 #define lcloc           "LOC"
+/*
+*/
 #define lcid            "ID "
 #define lc3spc          "   "
+/*
+*/
 #define lcos            "OS "
+/*
+*/
+/*
+*/
 #define lcdef           "  O"
+/*
+*/
+
 #define lcbas           "BAS"
+/*
+*/
 #define lcsq            "SQ "
+/*
+*/
 #define lcori           "ORI"
+/*
+*/
 #define lcsit           "SIT"
 #define lcterm          "// "
 #define lcdat           "DAT"
+/*
+*/
+
 #define genuslimit      1
 
+
+/*
+*/
+/*
+*/
+
+
+
+
+
+/*
+
+*/
+
 typedef Char idutype[idlength];
+
+
 typedef Char idptype[idlength];
+
+
 typedef idptype alpha;
+
 typedef Char lcutype[lclength];
+
+
 typedef Char lcptype[lclength];
+
+
 typedef enum {
   embl, genb, none
 } libsused;
 
+
+
+
+
+
 typedef Char datetimearray[datetimearraylength];
-Static FILE *db, *l1, *changes;
+
+
+
+
+Static _TEXT db, l1;
+/*
+*/
+Static _TEXT changes;
 Static boolean notwarned;
+
+
 Static jmp_buf _JL1;
+
+
+/*
+*/
+
+
+
 
 Static Void halt()
 {
+  /*
+
+
+
+
+
+*/
   printf(" program halt.\n");
   longjmp(_JL1, 1);
 }
+
 
 
 Static Void decapitilize(c)
@@ -60,75 +173,104 @@ Char *c;
 }
 
 
+
 Static Void writeidptype(fout, writeasterisk, carriagereturn, thename)
-FILE **fout;
+_TEXT *fout;
 boolean writeasterisk, carriagereturn;
 Char *thename;
 {
+  /*
+*/
+  /*
+
+*/
   long index = 1;
 
   if (writeasterisk)
-    fprintf(*fout, "* ");
+    fprintf(fout->f, "* ");
   do {
     if (thename[index-1] != ' ')
-      putc(thename[index-1], *fout);
+      putc(thename[index-1], fout->f);
     index++;
   } while (index != idlength && thename[index-1] != ' ');
   if (carriagereturn)
-    putc('\n', *fout);
+    putc('\n', fout->f);
 }
+
 
 
 Static Void finishchanges(changes, inchanges, changestart, entryname,
 			  basenumber)
-FILE **changes;
+_TEXT *changes;
 boolean *inchanges;
 long *changestart;
 Char *entryname;
 long basenumber;
 {
   *inchanges = false;
-  fprintf(*changes, "define \"unknown:%ld-%ld\" \"?\" \"[]\" \"[]\" 0 %ld\n",
+  fprintf(changes->f,
+	  "define \"unknown:%ld-%ld\" \"?\" \"[]\" \"[]\" 0 %ld\n",
 	  *changestart, basenumber, basenumber - *changestart - 1);
-  fprintf(*changes, "@ ");
+  fprintf(changes->f, "@ ");
   writeidptype(changes, false, false, entryname);
-  fprintf(*changes, " %ld.0 +1 \"unknown:%ld-%ld\" \"\"\n",
+  fprintf(changes->f, " %ld.0 +1 \"unknown:%ld-%ld\" \"\"\n",
 	  *changestart, *changestart, basenumber);
+  /*
+
+
+*/
 }
+
 
 
 Static Void copydna(fin, fout, changes, basenumber, entryname, inchanges,
 		    changestart)
-FILE **fin, **fout, **changes;
+_TEXT *fin, *fout, *changes;
 long *basenumber;
 Char *entryname;
 boolean *inchanges;
 long *changestart;
 {
+  /*
+*/
   Char c;
 
-  while (!P_eoln(*fin)) {
-    c = P_peek(*fin);
+  while (!P_eoln(fin->f)) {
+    c = P_peek(fin->f);
     decapitilize(&c);
 
+    /*
+*/
     if (c >= 'a' && c <= 'z' || c == ' ') {
       if (c >= 'a' && c <= 'z')
 	(*basenumber)++;
 
+
       if (c == 'u')
 	c = 't';
+
 
       if (c != ' ' && c != 't' && c != 'g' && c != 'c' && c != 'a') {
 	if (notwarned) {
 	  notwarned = false;
-/* p2c: dbbk.p, line 129: Note: REWRITE does not specify a name [181] */
-	  if (*changes != NULL)
-	    rewind(*changes);
-	  else
-	    *changes = tmpfile();
-	  if (*changes == NULL)
-	    _EscIO(FileNotFound);
-	  fprintf(*changes, "* dbbk %4.2f\n", version);
+	  if (*changes->name != '\0') {
+	    if (changes->f != NULL)
+	      changes->f = freopen(changes->name, "w", changes->f);
+	    else
+	      changes->f = fopen(changes->name, "w");
+	  } else {
+	    if (changes->f != NULL)
+	      rewind(changes->f);
+	    else
+	      changes->f = tmpfile();
+	  }
+	  if (changes->f == NULL)
+	    _EscIO2(FileNotFound, changes->name);
+	  SETUPBUF(changes->f, Char);
+	  fprintf(changes->f, "* dbbk %4.2f\n", version);
+	  /*
+
+*/
 	}
 
 	if (!*inchanges) {
@@ -136,8 +278,16 @@ long *changestart;
 	  *changestart = *basenumber;
 	}
 
+	/*
+
+
+
+
+*/
 	c = 'a';
       }
+
+
 
       else {
 	if (c != ' ' && *inchanges)
@@ -145,28 +295,26 @@ long *changestart;
 			*basenumber);
       }
 
-      putc(c, *fout);
-/* p2c: dbbk.p, line 147: Note:
- * File parameter fout can't access buffers (try StructFiles = 1) [318] */
+      putc(c, fout->f);
     }
-/* p2c: dbbk.p, line 150: Note:
- * File parameter fin can't access buffers (try StructFiles = 1) [318] */
-    getc(*fin);
+    getc(fin->f);
   }
-  fscanf(*fin, "%*[^\n]");
-  getc(*fin);
-  putc('\n', *fout);
+  fscanf(fin->f, "%*[^\n]");
+  getc(fin->f);
+  putc('\n', fout->f);
 }
 
 
+
+
 Static Void readlcu(lib, liblcu, liblcp)
-FILE **lib;
+_TEXT *lib;
 Char *liblcu;
 Char *liblcp;
 {
   long index;
 
-  if (P_eof(*lib)) {
+  if (BUFEOF(lib->f)) {
     printf("in readlcu: hit end of file; last line type was linetype: %.*s\n",
 	   lclength, liblcp);
     halt();
@@ -174,10 +322,10 @@ Char *liblcp;
 
 
   for (index = 0; index < lclength; index++) {
-    if (P_eoln(*lib))
+    if (P_eoln(lib->f))
       liblcu[index] = ' ';
     else {
-      liblcu[index] = getc(*lib);
+      liblcu[index] = getc(lib->f);
       if (liblcu[index] == '\n')
 	liblcu[index] = ' ';
     }
@@ -186,14 +334,22 @@ Char *liblcp;
 }
 
 
+
+
+
 Static boolean lcequal(lcp1, lcp2)
 Char *lcp1, *lcp2;
 {
+  /*
+
+*/
 /* p2c: dbbk.p: Note: Eliminated unused assignment statement [338] */
   if (!strncmp(lcp1, lcp2, sizeof(lcptype)))
     return true;
   return false;
 }
+
+
 
 
 Static boolean idequal(a, b)
@@ -210,6 +366,7 @@ Char *a, *b;
 }
 
 
+
 Static Void idclear(ida)
 Char *ida;
 {
@@ -218,6 +375,7 @@ Char *ida;
   for (i = 0; i < idlength; i++)
     ida[i] = ' ';
 }
+
 
 
 Static Void idcopy(ida, idb)
@@ -230,24 +388,26 @@ Char *ida, *idb;
 }
 
 
+
 Static Void getid(fin, finidp)
-FILE **fin;
+_TEXT *fin;
 Char *finidp;
 {
+  /*
+
+*/
   long index = 0;
   idutype finidu;
 
-  while (P_peek(*fin) == ' ')
-    getc(*fin);
-/* p2c: dbbk.p, line 218: Note:
- * File parameter fin can't access buffers (try StructFiles = 1) [318] */
+  while (P_peek(fin->f) == ' ')
+    getc(fin->f);
 
-  while (P_peek(*fin) != ' ' && index < idlength) {
+  while (P_peek(fin->f) != ' ' && index < idlength) {
     index++;
-    if (P_eoln(*fin))
+    if (P_eoln(fin->f))
       finidu[index-1] = ' ';
     else {
-      finidu[index-1] = getc(*fin);
+      finidu[index-1] = getc(fin->f);
       if (finidu[index-1] == '\n')
 	finidu[index-1] = ' ';
     }
@@ -262,26 +422,31 @@ Char *finidp;
 }
 
 
+
 Static Void getspecies(fin, finidp)
-FILE **fin;
+_TEXT *fin;
 Char *finidp;
 {
+  /*
+
+
+
+*/
   long index = 0;
   idutype finidu;
 
-  while (P_peek(*fin) == ' ')
-    getc(*fin);
-/* p2c: dbbk.p, line 245: Note:
- * File parameter fin can't access buffers (try StructFiles = 1) [318] */
+  while (P_peek(fin->f) == ' ')
+    getc(fin->f);
 
 
 
-  while (((P_peek(*fin) != ' ') & (P_peek(*fin) != '_')) && index < idlength) {
+  while (((P_peek(fin->f) != ' ') & (P_peek(fin->f) != '_')) &&
+	 index < idlength) {
     index++;
-    if (P_eoln(*fin))
+    if (P_eoln(fin->f))
       finidu[index-1] = ' ';
     else {
-      finidu[index-1] = getc(*fin);
+      finidu[index-1] = getc(fin->f);
       if (finidu[index-1] == '\n')
 	finidu[index-1] = ' ';
     }
@@ -291,32 +456,40 @@ Char *finidp;
   }
 
 
-  while ((P_peek(*fin) == ' ') | (P_peek(*fin) == '_'))
-    getc(*fin);
-/* p2c: dbbk.p, line 262: Note:
- * File parameter fin can't access buffers (try StructFiles = 1) [318] */
+  while ((P_peek(fin->f) == ' ') | (P_peek(fin->f) == '_'))
+    getc(fin->f);
+
 
 
   if (index > genuslimit)
     index = genuslimit;
+
 
   index++;
 
 
   finidu[index-1] = '.';
 
-  while (!P_eoln(*fin)) {
+
+  /*
+
+*/
+  /*
+*/
+  while (!P_eoln(fin->f)) {
     index++;
-    if (P_eoln(*fin)) {
+    if (P_eoln(fin->f)) {
       finidu[index-1] = ' ';
       continue;
     }
-    finidu[index-1] = getc(*fin);
+    finidu[index-1] = getc(fin->f);
     if (finidu[index-1] == '\n')
       finidu[index-1] = ' ';
     if (finidu[index-1] == ' ')
       finidu[index-1] = '-';
   }
+
+
 
   while (index < idlength) {
     index++;
@@ -327,192 +500,232 @@ Char *finidp;
 }
 
 
-/* Local variables for pluckdigit: */
-struct LOC_pluckdigit {
-  long place, myabsolute;
-  Char acharacter;
-} ;
 
-Local Void digit(LINK)
-struct LOC_pluckdigit *LINK;
+Static Void getdatetime(adatetime)
+Char *adatetime;
 {
-  long tenplace, z, d;
+  /*
 
-  tenplace = LINK->place * 10;
-  z = LINK->myabsolute - LINK->myabsolute / tenplace * tenplace;
-  if (LINK->place == 1)
-    d = z;
-  else
-    d = z / LINK->place;
-  switch (d) {
 
-  case 0:
-    LINK->acharacter = '0';
-    break;
 
-  case 1:
-    LINK->acharacter = '1';
-    break;
 
-  case 2:
-    LINK->acharacter = '2';
-    break;
 
-  case 3:
-    LINK->acharacter = '3';
-    break;
+*/
+  Char adate[datetimearraylength], atime[datetimearraylength];
+  /*
 
-  case 4:
-    LINK->acharacter = '4';
-    break;
 
-  case 5:
-    LINK->acharacter = '5';
-    break;
+*/
+  Char month[3];
+  long index;
 
-  case 6:
-    LINK->acharacter = '6';
-    break;
+  /*
 
-  case 7:
-    LINK->acharacter = '7';
-    break;
 
-  case 8:
-    LINK->acharacter = '8';
-    break;
 
-  case 9:
-    LINK->acharacter = '9';
-    break;
+
+*/
+
+  VAXdate(adate);
+  VAXtime(atime);
+
+  /*
+
+*/
+
+
+  for (index = 1; index <= 4; index++)
+    adatetime[index-1] = adate[index+6];
+  adatetime[4] = '/';
+  for (index = 4; index <= 6; index++)
+    month[index-4] = adate[index-1];
+  if (!strncmp(month, "JAN", 3)) {
+    adatetime[5] = '0';
+    adatetime[6] = '1';
+  } else if (!strncmp(month, "FEB", 3)) {
+    adatetime[5] = '0';
+    adatetime[6] = '2';
+  } else if (!strncmp(month, "MAR", 3)) {
+    adatetime[5] = '0';
+    adatetime[6] = '3';
+  } else if (!strncmp(month, "APR", 3)) {
+    adatetime[5] = '0';
+    adatetime[6] = '4';
+  } else if (!strncmp(month, "MAY", 3)) {
+    adatetime[5] = '0';
+    adatetime[6] = '5';
+  } else if (!strncmp(month, "JUN", 3)) {
+    adatetime[5] = '0';
+    adatetime[6] = '6';
+  } else if (!strncmp(month, "JUL", 3)) {
+    adatetime[5] = '0';
+    adatetime[6] = '7';
+  } else if (!strncmp(month, "AUG", 3)) {
+    adatetime[5] = '0';
+    adatetime[6] = '8';
+  } else if (!strncmp(month, "SEP", 3)) {
+    adatetime[5] = '0';
+    adatetime[6] = '9';
+  } else if (!strncmp(month, "OCT", 3)) {
+    adatetime[5] = '1';
+    adatetime[6] = '0';
+  } else if (!strncmp(month, "NOV", 3)) {
+    adatetime[5] = '1';
+    adatetime[6] = '1';
+  } else if (!strncmp(month, "DEC", 3)) {
+    adatetime[5] = '1';
+    adatetime[6] = '2';
   }
+  adatetime[7] = '/';
+  for (index = 7; index <= 8; index++)
+    adatetime[index+1] = adate[index-7];
+
+
+  if (adatetime[5] == ' ')
+    adatetime[5] = '0';
+  if (adatetime[8] == ' ')
+    adatetime[8] = '0';
+
+  adatetime[10] = ' ';
+  for (index = 10; index <= 17; index++)
+    adatetime[index+1] = atime[index-10];
 }
 
 
-Local Char pluckdigit(number, logplace)
-long number, logplace;
-{
-  struct LOC_pluckdigit V;
-  long count;
-
-  V.place = 1;
-  for (count = 1; count <= logplace; count++)
-    V.place *= 10;
-  if (number == 0) {
-    V.acharacter = '0';
-    return V.acharacter;
-  }
-  V.myabsolute = number;
-  if (V.myabsolute >= V.place)
-    digit(&V);
-  else
-    V.acharacter = '0';
-  return V.acharacter;
-}
-
-
-Static Void getdatetime(Char *adatetime)
-{
-  char temp[18];      
-	time_t current_time = time(NULL);           /* stores calendar time  */
-	struct tm *tm = localtime(&current_time);   /* value of timer is stored in the struct */
-	strftime(temp, sizeof(temp), "%x %H:%M %p", tm );
-	printf("\n %s \n", temp);
-  strcpy(adatetime, temp);
-
-}
 
 Static Void writedatetime(thefile, adatetime)
-FILE **thefile;
+_TEXT *thefile;
 Char *adatetime;
 {
   long index;
 
   for (index = 0; index < datetimearraylength; index++)
-    putc(adatetime[index], *thefile);
+    putc(adatetime[index], thefile->f);
 }
 
+
+
 Static Void readdatetime(thefile, adatetime)
-FILE **thefile;
+_TEXT *thefile;
 Char *adatetime;
 {
+  /*
+
+
+
+*/
+  /*
+
+
+
+*/
   long index;
+  /*
+*/
   Char udatetime[datetimearraylength];
 
   for (index = 0; index < datetimearraylength; index++) {
-    udatetime[index] = getc(*thefile);
+    udatetime[index] = getc(thefile->f);
     if (udatetime[index] == '\n')
       udatetime[index] = ' ';
   }
   memcpy(adatetime, udatetime, sizeof(datetimearray));
-  if (adatetime[2] == '/' && adatetime[11] == ':')
-    printf(" old datetime (only 2 year digits) read: %.*s\n",
-	   datetimearraylength, adatetime);
-/* p2c: dbbk.p, line 396: Note:
- * Format for packed-array-of-char will work only if width < length [321] */
+  if (adatetime[2] == '/' && adatetime[11] == ':') {
+    printf("You have an old datetime (only 2 year digits): \n");
+    for (index = 0; index < datetimearraylength; index++)
+      putchar(adatetime[index]);
+    printf("\nConvert your database to 4 digit years.\n");
+    halt();
+  }
+  /*
+
+*/
+  if (adatetime[4] == '/' && adatetime[7] == '/' && adatetime[13] == ':' &&
+      adatetime[16] == ':')
+    return;
+  printf("readdatetime: bad date time read:\n");
+  for (index = 0; index < datetimearraylength; index++)
+    putchar(adatetime[index]);
+  putchar('\n');
+  halt();
 }
 
-Static boolean isblank(c){
-  Char c;
-  if( c == ' ' ||  c == 9){
-    return true;
-  } else {
-    return false;
-  }
+
+#define tab             9
+
+
+
+
+
+
+Static boolean isblankDelila(c)
+Char c;
+{
+  return (c == ' ' || c == tab);
 }
+
+#undef tab
 
 
 Static Void skipblanks(thefile)
-FILE **thefile;
+_TEXT *thefile;
 {
-  while (isblank(P_peek(*thefile)) & (!P_eoln(*thefile)))
-    getc(*thefile);
-/* p2c: dbbk.p, line 411: Note: File
- * parameter thefile can't access buffers (try StructFiles = 1) [318] */
+  while (isblankDelila(P_peek(thefile->f)) & (!P_eoln(thefile->f)))
+    getc(thefile->f);
 }
 
 
 Static Void skipnonblanks(thefile)
-FILE **thefile;
+_TEXT *thefile;
 {
-  while ((!isblank(P_peek(*thefile))) & (!P_eoln(*thefile)))
-    getc(*thefile);
-/* p2c: dbbk.p, line 417: Note: File
- * parameter thefile can't access buffers (try StructFiles = 1) [318] */
+  while ((!isblankDelila(P_peek(thefile->f))) & (!P_eoln(thefile->f)))
+    getc(thefile->f);
 }
 
 
 Static Void skipcolumn(thefile)
-FILE **thefile;
+_TEXT *thefile;
 {
   skipblanks(thefile);
   skipnonblanks(thefile);
 }
 
 
+
+
 Static Void note(fout, piecenum)
-FILE **fout;
+_TEXT *fout;
 long piecenum;
 {
-  fprintf(*fout, "note\n");
-  fprintf(*fout, "* #%ld\n", piecenum);
-  fprintf(*fout, "note\n");
+  /*
+*/
+  fprintf(fout->f, "note\n");
+  fprintf(fout->f, "* #%ld\n", piecenum);
+  fprintf(fout->f, "note\n");
 }
 
 
+
+
+
 Static Void dna(fin, fout, libtitle, entryname)
-FILE **fin, **fout;
+_TEXT *fin, *fout;
 libsused libtitle;
 Char *entryname;
 {
+  /*
+*/
+  /*
+*/
   long basenumber = 0;
   long dumpint;
   lcutype finlcu;
   lcptype finlcp;
+
   boolean inchanges = false;
   long changestart = -LONG_MAX;
 
-  fprintf(*fout, "dna\n");
+  fprintf(fout->f, "dna\n");
   switch (libtitle) {
 
   case none:
@@ -521,18 +734,22 @@ Char *entryname;
     halt();
     break;
 
+  /*
+*/
   case embl:
     do {
       readlcu(fin, finlcu, finlcp);
       if (lcequal(finlcp, lc3spc)) {
-	fprintf(*fout, "* ");
+	fprintf(fout->f, "* ");
+
 	copydna(fin, fout, &changes, &basenumber, entryname, &inchanges,
 		&changestart);
       }
-
+      /*
+*/
       else {
-	fscanf(*fin, "%*[^\n]");
-	getc(*fin);
+	fscanf(fin->f, "%*[^\n]");
+	getc(fin->f);
       }
     } while (!lcequal(finlcp, lcterm));
     break;
@@ -540,72 +757,110 @@ Char *entryname;
   case genb:
     readlcu(fin, finlcu, finlcp);
     while ((!lcequal(finlcp, lcsit)) & (!lcequal(finlcp, lcterm))) {
-      fscanf(*fin, "%ld", &dumpint);
-      fprintf(*fout, "* ");
+      fscanf(fin->f, "%ld", &dumpint);
+      /*
+
+*/
+      fprintf(fout->f, "* ");
       copydna(fin, fout, &changes, &basenumber, entryname, &inchanges,
 	      &changestart);
       readlcu(fin, finlcu, finlcp);
     }
+    /*
+*/
     break;
   }
 
   if (inchanges)
     finishchanges(&changes, &inchanges, &changestart, entryname, basenumber);
-  fprintf(*fout, "dna\n");
+  fprintf(fout->f, "dna\n");
 }
 
 
+
+
+
 Static Void piece(fin, fout, piecenum, libtitle, bpint, entryname, topology)
-FILE **fin, **fout;
+_TEXT *fin, *fout;
 long piecenum;
 libsused libtitle;
 long bpint;
 Char *entryname;
 Char topology;
 {
+  /*
+*/
+  /*
+*/
+  /*
+*/
   long index;
 
-  fprintf(*fout, "piece\n");
+  fprintf(fout->f, "piece\n");
   writeidptype(fout, true, true, entryname);
-  fprintf(*fout, "* \n");
+  fprintf(fout->f, "* \n");
   note(fout, piecenum);
-  fprintf(*fout, "* 1\n");
-
+  fprintf(fout->f, "* 1\n");
+  /*
+*/
   for (index = 1; index <= 2; index++) {
     if (topology == 'l')
-      fprintf(*fout, "* linear\n");
+      fprintf(fout->f, "* linear\n");
     else
-      fprintf(*fout, "* circular\n");
-    fprintf(*fout, "* +\n");
-    fprintf(*fout, "* 1\n");
-    fprintf(*fout, "* %ld\n", bpint);
+      fprintf(fout->f, "* circular\n");
+    fprintf(fout->f, "* +\n");
+    fprintf(fout->f, "* 1\n");
+    fprintf(fout->f, "* %ld\n", bpint);
   }
   dna(fin, fout, libtitle, entryname);
-  fprintf(*fout, "piece\n");
+  /*
+
+*/
+  fprintf(fout->f, "piece\n");
 }
+
+
 
 
 Static Void chromosome(fin, fout, piecenum, libtitle, bpint, entryname,
 		       orgname, topology)
-FILE **fin, **fout;
+_TEXT *fin, *fout;
 long piecenum;
 libsused libtitle;
 long bpint;
 Char *entryname, *orgname;
 Char topology;
 {
-  fprintf(*fout, "chromosome\n");
+  /*
+*/
+  /*
+*/
+  /*
+*/
+  /*
+*/
+  fprintf(fout->f, "chromosome\n");
+
+  /*
+
+
+*/
+
   writeidptype(fout, true, true, orgname);
-  fprintf(*fout, "* \n");
-  fprintf(*fout, "* 1\n");
-  fprintf(*fout, "* %ld\n", bpint);
+  fprintf(fout->f, "* \n");
+
+  fprintf(fout->f, "* 1\n");
+  fprintf(fout->f, "* %ld\n", bpint);
   piece(fin, fout, piecenum, libtitle, bpint, entryname, topology);
 }
 
 
+
+
+
 Static Void organism(fin, fout, piecenum, libtitle, bpint, entryname,
 		     firstorganism, orgname, oldorgname, topology)
-FILE **fin, **fout;
+_TEXT *fin, *fout;
 long piecenum;
 libsused libtitle;
 long bpint;
@@ -614,7 +869,22 @@ boolean *firstorganism;
 Char *orgname, *oldorgname;
 Char topology;
 {
-  FILE *TEMP;
+  /*
+*/
+  /*
+*/
+  /*
+*/
+  /*
+*/
+  /*
+*/
+  /*
+*/
+  /*
+
+*/
+  _TEXT TEMP;
 
   if (idequal(orgname, oldorgname))
     piece(fin, fout, piecenum, libtitle, bpint, entryname, topology);
@@ -622,52 +892,72 @@ Char topology;
     if (*firstorganism)
       *firstorganism = false;
     else {
-      fprintf(*fout, "chromosome\n");
-      fprintf(*fout, "organism\n");
+      fprintf(fout->f, "chromosome\n");
+      fprintf(fout->f, "organism\n");
     }
 
+
     printf("organism ");
-    TEMP = stdout;
-/* p2c: dbbk.p, line 569:
- * Note: Taking address of stdout; consider setting VarFiles = 0 [144] */
+    TEMP.f = stdout;
+    *TEMP.name = '\0';
     writeidptype(&TEMP, true, true, orgname);
 
-    fprintf(*fout, "organism\n");
+    fprintf(fout->f, "organism\n");
 
     writeidptype(fout, true, true, orgname);
-    fprintf(*fout, "* \n");
+    fprintf(fout->f, "* \n");
 
-    fprintf(*fout, "* bases\n");
+    fprintf(fout->f, "* bases\n");
     chromosome(fin, fout, piecenum, libtitle, bpint, entryname, orgname,
 	       topology);
 
     idcopy(orgname, oldorgname);
   }
-  TEMP = stdout;
+  TEMP.f = stdout;
+  *TEMP.name = '\0';
 
-/* p2c: dbbk.p, line 583:
- * Note: Taking address of stdout; consider setting VarFiles = 0 [144] */
+
   writeidptype(&TEMP, false, false, entryname);
   putchar('\n');
 }
 
 
+
+
+
 Static Void getentry(fin, fout, piecenum, firstorganism, oldorgname)
-FILE **fin, **fout;
+_TEXT *fin, *fout;
 long piecenum;
 boolean *firstorganism;
 Char *oldorgname;
 {
+  /*
+*/
+  /*
+*/
+  /*
+
+*/
+  /*
+*/
   boolean done = false;
   idptype dumpword;
+  /*
+*/
   lcutype finlcu;
   lcptype finlcp;
   libsused libtitle;
+  /*
+*/
   long bpint;
+  /*
+*/
   idptype entryname, locusname, orgname;
+  /*
+*/
 
   Char topology;
-  FILE *TEMP;
+  _TEXT TEMP;
 
   do {
     readlcu(fin, finlcu, finlcp);
@@ -678,25 +968,27 @@ Char *oldorgname;
       do {
 	readlcu(fin, finlcu, finlcp);
 	if (lcequal(finlcp, lcos)) {
+	  /*
+*/
 	  getid(fin, orgname);
 	  done = true;
 	}
-
-	fscanf(*fin, "%*[^\n]");
-	getc(*fin);
+	fscanf(fin->f, "%*[^\n]");
+	getc(fin->f);
       } while (!done);
       done = false;
       do {
 	readlcu(fin, finlcu, finlcp);
-	if (lcequal(finlcp, lcsq) | P_eof(*fin)) {
+	if (lcequal(finlcp, lcsq) | BUFEOF(fin->f)) {
 	  getid(fin, dumpword);
-	  fscanf(*fin, "%ld%*[^\n]", &bpint);
-	  getc(*fin);
-
+	  fscanf(fin->f, "%ld%*[^\n]", &bpint);
+	  getc(fin->f);
+	  /*
+*/
 	  done = true;
 	} else {
-	  fscanf(*fin, "%*[^\n]");
-	  getc(*fin);
+	  fscanf(fin->f, "%*[^\n]");
+	  getc(fin->f);
 	}
       } while (!done);
       topology = 'l';
@@ -705,128 +997,178 @@ Char *oldorgname;
     } else if (lcequal(finlcp, lcloc)) {
       libtitle = genb;
 
-/* p2c: dbbk.p, line 646: Note:
- * File parameter fin can't access buffers (try StructFiles = 1) [318] */
-      getc(*fin);
-/* p2c: dbbk.p, line 646: Note:
- * File parameter fin can't access buffers (try StructFiles = 1) [318] */
-      getc(*fin);
+      getc(fin->f);
+      getc(fin->f);
+
+      /*
+
+
+*/
 
       getid(fin, locusname);
-      fscanf(*fin, "%ld", &bpint);
+      fscanf(fin->f, "%ld", &bpint);
       skipcolumn(fin);
       skipcolumn(fin);
       skipblanks(fin);
-      if (P_eoln(*fin)) {
+      if (P_eoln(fin->f)) {
 	printf("Cannot get topology for ");
-	TEMP = stdout;
-/* p2c: dbbk.p, line 655:
- * Note: Taking address of stdout; consider setting VarFiles = 0 [144] */
+	TEMP.f = stdout;
+	*TEMP.name = '\0';
 	writeidptype(&TEMP, false, true, locusname);
 	halt();
       }
-      if ((P_peek(*fin) == 'l') | (P_peek(*fin) == 'c'))
-	topology = P_peek(*fin);
+      if ((P_peek(fin->f) == 'l') | (P_peek(fin->f) == 'c'))
+	topology = P_peek(fin->f);
       else {
 	printf("Topology for ");
-	TEMP = stdout;
-/* p2c: dbbk.p, line 662:
- * Note: Taking address of stdout; consider setting VarFiles = 0 [144] */
+	TEMP.f = stdout;
+	*TEMP.name = '\0';
 	writeidptype(&TEMP, false, false, locusname);
 	printf(" is not l(inear) or c(ircular)\n");
-	while (!P_eoln(*fin)) {
-	  putchar(P_peek(*fin));
-/* p2c: dbbk.p, line 666: Note:
- * File parameter fin can't access buffers (try StructFiles = 1) [318] */
-	  getc(*fin);
+	while (!P_eoln(fin->f)) {
+	  putchar(P_peek(fin->f));
+	  getc(fin->f);
 	}
 	printf("\nASSUMING LINEAR\n");
 
 	topology = 'l';
       }
-      fscanf(*fin, "%*[^\n]");
+      fscanf(fin->f, "%*[^\n]");
+
+      /*
 
 
-      getc(*fin);
-      while (P_peek(*fin) != 'V') {
-	fscanf(*fin, "%*[^\n]");
-	getc(*fin);
-	if (!P_eof(*fin)) {
+*/
 
+      /*
+
+
+*/
+      /*
+
+
+*/
+      /*
+
+
+
+
+
+
+
+
+
+
+
+*/
+
+
+
+      /*
+
+
+
+
+
+
+
+*/
+      getc(fin->f);
+      /*
+
+
+
+*/
+      while (P_peek(fin->f) != 'V') {
+	fscanf(fin->f, "%*[^\n]");
+	getc(fin->f);
+	if (!BUFEOF(fin->f))
 	  continue;
-	}
 
-	rewind(*fin);
-	while (P_peek(*fin) != 'A') {
-	  fscanf(*fin, "%*[^\n]");
-	  getc(*fin);
-	  if (P_eof(*fin)) {
+	if (*fin->name != '\0') {
+	  if (fin->f != NULL)
+	    fin->f = freopen(fin->name, "r", fin->f);
+	  else
+	    fin->f = fopen(fin->name, "r");
+	} else
+	  rewind(fin->f);
+	if (fin->f == NULL) {
+
+	  _EscIO2(FileNotFound, fin->name);
+	}
+	RESETBUF(fin->f, Char);
+	while (P_peek(fin->f) != 'A') {
+	  fscanf(fin->f, "%*[^\n]");
+	  getc(fin->f);
+	  if (BUFEOF(fin->f)) {
 	    printf("could not find VERSION or ACCESSSION\n");
 	    halt();
 	  }
 	}
       }
 
-      while (P_peek(*fin) != ' ')
-	getc(*fin);
-/* p2c: dbbk.p, line 692: Note:
- * File parameter fin can't access buffers (try StructFiles = 1) [318] */
-      while (P_peek(*fin) == ' ')
-	getc(*fin);
-/* p2c: dbbk.p, line 693: Note:
- * File parameter fin can't access buffers (try StructFiles = 1) [318] */
+      while (P_peek(fin->f) != ' ')
+	getc(fin->f);
+      while (P_peek(fin->f) == ' ')
+	getc(fin->f);
       getid(fin, entryname);
 
       do {
 	readlcu(fin, finlcu, finlcp);
 
 	if (lcequal(finlcp, lcbas)) {
+	  /*
+
+*/
 	  done = true;
 	  printf("WARNING: in entry ");
-	  TEMP = stdout;
-/* p2c: dbbk.p, line 704:
- * Note: Taking address of stdout; consider setting VarFiles = 0 [144] */
+	  TEMP.f = stdout;
+	  *TEMP.name = '\0';
 	  writeidptype(&TEMP, false, false, entryname);
 	  printf("there was no ORGANISM.  Using:");
-	  TEMP = stdout;
-/* p2c: dbbk.p, line 706:
- * Note: Taking address of stdout; consider setting VarFiles = 0 [144] */
+	  TEMP.f = stdout;
+	  *TEMP.name = '\0';
 	  writeidptype(&TEMP, false, false, entryname);
 	  memcpy(orgname, entryname, sizeof(idptype));
-	}
-
-	else {
-	  if (lcequal(finlcp, lcdef) | P_eof(*fin)) {
+	} else {
+	  if (lcequal(finlcp, lcdef) | BUFEOF(fin->f)) {
 	    getid(fin, dumpword);
 	    getspecies(fin, orgname);
 	    done = true;
 	  }
-	  fscanf(*fin, "%*[^\n]");
-	  getc(*fin);
+	  fscanf(fin->f, "%*[^\n]");
+	  getc(fin->f);
 	}
       } while (!done);
 
       do {
 	readlcu(fin, finlcu, finlcp);
-	fscanf(*fin, "%*[^\n]");
-	getc(*fin);
+	fscanf(fin->f, "%*[^\n]");
+	getc(fin->f);
       } while (!lcequal(finlcp, lcori));
       organism(fin, fout, piecenum, libtitle, bpint, entryname, firstorganism,
 	       orgname, oldorgname, topology);
 
     } else {
       libtitle = none;
-
-      fscanf(*fin, "%*[^\n]");
-      getc(*fin);
+      /*
+*/
+      fscanf(fin->f, "%*[^\n]");
+      getc(fin->f);
     }
-  } while (!((libtitle != none) | P_eof(*fin)));
+  } while (!((libtitle != none) | BUFEOF(fin->f)));
+
 }
 
 
+
+
+
 Static Void datebook(fin, fout)
-FILE **fin, **fout;
+_TEXT *fin, *fout;
 {
+  /*
+*/
   long index;
   Char dumpchar;
   boolean findated = false;
@@ -837,51 +1179,86 @@ FILE **fin, **fout;
   readlcu(fin, finlcu, finlcp);
   if (lcequal(finlcp, lcdat)) {
     findated = true;
-    dumpchar = getc(*fin);
+    dumpchar = getc(fin->f);
     if (dumpchar == '\n')
       dumpchar = ' ';
     do {
-      getc(*fin);
-    } while (P_peek(*fin) == ' ');
-/* p2c: dbbk.p, line 760: Note:
- * File parameter fin can't access buffers (try StructFiles = 1) [318] */
+      getc(fin->f);
+    } while (P_peek(fin->f) == ' ');
     readdatetime(fin, oldate);
-    fscanf(*fin, "%*[^\n]");
-    getc(*fin);
-  } else
-    rewind(*fin);
+    fscanf(fin->f, "%*[^\n]");
+    getc(fin->f);
+  } else {
+    if (*fin->name != '\0') {
+      if (fin->f != NULL)
+	fin->f = freopen(fin->name, "r", fin->f);
+      else
+	fin->f = fopen(fin->name, "r");
+    } else
+      rewind(fin->f);
+    if (fin->f == NULL)
+      _EscIO2(FileNotFound, fin->name);
+    RESETBUF(fin->f, Char);
+  }
   getdatetime(adatetime);
-  fprintf(*fout, "* ");
+  fprintf(fout->f, "* ");
   if (findated) {
     writedatetime(fout, adatetime);
-    fprintf(*fout, ", ");
+    fprintf(fout->f, ", ");
     writedatetime(fout, oldate);
-    fprintf(*fout, ", ");
+    fprintf(fout->f, ", ");
     return;
   }
   for (index = 1; index <= 2; index++) {
     writedatetime(fout, adatetime);
-    fprintf(*fout, ", ");
+    fprintf(fout->f, ", ");
   }
 }
 
 
+
+
+
 Static Void order(fin, fout)
-FILE **fin, **fout;
+_TEXT *fin, *fout;
 {
+  /*
+*/
   boolean firstorganism = true;
+  /*
+
+*/
   idptype oldorgname;
+  /*
+*/
   long piecenum = 0;
 
-  rewind(*fin);
-/* p2c: dbbk.p, line 791: Note: REWRITE does not specify a name [181] */
-  if (*fout != NULL)
-    rewind(*fout);
-  else
-    *fout = tmpfile();
-  if (*fout == NULL)
-    _EscIO(FileNotFound);
-  if (P_eof(*fin)) {
+
+  if (*fin->name != '\0') {
+    if (fin->f != NULL)
+      fin->f = freopen(fin->name, "r", fin->f);
+    else
+      fin->f = fopen(fin->name, "r");
+  } else
+    rewind(fin->f);
+  if (fin->f == NULL)
+    _EscIO2(FileNotFound, fin->name);
+  RESETBUF(fin->f, Char);
+  if (*fout->name != '\0') {
+    if (fout->f != NULL)
+      fout->f = freopen(fout->name, "w", fout->f);
+    else
+      fout->f = fopen(fout->name, "w");
+  } else {
+    if (fout->f != NULL)
+      rewind(fout->f);
+    else
+      fout->f = tmpfile();
+  }
+  if (fout->f == NULL)
+    _EscIO2(FileNotFound, fout->name);
+  SETUPBUF(fout->f, Char);
+  if (BUFEOF(fin->f)) {
     printf(" INPUT FILE FIN IS EMPTY\n");
     halt();
   }
@@ -889,16 +1266,19 @@ FILE **fin, **fout;
   notwarned = true;
 
 
+
+
   datebook(fin, fout);
-  fprintf(*fout, "dbbk %4.2f\n", version);
+  fprintf(fout->f, "dbbk %4.2f\n", version);
 
   do {
     piecenum++;
     getentry(fin, fout, piecenum, &firstorganism, oldorgname);
-  } while (!P_eof(*fin));
+  } while (!BUFEOF(fin->f));
 
-  fprintf(*fout, "chromosome\n");
-  fprintf(*fout, "organism\n");
+
+  fprintf(fout->f, "chromosome\n");
+  fprintf(fout->f, "organism\n");
 
   if (!notwarned) {
     printf("WARNING: some sequences have been altered,");
@@ -906,24 +1286,79 @@ FILE **fin, **fout;
   }
 }
 
-
 int main(int argc, Char **argv)
 {
+
+  extern char *optarg;
+	extern int optind;
+	int c, err = 0; 
+	int fflag=0;
+  int cflag=0;
+  int oflag=0;
+	char *fName = "filename.txt";
+  char *change = "outputChanges.txt";
+  char *outFile = "output.txt";
+	static char usage[] = "usage: %s -f genome.gff -c changes.txt -o output.txt\n";
+
+while ((c = getopt(argc, argv, "f:c:o:")) != -1)
+		switch (c) {
+		case 'o':
+      oflag = 1;
+			outFile = optarg;
+			break;
+		case 'f':
+      fflag = 1;
+			fName = optarg;
+			break;
+		case 'c':
+      cflag = 1;
+			change = optarg;
+			break;
+		case '?':
+			err = 1;
+			break;
+		}
+	if (oflag == 0) {	/* -o was mandatory */ 
+		fprintf(stderr, "%s: missing -o option\n", argv[0]);
+		fprintf(stderr, usage, argv[0]);
+		exit(1);
+	} 
+    
+    if (fflag == 0) { /* -f was mandatory */        
+		fprintf(stderr, "%s: missing -f option\n", argv[0]);
+		fprintf(stderr, usage, argv[0]);
+		exit(1);
+    } 
+    
+    if (cflag == 0) { 
+        fprintf(stderr, "%s: missing -c option really\n", argv[0]);
+		fprintf(stderr, usage, argv[0]);
+		exit(1);
+    } 
+
+    if (err) {
+		fprintf(stderr, usage, argv[0]);
+		exit(1);
+	}
+
   PASCAL_MAIN(argc, argv);
   if (setjmp(_JL1))
     goto _L1;
-  changes = NULL;
-  l1 = NULL;
-  db = NULL;
+  changes.f = NULL;
+  strcpy(changes.name, change);
+  l1.f = NULL;
+  strcpy(l1.name, outFile);
+  db.f = NULL;
+  strcpy(db.name, fName);
   printf(" dbbk %4.2f\n", version);
   order(&db, &l1);
 _L1:
-  if (db != NULL)
-    fclose(db);
-  if (l1 != NULL)
-    fclose(l1);
-  if (changes != NULL)
-    fclose(changes);
+  if (db.f != NULL)
+    fclose(db.f);
+  if (l1.f != NULL)
+    fclose(l1.f);
+  if (changes.f != NULL)
+    fclose(changes.f);
   exit(EXIT_SUCCESS);
 
   return 0;
