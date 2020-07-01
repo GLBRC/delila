@@ -1,188 +1,239 @@
 /* Output from p2c 2.00.Oct.15, the Pascal-to-C translator */
 /* From input file "dbbk.p" */
 
+/* dbbk: database into delila book conversion program
+        by Matthew Yarus
+ modified by:
+   Thomas D. Schneider, Ph.D.
+   toms@alum.mit.edu
+   https://alum.mit.edu/www/toms 
+ 
+   module libraries required: delman, delmods
 
+2018 Jan 06, 3.50: Use verson number when possible, otherwise give 1?
+2017 Oct 02, 3.49: Allow ACCESSION line for old files
+2017 Feb 09, 3.48: put VERSION number on the piece name
+                   since that is now standard!!!
+2011 Mar 17, 3.47: if can't find topology assume linear
+2009 Apr 08, 3.46: correct test for VERSION
+2008 Nov 03, 3.45: use VERSION instead of ACCESSION to get the version number
+2007 Dec 06, 3.44: make the piece circular in the l1 if in the db
+2007 Apr 03, 3.43: allow underscores in ORGANISM name
+2006 Oct 25, 3.42: allow for strain name in organism:
+  ORGANISM  Escherichia coli K12
+  gives E.coli-K12
+2004 Jul  8, 3.41: upgrade to gpctime
+2003 Aug 19, 3.40: unknown sequences are now marked by 'unknown' and '?'.
+2003 Aug 19, 3.39: cleanup
+2003 Aug 19, 3.38: changes reported in blocks
+2003 Aug 19, 3.36: improve changes so that they are in blocks
+2000 Sep  6, 3.35: name lengths increased
+1999 Jun 15: fixed bug in copydna that was counting spaces as bases,
+             resulting in misplacement of changes features.
+1999 Feb 11: make absolutely sure that there are no weird
+             control characters copied to the DNA sequence output.
+1997 May 4: unrecorded changes
+1996 August 17: the changes file now uses the features format of the lister
+   program so that the changes can be easily observed.
+1995 December 8: program does not write long names anymore.
+   This allows the new <NAME> feature of delila to give blanks
+   and therefore the alist will not list accesion numbers for full names.
+1994 June 10: program now uses ACCESSION numbers!
+1992 sep 14: program now has input from db and output to l1 to fit catal.
+origin before 1983 july 19 *)
 
+name
+      dbbk: database to delila book conversion program
+synopsis
+      dbbk(db: in, l1: out, changes: out, output: out)
+files
+      db: contains one or more complete entries from either the EMBL
+         or GenBank genetic sequence data bases.  These entries may be
+         obtained by using the original libraries or by using an entry
+         extraction program.  Dbpull is the delila program for data base
+         accessing; to get complete entries the instruction 'all' must
+         have been used in the dbpull fin file.  (See delman.use.dbpull)
 
+      l1: each db entry is represented in l1 by a delila style
+         entry containing information extracted from the db entry.
+         All of l1 has the biologically oriented structure of
+         a standard delila book.  The first line of l1 is not part
+         of an entry, but contains the computer system date and the
+         title of the book.
 
+      changes: Delila programs cannot handle sequences that have
+         ambiguities because Delila was designed on the assumption
+         that people would finish their sequences.  Unfortunately
+         this is not true, and the databases contain bases other
+         than acgt to indicate ambiguity.  These are converted to
+         "a" and the cases are reported in this file as "unknown".
+         NOTE:  "u" is converted to "t".
 
+         The format is the one that the lister program uses as
+         features.  In the lister map the unknown region is
+         marked by a string of question marks: "???????????".
 
-/* 
+      output: messages to the user.
+description
+
+      This program converts GenBank and EMBL data base entries into a
+      book of delila entries.  The organism name is fused together
+      with a period and is used for both organsim and chromosome
+      names.  Organism and chromosome only change if the name changes
+      in db.
+
+      The names of pieces were given by the ACCESSION number (1994
+      June 10) but this does not track the versions.  So on 2008 Nov
+      03 I switched it to VERSION which looks like: J04553.1.  This
+      works with catal and delila.
+
+examples
+
+      The changes file looks like:
+
+define "unknown:1220-4867" "?" "[]" "[]" 0 3646
+@ AC012525 1220.0 +1 "unknown:1220-4867" ""
+
+      Lister displays this as:
+
+            *         *1210     *         *1220
+ 5' c g t g g a a c a a g g a a g a a t t a a a a a 3'
+                                          [????????? ... unknown:1220-4867
+
+[for brevity the middle part is skipped]
+
+      *4850     *         *4860     *         *4870
+ 5' a a a a a a a a a a a a a a a a a a a a t a g a 3'
+... ??????????????????????????????????] unknown:1220-4867
+
+see also
+      delila.p, dbpull.p,  catal.p, libdef, lister.p
+
+author
+      Matthew Yarus and Tom Schneider (modifications)
+
+bugs
+      Databases do not have enough data on genes within each piece to make
+      a book with gene sections.
+
+      The changes file is a design bug in Delila.
+
+      Genus names are limited to genuslimit (a constant) to avoid
+      names longer than the standard Delila limit.
+
+      If a name is larger than idlength  the program simply stops
+      reading the name and then dies when it reads the number of bases
+      in the entry.  This is currently fixed by making the name 100
+      characters but should be done better later.
+
+technical notes
+
+      dbbk is known to convert GenBank entries from July 1989.
+      It may not work on later versions.
+
 To COMPILE:
-
 gcc  dbbk.c -o dbbk  -I/home/mplace/bin/p2c/src -L /home/mplace/bin/p2c/src -lm -lp2c
 
 TO RUN:
 ./dbbk -f ../rhodo_genome.gbff -o dbbk_OUTTEST  -c changes_OUTTEST.txt
-
- */
-
-
+*/
 #include <getopt.h>  /* getopt API */ 
 #include <stdio.h> /* printf */
 #include <stdlib.h> 
 #include </home/mplace/bin/p2c/src/p2c.h>
 
 #define version         3.50
+#define datetimearraylength  19  /* length of dataarray for dates,
+       It is just long enough to include the 4 digit year - solving the
+       year 2000 problem: */
 
+#define idlength        100 /* length of identification code at beginning of each
+                        db library entry */
+#define namelength      idlength   /* length of computer system date */
+#define lclength        3   /* length of codes identifying each library line,
+                            'lc' stands for 'line codes' */
+#define lcloc           "LOC" /* short for locus, line code for genb entry
+                           starting line. this line contains the entry id */
+#define lcid            "ID "  /* marks starting line of embl entry, also has id */
+#define lc3spc          "   "  /* three space line code always marks sequence
+                               lines of embl type entry */
+#define lcos            "OS " /* marks line of embl entry which contains a
+                             name for the organism where the sequence is */
+#define lcdef           "  O" /*  stands for 'ORGANISM', does for genb what
+                              'os' does for embl */
+#define lcbas           "BAS"  /* stands for 'BASE COUNT', the line just before
+                               ORIGIN in Genbank (hopefully...) */
+#define lcsq            "SQ " /* marks line just above embl sequence. this line
+                             holds an origin and a base pair total */
+#define lcori           "ORI" /* short for 'origin', code for line just above
+                              genb sequences. */
+#define lcsit           "SIT"  /* short for 'sites', line just below genb sequence */
+#define lcterm          "// " /* this code terminates every entry */
+#define lcdat           "DAT"  /* first 3 letters of 'date', the first word
+                                of a db dateline */
+#define genuslimit      1  /* maximum number of characters in the genus name
+                            to generate */
 
-/*
+ /* a 'u' after the 'lc' or 'id' in a type name indicates that the
+    array is unpacked; a 'p' indicates that the array is packed;
+    an 's' indicates that the array has more than one dimension */                           
 
+typedef Char idutype[idlength];  /* holds id for reading-writing before packing */
+typedef Char idptype[idlength];  /* holds id for string comparisons */
+typedef idptype alpha;           /* holds computer system date */
+typedef Char lcutype[lclength];  /* holds library line code for reading-writing before packing */
+typedef Char lcptype[lclength]; /* holds line codes for string comparisons */
 
-*/
-
-
-
-#define datetimearraylength  19
-/*
-
-*/
-
-
-
-
-
-#define idlength        100
-/*
-*/
-#define namelength      idlength
-#define lclength        3
-/*
-*/
-
-/*
-
-
-*/
-
-#define lcloc           "LOC"
-/*
-*/
-#define lcid            "ID "
-#define lc3spc          "   "
-/*
-*/
-#define lcos            "OS "
-/*
-*/
-/*
-*/
-#define lcdef           "  O"
-/*
-*/
-
-#define lcbas           "BAS"
-/*
-*/
-#define lcsq            "SQ "
-/*
-*/
-#define lcori           "ORI"
-/*
-*/
-#define lcsit           "SIT"
-#define lcterm          "// "
-#define lcdat           "DAT"
-/*
-*/
-
-#define genuslimit      1
-
-
-/*
-*/
-/*
-*/
-
-
-
-
-
-/*
-
-*/
-
-typedef Char idutype[idlength];
-
-
-typedef Char idptype[idlength];
-
-
-typedef idptype alpha;
-
-typedef Char lcutype[lclength];
-
-
-typedef Char lcptype[lclength];
-
-
+/* used to indicate whether an entry is of embl or genb type */
 typedef enum {
   embl, genb, none
 } libsused;
 
-
-
-
-
-
+/* array for dates */
 typedef Char datetimearray[datetimearraylength];
 
+Static _TEXT db; /* contains complete embl or genbank data base entries */
+Static _TEXT l1; /* contains one converted delila type entry for each entry in the db file */
 
-
-
-Static _TEXT db, l1;
-/*
-*/
-Static _TEXT changes;
-Static boolean notwarned;
-
-
+Static _TEXT changes;  /*  changes made to the sequences  */
+Static boolean notwarned;  /* True if the user has not yet been warned
+                           about changes of bases */
 Static jmp_buf _JL1;
-
-
-/*
-*/
-
-
-
 
 Static Void halt()
 {
-  /*
-
-
-
-
-
+  /* stop the program.  the procedure performs a goto to the end of the
+   program.  you must have a label:
+      label 1;
+   declared, and also the end of the program must have this label:
+      1: end.
+   examples are in the module libraries.
+   this is the only goto in the delila system.
 */
   printf(" program halt.\n");
   longjmp(_JL1, 1);
 }
 
-
-
+/* convert the character c to lower case */
 Static Void decapitilize(c)
 Char *c;
 {
   long n;
-
   n = *c;
 
   if (n >= 'A' && n <= 'Z')
     *c = _tolower(n);
 }
 
-
-
 Static Void writeidptype(fout, writeasterisk, carriagereturn, thename)
 _TEXT *fout;
 boolean writeasterisk, carriagereturn;
 Char *thename;
 {
-  /*
-*/
-  /*
-
+/** holds the name of the organism in which the sequence occurs *)
+(* Write the thename name to file fout.  If writeasterisk is true,
+then write "*" at the start.  If carriagereturn is true, add a carriage
+return at the end. *
 */
   long index = 1;
 
@@ -202,11 +253,12 @@ Char *thename;
 Static Void finishchanges(changes, inchanges, changestart, entryname,
 			  basenumber)
 _TEXT *changes;
-boolean *inchanges;
-long *changestart;
-Char *entryname;
-long basenumber;
+boolean *inchanges;  /* inside a set of changes? */
+long *changestart;   /* coordinate of start of changes */
+Char *entryname;     /* holds the name of a fout entry */
+long basenumber;     /* current coordinate */
 {
+  /* finish writing the change */
   *inchanges = false;
   fprintf(changes->f,
 	  "define \"unknown:%ld-%ld\" \"?\" \"[]\" \"[]\" 0 %ld\n",
@@ -215,10 +267,6 @@ long basenumber;
   writeidptype(changes, false, false, entryname);
   fprintf(changes->f, " %ld.0 +1 \"unknown:%ld-%ld\" \"\"\n",
 	  *changestart, *changestart, basenumber);
-  /*
-
-
-*/
 }
 
 
@@ -226,51 +274,47 @@ long basenumber;
 Static Void copydna(fin, fout, changes, basenumber, entryname, inchanges,
 		    changestart)
 _TEXT *fin, *fout, *changes;
-long *basenumber;
-Char *entryname;
-boolean *inchanges;
-long *changestart;
+long *basenumber;   /* count of bases written so far */
+Char *entryname;    /* holds the name of a fout entry */
+boolean *inchanges; /* inside a set of changes? */
+long *changestart;  /* coordinate of start of changes */
 {
-  /*
-*/
-  Char c;
+/*copy a line from file fin to file fout, converting the letters
+to lower case.  Report changes to the changes file */
+  Char c;  /* the character being manipulated */
 
   while (!P_eoln(fin->f)) {
     c = P_peek(fin->f);
     decapitilize(&c);
 
-    /*
-*/
+/* 1999 Feb 11: make absolutely sure that there are no weird
+   control characters copied to the DNA sequence output.  */
     if (c >= 'a' && c <= 'z' || c == ' ') {
       if (c >= 'a' && c <= 'z')
 	(*basenumber)++;
+/* convert 'u' to 't' */
+  if (c == 'u')
+    	c = 't';
 
-
-      if (c == 'u')
-	c = 't';
-
-
-      if (c != ' ' && c != 't' && c != 'g' && c != 'c' && c != 'a') {
-	if (notwarned) {
-	  notwarned = false;
-	  if (*changes->name != '\0') {
-	    if (changes->f != NULL)
-	      changes->f = freopen(changes->name, "w", changes->f);
-	    else
-	      changes->f = fopen(changes->name, "w");
-	  } else {
-	    if (changes->f != NULL)
-	      rewind(changes->f);
-	    else
-	      changes->f = tmpfile();
-	  }
-	  if (changes->f == NULL)
-	    _EscIO2(FileNotFound, changes->name);
-	  SETUPBUF(changes->f, Char);
-	  fprintf(changes->f, "* dbbk %4.2f\n", version);
-	  /*
-
-*/
+/* see if it's ok sequence, otherwise, report to the boss */
+  if (c != ' ' && c != 't' && c != 'g' && c != 'c' && c != 'a') {
+    if (notwarned) {
+      notwarned = false;
+      if (*changes->name != '\0') {
+        if (changes->f != NULL)
+          changes->f = freopen(changes->name, "w", changes->f);
+        else
+          changes->f = fopen(changes->name, "w");
+      } else {
+        if (changes->f != NULL)
+          rewind(changes->f);
+        else
+          changes->f = tmpfile();
+      }
+      if (changes->f == NULL)
+        _EscIO2(FileNotFound, changes->name);
+      SETUPBUF(changes->f, Char);
+      fprintf(changes->f, "* dbbk %4.2f\n", version);
 	}
 
 	if (!*inchanges) {
@@ -278,18 +322,8 @@ long *changestart;
 	  *changestart = *basenumber;
 	}
 
-	/*
-
-
-
-
-*/
 	c = 'a';
-      }
-
-
-
-      else {
+ }  else {
 	if (c != ' ' && *inchanges)
 	  finishchanges(changes, inchanges, changestart, entryname,
 			*basenumber);
@@ -304,9 +338,7 @@ long *changestart;
   putc('\n', fout->f);
 }
 
-
-
-
+/* grabs a library line code and then packs it for string comparisons */
 Static Void readlcu(lib, liblcu, liblcp)
 _TEXT *lib;
 Char *liblcu;
@@ -320,7 +352,6 @@ Char *liblcp;
     halt();
   }
 
-
   for (index = 0; index < lclength; index++) {
     if (P_eoln(lib->f))
       liblcu[index] = ' ';
@@ -333,25 +364,17 @@ Char *liblcp;
   memcpy(liblcp, liblcu, sizeof(lcptype));
 }
 
-
-
-
-
+/* tests two line codes for equality. if your computer system version of
+   pascal does not do string comparisons simply change lcequal and
+   the program will be fixed throughout */
 Static boolean lcequal(lcp1, lcp2)
 Char *lcp1, *lcp2;
-{
-  /*
-
-*/
-/* p2c: dbbk.p: Note: Eliminated unused assignment statement [338] */
+{/* p2c: dbbk.p: Note: Eliminated unused assignment statement [338] */
   if (!strncmp(lcp1, lcp2, sizeof(lcptype)))
     return true;
   return false;
 }
-
-
-
-
+/* are id a and id b equal? */
 Static boolean idequal(a, b)
 Char *a, *b;
 {
@@ -365,8 +388,7 @@ Char *a, *b;
   return equal;
 }
 
-
-
+/* clear id a */
 Static Void idclear(ida)
 Char *ida;
 {
@@ -376,8 +398,7 @@ Char *ida;
     ida[i] = ' ';
 }
 
-
-
+/* copy id a into id b */
 Static Void idcopy(ida, idb)
 Char *ida, *idb;
 {
@@ -390,18 +411,19 @@ Char *ida, *idb;
 
 
 Static Void getid(fin, finidp)
-_TEXT *fin;
+_TEXT *fin;  /* see global */
 Char *finidp;
 {
-  /*
-
+/* holds requested library id finds the next string of non-space characters
+   following the file cursor, adding spaces at the end if the string is too
+   short, and then packs the string into the finidp array 
 */
   long index = 0;
-  idutype finidu;
+  idutype finidu;  /* holds id for reading in before packing */ 
 
-  while (P_peek(fin->f) == ' ')
+  while (P_peek(fin->f) == ' ')  /* advances to first id character */
     getc(fin->f);
-
+/* the following loop grabs all id characters */
   while (P_peek(fin->f) != ' ' && index < idlength) {
     index++;
     if (P_eoln(fin->f))
@@ -413,7 +435,7 @@ Char *finidp;
     }
   }
 
-
+/* the following loop fills out id if id is too short */
   while (index < idlength) {
     index++;
     finidu[index-1] = ' ';
@@ -422,24 +444,23 @@ Char *finidp;
 }
 
 
-
 Static Void getspecies(fin, finidp)
-_TEXT *fin;
-Char *finidp;
+_TEXT *fin;  /* see global */
+Char *finidp;  /* holds requested library id */
 {
-  /*
-
-
-
+/* skip blanks, pick up the next two names from fin, put a period between them
+and return this as the species name.
+Add spaces at the end if the string is too short, and pack the
+string into the finidp array.  Note that the genus name is not longer
+than genuslimit.  2007 Apr 3: interpret '_' as spaces in the name.
 */
   long index = 0;
-  idutype finidu;
+  idutype finidu;  /* holds id for reading in before packing */
 
   while (P_peek(fin->f) == ' ')
     getc(fin->f);
 
-
-
+/* grab the first part of the name */
   while (((P_peek(fin->f) != ' ') & (P_peek(fin->f) != '_')) &&
 	 index < idlength) {
     index++;
@@ -452,24 +473,16 @@ Char *finidp;
     }
     if (finidu[index-1] == '_')
       finidu[index-1] = ' ';
-
   }
-
 
   while ((P_peek(fin->f) == ' ') | (P_peek(fin->f) == '_'))
     getc(fin->f);
 
-
-
   if (index > genuslimit)
     index = genuslimit;
 
-
   index++;
-
-
   finidu[index-1] = '.';
-
 
   /*
 
@@ -505,34 +518,18 @@ Static Void getdatetime(adatetime)
 Char *adatetime;
 {
   /*
-
-
-
-
-
 */
   Char adate[datetimearraylength], atime[datetimearraylength];
-  /*
-
-
-*/
+  /**/
   Char month[3];
   long index;
 
-  /*
-
-
-
-
-*/
+  /**/
 
   VAXdate(adate);
   VAXtime(atime);
 
-  /*
-
-*/
-
+  /**/
 
   for (index = 1; index <= 4; index++)
     adatetime[index-1] = adate[index+6];
@@ -609,15 +606,7 @@ Static Void readdatetime(thefile, adatetime)
 _TEXT *thefile;
 Char *adatetime;
 {
-  /*
-
-
-
-*/
-  /*
-
-
-
+ /*
 */
   long index;
   /*
@@ -650,14 +639,7 @@ Char *adatetime;
   halt();
 }
 
-
 #define tab             9
-
-
-
-
-
-
 Static boolean isblankDelila(c)
 Char c;
 {
@@ -690,9 +672,6 @@ _TEXT *thefile;
   skipnonblanks(thefile);
 }
 
-
-
-
 Static Void note(fout, piecenum)
 _TEXT *fout;
 long piecenum;
@@ -704,18 +683,12 @@ long piecenum;
   fprintf(fout->f, "note\n");
 }
 
-
-
-
-
 Static Void dna(fin, fout, libtitle, entryname)
 _TEXT *fin, *fout;
 libsused libtitle;
 Char *entryname;
 {
-  /*
-*/
-  /*
+/*
 */
   long basenumber = 0;
   long dumpint;
@@ -777,9 +750,6 @@ Char *entryname;
 }
 
 
-
-
-
 Static Void piece(fin, fout, piecenum, libtitle, bpint, entryname, topology)
 _TEXT *fin, *fout;
 long piecenum;
@@ -788,7 +758,7 @@ long bpint;
 Char *entryname;
 Char topology;
 {
-  /*
+/*
 */
   /*
 */
@@ -818,9 +788,6 @@ Char topology;
 */
   fprintf(fout->f, "piece\n");
 }
-
-
-
 
 Static Void chromosome(fin, fout, piecenum, libtitle, bpint, entryname,
 		       orgname, topology)
