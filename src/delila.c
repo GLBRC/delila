@@ -1,12 +1,233 @@
 /* Output from p2c 2.00.Oct.15, the Pascal-to-C translator */
 /* From input file "delila.p" */
+/* delila: the librarian for sequence manipulation
+              by Thomas Schneider
+                Gary Stormo
+                Paul Morrissett
+                useful suggestions by Jeff haemer
+    
+             module libraries needed: delman, delmods.
+    
+      Thomas D. Schneider, Ph.D.
+      toms@alum.mit.edu
+      https://alum.mit.edu/www/toms  */
+
+/* version = 5.04; (* of delila.p 2017 Aug 09
+2017 Aug 09: 5.04; clean up marksdelila output
+2017 Jul 14: 5.03; namelength/linelength set to 200/210 (see catal)
+2017 Jul 11: 5.02; namelength/linelength set to 200 to allow even longer names
+2017 Jul 10: 5.01; namelength set to 200 to allow even longer names
+2016 Jan 25: 5.00; debug: make parsedwordindex: integer; local.
+2015 Aug 25: 4.99; backup
+2015 Aug 25: 4.98; only warn about overlapping changes - error(222)
+2015 Jul 31: 4.97; handle tabs as spaces
+2015 Mar 23: 4.96; clean up
+2015 Mar 23: 4.95; names from name command are missing with 'with'.
+                   irlongname shows that longname was there.
+                   pk^.key.hea.fulnam is the variable,
+                   before writing it out, fill it with global longname.
+2014 Feb 13: 4.94; when reversenames if no name -> duplicate
+2013 Feb 13: 4.93; set default reversenames REVERSENAMES
+2012 Feb 16: 4.92; Don't halt with error(222) - check for overlaps
+                   ONLY if mutations are inside the piece
+2010 Feb 16: 4.91; showallerrors for error 211
+2010 Feb 16: 4.90; allow mutations of form A123C (capitals allowed)
+2007 Dec 06: 4.89; always reduce coordinates if the piece is circular
+2005 Sep  6: 4.88; demote error 220 to a warning: deleting a whole
+                   sequence merely means not to put it in the book!
+                   Implement by not writing to the book ...
+2005 Jan 11: 4.87; cleanup
+2005 Jan 11: 4.86; long names cause infnite loop
+                   in irlongname this was missing:
+                   longname^.next := nil;
+2004 Jan 21: 4.85; finish up marks.
+2004 Jan 21: 4.84; cleanup
+2004 Jan 21: 4.83; gpctime.p upgrade.  compiles but gives segmentation fault!
+                   needed to set pk^.dna := nil; libpie^.dna := nil;
+2004 Jan 21: 4.82; marks. arrow -> marks.arrow
+2003 Aug 18: 4.81; halt message includes the name 'delila'
+2003 Apr  7: 4.80; bug fix - request for change before start of piece now ok.
+2002 Apr 17: 4.79; tab and other odd ASCII characters disallowed: error 33.
+2001 Oct  5: 4.78; mutations off piece are now warnings, not errors (215, 216)
+2001 Mar 28: 4.77; pass 2 errors written independently of pass 1
+2001 Mar 28: 4.75; bug: two titles bombs!
+2001 Mar 16: 4.74; clean up
+2001 Mar 16: 4.73; gene functions; specpiece must use libpie not pk!
+2001 Mar 16: 4.72; upgrade bug documentation (gene no longer functions)
+2000 Nov 15: 4.70; catch unclosed comments
+2000 Oct 26: 4.69; set maximum book size
+2000 Oct 18: 4.67; stmts w/o with still trigger marksdelila stepping
+2000 Oct 18: 4.66; upgrade to gpc
+2000 Oct 17: 4.63; 'direction + with a4021131c[cr]; caused parse bomb.
+2000 Oct 17: 4.62; blank after 'direction +' caused parse bomb.
+2000 Aug 17: 4.60; fixed withused bug; marksdelila only written in pass 2
+2000 July 12: 4.59; withused control: marksdelila not touched unless needed.
+2000 June 21: 4.58; upgrade the See Also section.
+2000 May 26: 4.55; allow inserts to be complemented. zzz111
+2000 May 25: 4.54; Fix insertion bug in complements (proc. changesequence)!
+2000 May 25: 4.53; Remove duplication of error reports to output.
+2000 Mar 29: 4.52; Report error numbers to output, saves checking listing.
+2000 January 3: 4.50; {} comments for the html links
+2000 January 3: 4.49; html link for delila instructions
+1999 August 17: 4.48; changes not noted
+1999 July 17: 4.47: Add message You_need_a_marks.arrow_definition to marksdelila
+                    file so user will see this if they forget.
+1999 July 13: 4.46: putbase, getbase etc now allow any length in each
+                    dnasegment - much more robust.
+1999 July 9: 4.20: bug fix in getdnasegment dnamax could not be small
+                   (b and bDNAptr need to be stepped if they exceed dnamax)
+1999 May 27: 4.07: user does not propagate coordinates
+1999 May 24: 4.03: mutations cannot overlap - makes all marks work!
+                   not implemented - need other changes first
+1999 May 23: 4.00: a26g works as t26c on the complement
+1999 May 14: 3.76: <INSERTION> and <DELETION> always are in increasing
+                   order, following the new definition in Libdef.
+1999 May 12: 3.66: new comment type, {}
+1999 May 11: 3.56: ability of insertion/deletions to wrap around
+1999 May 10: 3.50: upgraded error reporting for incorrect change commands.
+1999 May 6: 3.21:  added errors 215, 216; moved mutation routines
+                   below geteoinst so error output is cleaner.
+1999 May 5: 3.17:  fix delila position misreading
+1999 April 27: 3.10:  fix memory leak in circledna/invert
+1999 April 26: 3.06:  fix bug in: get from 6 to 1 with i4,3ggttgg;
+1999 April 15: 3.03:  fix bug in: get from 1 to 6 with i3,4ggttgg;
+1999 April 14: 3.00: allow insert off ends of piece (fix bug)
+1999 April 14: 2.99: fixed equalname: need to set i initially
+1999 April 13: 2.98: fixed memory leak
+1999 March 21: 2.90: marks are sorted so most displays will work.
+1999 March 21: 2.85: Synonymes: default = set
+1999 March 20: 2.84: Delila can now create mutation marks for lister!
+1999 March 19: 2.70: Delila can now create mutations!
+1999 March 17: 2.61: For completeness, Delila can now extract a single base
+     from the complementary strand, as in "get from 1 to 1 direction -;"
+1999 March 14: 2.44: dopiece functions entirely on internal variables!
+1999 March 13: 2.40: conversion to standard delmod book reading routines.
+1999 Mar 9: 2.34 The catal file gives a line number that each object starts
+     on.  The bookreading routine getto used to get to the line after the
+     start of an object, and the routines like brdna, brpiece, getocp all
+     took this into account.  To make it more clear, getto in delmod and here
+     now gets to the start of the object.  The routines that then read the
+     object may readln past the start if they want.
+1999 Mar 9: 2.31 Convert to standard book reading routings:  Procedure
+     dopiece needs to read in the dna, make mutations, clip out the relevant
+     part and then spit it out to the book.  It needs to keep track of
+     library lines if the catal is to be of any use.  But the standard book
+     reading routine brpiece does not track the lines read.  Therefore it was
+     necessary to alter delmod.p so that the standard book reading routines
+     keep track of the line number.  This was done.
+1999 Mar 6: Delila absored the mutation mechanism from dbmutate.  Not
+            functional yet because it needs to read pieces in standard way.
+1998 June 24: default coordinate 0 was being set in pass 1 but not
+     reset to normal at the start of pass 2.
+1998 January 26: namelength set to 100 to allow long names
+1998 January 4: dnamax set to 10 million for faster grabs
+1997 January 10: For convenience, the default is: only pieces are numbered.
+1996 September 2: Two reductions off end of piece is now flagged.
+1996 August 12: introduction of 'same'.
+1995 December 7: objects can now be named in the long name
+1995 Nov 13: default coordinate zero now allows default coordinate (number)
+last changes: 1989 November 14
+origin: 1980 or so *)
+(* end module version *)
+
+(* begin module describe.delila *)
+(*
+name
+   delila: the librarian for sequence manipulation
+
+synopsis
+   delila(inst: in, book: out, listing: out,
+          marksdelila: out,
+          lib1: in, cat1: in,
+          lib2: in, cat2: in,
+          lib3: in, cat3: in,
+          output: out, debug: out)
+
+files
+   inst: instructions written in the language delila that tell the
+      program delila what sequences to pull out of the library.
+
+   book: the set of sequences pulled out of the library.
+
+   listing: the instructions are listed along with errors found or
+      actions taken.
+
+   marksdelila: Colored marks for the lister program that indicate
+      the locations of base changes, insertions and deletions.
+
+   lib1: the first library from which to obtain sequences
+   cat1: the first catalogue, corresponding to lib1
+   lib2: the second library
+   cat2: the second catalogue, corresponding to lib2
+   lib3: the third library
+   cat3: the third catalogue, corresponding to lib3
+
+   debug: traces through the actions taken, for debugging delila
+      (only produced if variable debugging is true.)
+
+   output: messages to the user
+description
+
+   Delila is a data base manager for nucleic acid sequences.  It takes a set
+   of instructions, written in the language delila (DEoxyribonucleic acid
+   LIbrary LAnguage) and a large set of sequences called a library.  The
+   output is a listing of the actions taken (or errors) corresponding to the
+   instructions, and a "book" containing the sequences desired.
+
+examples
+   see the documentation
+
+documentation
+   libdef (defines delila), delman.intro, delman.use, delman.construction
+   philgen.ps
+
+see also
+
+   {Definition of the database system:}
+   libdef
+
+   {Introduction to Delila Instructions:}
+   https://alum.mit.edu/www/toms/delilainstructions.html
+
+   {Related programs:}
+   alist.p, catal.p, loocat.p, dbbk.p, lister.p
+
+   dbmutate.p {is deprecated: use the mutation method, 'with'}
+
+   {(} http://www.m-w.com/cgi-bin/dictionary?deprecated {)}
+
+author
+   Thomas D. Schneider, Gary D. Stormo and Paul Morrisett
+   useful suggestions by Jeff Haemer
+
+bugs
+
+   There used to be many known bugs in delila, related to extracting linear
+   fragments of circular sequences.  Delila was rebuilt in the spring of 1999
+   and is much more robust now.
+
+   The following features are not available in this program:  recognition
+   classes and enzymes, markers, automatic printing to the book of structures
+   that intersect a piece, get all (for org, chr, rec and enz), get every and
+   if.  The gene mechanism was revived on 2001 Mar 16, eventually it may be
+   used to implement features.
+
+   Delila programs use a packed array of bases.  This means that a smart
+   Pascal compiler can store DNA sequences in two bits per base.  When delila
+   was originally designed, I thought that everybody would complete their
+   sequences and therefore there would never be unknown bases in a database.
+   Silly me.  GenBank has plenty of such cases.  The dbbk program avoids this
+   problem by converting such bases to 'a'.  Fortunately these can now be
+   displayed with lister.  Someday Delila may be upgraded to handle this
+   case, but it might be at the cost of reducing the maximum sequence that
+   can be handled.
+*/
+
+
 #include <getopt.h>  /* getopt API */ 
 #include <stdio.h> /* printf */
 #include <stdlib.h> 
 #include </home/mplace/bin/p2c/src/p2c.h>
-
-
-
 
 #define version         5.04
 #define numlibfil       3
@@ -25,20 +246,8 @@
 #define widbits         6
 #define maxbook         LONG_MAX
 #define datetimearraylength  19
-/*
-
-
-
-
-
-*/
-
-
-
 #define changesetmax    20
 #define insertmax       1000
-
-
 
 
 typedef enum {
