@@ -221,8 +221,80 @@ bugs
    displayed with lister.  Someday Delila may be upgraded to handle this
    case, but it might be at the cost of reducing the maximum sequence that
    can be handled.
-*/
 
+
+
+files used:
+      inst = instructions
+      book = the book that is printed
+      listing = instruction listing
+      lib1,lib2,...numlibfil = the files of the library
+      cat1,cat2,...numcatfil = the files of the catalogue
+      debug = listing for debugging the code
+      output = for fatal error messages to the terminal
+
+procedure name conventions:
+      cr catalogue read
+      ir instruction read
+      lr library read
+      bw book write
+
+ flow of information in the librarian
+   [file name]  (procedure)
+
+ [library]      [catalogue]  [instructions]
+      :              :           :
+      v              v           v
+      :              :           :
+      :          (catalogue      :
+      :          procedures)     :
+      :              :           :
+      :....... ......:           :
+             : :                 :
+            (lr"s)           (ir"s)
+              :                  :
+              v                  v
+              :                  :
+              :  ................:
+              :  :
+              :  :
+            (delila)
+              :  :
+              v  v
+              :  :
+       .......:  :................
+       :                         :
+       :                       (ir"s)
+     (bw"s)                (writeerror"s)
+       :                   (writevalue"s)
+       :                         :
+       v                         v
+       :                         :
+    [book]                    [listing]
+
+      further documentation for this program is in:
+      'organism and recognition class library definition:
+       a dna sequence data base' 1980 june 9
+
+      note.. the following features are not yet available in this program:
+      recognition class and enzymes
+      markers
+      automatic printing to the book of structures that intersect a piece
+      get all (for org, chr, rec and enz)
+      get every
+      if
+
+      lll = places that must be changed when one changes the number of
+         library files: numlibfil
+      ccc = places that must be changed when one changes the number of
+         catalogue files: numcatfil
+
+TO COMPILE:
+
+gcc  delila.c -o delila  -I/home/mplace/bin/p2c/src -L /home/mplace/bin/p2c/src -lm -lp2c
+
+TO RUN:
+*/
 
 #include <getopt.h>  /* getopt API */ 
 #include <stdio.h> /* printf */
@@ -12381,10 +12453,69 @@ Static Void librarian()
 
 
 
-main(argc, argv)
+int main(argc, argv)
 int argc;
 Char *argv[];
 {
+  extern char *optarg;
+	extern int optind;
+	int c, err = 0; 
+  /* flags marking arguments passed */
+	int fflag=0;       /* file flag */
+  int cflag=0;       /* Change output file name */
+  int oflag=0;       /* Output file name  */
+	char *fName = "filename.txt";
+  char *change = "outputChanges.txt";
+  char *outFile = "output.txt";
+	static char usage[] = "usage: %s -f genome.gff -c changes.txt -o output.txt\n";
+
+/* Process command line arguments  */
+while ((c = getopt(argc, argv, "f:c:o:")) != -1)
+		switch (c) {
+		case 'o':
+      oflag = 1;
+			outFile = optarg;
+			break;
+		case 'f':
+      fflag = 1;
+			fName = optarg;
+			break;
+		case 'c':
+      cflag = 1;
+			change = optarg;
+			break;
+		case '?':
+			err = 1;
+			break;
+		}
+  /* Is the Output file name present */  
+	if (oflag == 0) {	/* -o was mandatory */ 
+		fprintf(stderr, "%s: missing -o option\n", argv[0]);
+		fprintf(stderr, usage, argv[0]);
+		exit(1);
+	} 
+
+  /* Input file genbank file */
+  if (fflag == 0) { /* -f was mandatory */        
+		fprintf(stderr, "%s: missing -f option\n", argv[0]);
+		fprintf(stderr, usage, argv[0]);
+		exit(1);
+  } 
+
+  /* Change file name  */  
+  if (cflag == 0) { 
+    fprintf(stderr, "%s: missing -c option really\n", argv[0]);
+		fprintf(stderr, usage, argv[0]);
+		exit(1);
+    } 
+
+  if (err) {
+		fprintf(stderr, usage, argv[0]);
+		exit(1);
+	}
+
+
+
   PASCAL_MAIN(argc, argv);
   if (setjmp(_JL1))
     goto _L1;
@@ -12437,6 +12568,8 @@ _L1:
   if (debug.f != NULL)
     fclose(debug.f);
   exit(EXIT_SUCCESS);
+
+  return 0;
 }
 
 
