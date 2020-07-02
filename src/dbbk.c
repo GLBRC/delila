@@ -457,7 +457,7 @@ than genuslimit.  2007 Apr 3: interpret '_' as spaces in the name.
   long index = 0;
   idutype finidu;  /* holds id for reading in before packing */
 
-  while (P_peek(fin->f) == ' ')
+  while (P_peek(fin->f) == ' ')   /* advances to first id character */
     getc(fin->f);
 
 /* grab the first part of the name */
@@ -474,21 +474,18 @@ than genuslimit.  2007 Apr 3: interpret '_' as spaces in the name.
     if (finidu[index-1] == '_')
       finidu[index-1] = ' ';
   }
-
+/* now skip to the next part of the species name */
   while ((P_peek(fin->f) == ' ') | (P_peek(fin->f) == '_'))
     getc(fin->f);
 
+/* force genus to be genuslimit characters long */
   if (index > genuslimit)
     index = genuslimit;
 
-  index++;
-  finidu[index-1] = '.';
+  index++;    
+  finidu[index-1] = '.';   /* now put the period into the name */
 
-  /*
-
-*/
-  /*
-*/
+/* grab the second part of the name */
   while (!P_eoln(fin->f)) {
     index++;
     if (P_eoln(fin->f)) {
@@ -502,22 +499,49 @@ than genuslimit.  2007 Apr 3: interpret '_' as spaces in the name.
       finidu[index-1] = '-';
   }
 
-
-
+/* the following loop fills out id if id is too short */
   while (index < idlength) {
     index++;
     finidu[index-1] = ' ';
   }
-
-  memcpy(finidp, finidu, sizeof(idptype));
+memcpy(finidp, finidu, sizeof(idptype));
 }
-
-
 
 Static Void getdatetime(adatetime)
 Char *adatetime;
 {
-  /*
+  /*get the date and time into a single array from the system clock.
+     adatetime contains the date:
+         1980/06/09 18:49:11
+         ye mo da ho mi se
+  (year, month, day, hour, minute, second).
+  As of 2000 February 18, the Sun Pascal compiler requires a formatting
+  statement.  This statement allows the date to be generated in this
+  standard Delila format in a single call.  Information about the
+  formatting statement is available on the manual page for date in Unix.
+  If a computer does not have this method, see the 'oldgetdatetime' routine
+  in delmod.p (https://alum.mit.edu/www/toms/delila/delmod.html)
+  for some conversion code.
+  
+  GPC Functions:
+  function  GetUnixTime (var MicroSecond : Integer) : UnixTimeType;
+  
+  http://agnes.dida.physik.uni-essen.de/~gnu-pascal/gpc_109.html#SEC109
+  
+  7.10.8 Date And Time Routines 
+  
+  procedure GetTimeStamp (var t : TimeStamp); 
+  function Date (t : TimeStamp) : packed array [1 .. DateLength] of Char; 
+  function Time (t : TimeStamp) : packed array [1 .. TimeLength] of Char; 
+  
+  DateLength and TimeLength are implementation dependent constants. 
+  
+  GetTimeStamp (t) fills the record `t' with values. If they are valid, the Boolean
+  flags are set to True. 
+  
+  TimeStamp is a predefined type in the Extended Pascal standard. It may be
+  extended in an implementation, and is indeed extended in GPC. For the full
+  definition of `TimeStamp', see section 8.255 TimeStamp. 
 */
   Char adate[datetimearraylength], atime[datetimearraylength];
   /**/
@@ -589,7 +613,7 @@ Char *adatetime;
 }
 
 
-
+/* expand the date and time out and print in the file */
 Static Void writedatetime(thefile, adatetime)
 _TEXT *thefile;
 Char *adatetime;
@@ -601,16 +625,12 @@ Char *adatetime;
 }
 
 
-
+/* read the date and time from the file */
 Static Void readdatetime(thefile, adatetime)
 _TEXT *thefile;
 Char *adatetime;
 {
- /*
-*/
   long index;
-  /*
-*/
   Char udatetime[datetimearraylength];
 
   for (index = 0; index < datetimearraylength; index++) {
@@ -626,9 +646,7 @@ Char *adatetime;
     printf("\nConvert your database to 4 digit years.\n");
     halt();
   }
-  /*
 
-*/
   if (adatetime[4] == '/' && adatetime[7] == '/' && adatetime[13] == ':' &&
       adatetime[16] == ':')
     return;
@@ -639,16 +657,16 @@ Char *adatetime;
   halt();
 }
 
+/* is the character c blank or tab? */
 #define tab             9
 Static boolean isblankDelila(c)
 Char c;
 {
   return (c == ' ' || c == tab);
 }
-
 #undef tab
 
-
+/* skip over blanks until a non-blank, or end of line, is found */
 Static Void skipblanks(thefile)
 _TEXT *thefile;
 {
@@ -656,7 +674,7 @@ _TEXT *thefile;
     getc(thefile->f);
 }
 
-
+/* skip over nonblanks until a blank, or end of line, is found */
 Static Void skipnonblanks(thefile)
 _TEXT *thefile;
 {
@@ -664,39 +682,38 @@ _TEXT *thefile;
     getc(thefile->f);
 }
 
-
+/* skip over a data column */
 Static Void skipcolumn(thefile)
 _TEXT *thefile;
 {
   skipblanks(thefile);
   skipnonblanks(thefile);
 }
-
+/* contains delila type entries converted from the entries in the fin file */
 Static Void note(fout, piecenum)
-_TEXT *fout;
-long piecenum;
+_TEXT *fout;   /* contains delila type entries converted from the entries in the fin file */
+long piecenum; /* delila pieces are numbered */
 {
-  /*
-*/
+/* simulates the note section of a delila entry */
   fprintf(fout->f, "note\n");
   fprintf(fout->f, "* #%ld\n", piecenum);
   fprintf(fout->f, "note\n");
 }
 
 Static Void dna(fin, fout, libtitle, entryname)
-_TEXT *fin, *fout;
-libsused libtitle;
-Char *entryname;
+_TEXT *fin; /* holds embl and genb entries */
+_TEXT *fout; /* contains delila type entries converted from the entries in the fin file */
+libsused libtitle; /* indicates whether a fin entry is of the embl or genbank format */
+Char *entryname;  /* holds the name of a fout entry */
 {
-/*
-*/
-  long basenumber = 0;
-  long dumpint;
-  lcutype finlcu;
-  lcptype finlcp;
+/* simulates the dna section of a delila entry */
+  long basenumber = 0; /* count of the bases written so far */
+  long dumpint;    /* grabs an integer that is not used */ 
+  lcutype finlcu; /* grabs fin line codes */
+  lcptype finlcp; /* packs fin line codes for string comparisons */
 
-  boolean inchanges = false;
-  long changestart = -LONG_MAX;
+  boolean inchanges = false; /* inside a set of changes? */
+  long changestart = -LONG_MAX; /* coordinate of start of changes */
 
   fprintf(fout->f, "dna\n");
   switch (libtitle) {
@@ -707,20 +724,17 @@ Char *entryname;
     halt();
     break;
 
-  /*
-*/
+  /* note: procedure getentry has placed file cursor at the
+     beginning of sequence data before dna is called */
   case embl:
     do {
       readlcu(fin, finlcu, finlcp);
+      /* lc3spc is used because embl sequence data lines have no line codes */
       if (lcequal(finlcp, lc3spc)) {
-	fprintf(fout->f, "* ");
-
-	copydna(fin, fout, &changes, &basenumber, entryname, &inchanges,
-		&changestart);
-      }
-      /*
-*/
-      else {
+	        fprintf(fout->f, "* ");
+          /* all data lines in delila entries start with '*'s */
+	        copydna(fin, fout, &changes, &basenumber, entryname, &inchanges,&changestart);
+      }  else {
 	fscanf(fin->f, "%*[^\n]");
 	getc(fin->f);
       }
@@ -729,18 +743,16 @@ Char *entryname;
 
   case genb:
     readlcu(fin, finlcu, finlcp);
+    /* sometimes no 'sites' section occurs after sequence, so we run into terminus code */
     while ((!lcequal(finlcp, lcsit)) & (!lcequal(finlcp, lcterm))) {
       fscanf(fin->f, "%ld", &dumpint);
-      /*
-
-*/
+      /** genb sequence data lines have no line code, but they
+          do start with a cooridinate integer which is not needed here */
       fprintf(fout->f, "* ");
       copydna(fin, fout, &changes, &basenumber, entryname, &inchanges,
 	      &changestart);
       readlcu(fin, finlcu, finlcp);
     }
-    /*
-*/
     break;
   }
 
@@ -751,28 +763,22 @@ Char *entryname;
 
 
 Static Void piece(fin, fout, piecenum, libtitle, bpint, entryname, topology)
-_TEXT *fin, *fout;
-long piecenum;
-libsused libtitle;
-long bpint;
-Char *entryname;
-Char topology;
+_TEXT *fin; /* holds embl and genbank entries */ 
+_TEXT *fout; /* contains delila style entries converted from fin entries */
+long piecenum; /* delila pieces are numbered */
+libsused libtitle;  /* indicates whether entry is of embl or genbank type */
+long bpint;  /* holds the number of base pairs found in the fin entry sequence data */
+Char *entryname;  /* holds the name of a fout entry */
+Char topology; /* linear or circular topology */
 {
-/*
-*/
-  /*
-*/
-  /*
-*/
   long index;
-
   fprintf(fout->f, "piece\n");
   writeidptype(fout, true, true, entryname);
   fprintf(fout->f, "* \n");
-  note(fout, piecenum);
+    note(fout, piecenum);
   fprintf(fout->f, "* 1\n");
-  /*
-*/
+  /* this next loop is done twice because all sequence is assigned
+     the value of 'linear' to avoid certain complications */
   for (index = 1; index <= 2; index++) {
     if (topology == 'l')
       fprintf(fout->f, "* linear\n");
@@ -783,35 +789,29 @@ Char topology;
     fprintf(fout->f, "* %ld\n", bpint);
   }
   dna(fin, fout, libtitle, entryname);
-  /*
-
-*/
+  /* this procedure and each of the next three in turn calls the
+     preceding procedure. this hierarchy is meant to simulate the
+     hierarchies of biological classification */
   fprintf(fout->f, "piece\n");
 }
 
 Static Void chromosome(fin, fout, piecenum, libtitle, bpint, entryname,
 		       orgname, topology)
-_TEXT *fin, *fout;
-long piecenum;
-libsused libtitle;
-long bpint;
-Char *entryname, *orgname;
-Char topology;
+_TEXT *fin;  /* holds embl and genb entries */
+_TEXT *fout; /* contains delila style entries converted from fin entries */
+long piecenum; /* delila pieces are numbered */
+libsused libtitle; /* indicates whether fin entry is of an embl or genb format */
+long bpint;  /* holds the number of base pairs found in the fin entry sequence data */
+Char *entryname; /* holds name of a fout entry */
+Char *orgname; /* holds the name of the organism in which the sequence occurs */
+Char topology; /* linear or circular topology */
 {
-  /*
-*/
-  /*
-*/
-  /*
-*/
-  /*
-*/
   fprintf(fout->f, "chromosome\n");
 
-  /*
-
-
-*/
+  /*formerly dbbk gave the entry name as the name, with the line
+    writeln ( fout, '* ', entryname );
+    writeln ( fout, '* ', entryname );
+   suppress that and use the organism: */
 
   writeidptype(fout, true, true, orgname);
   fprintf(fout->f, "* \n");
@@ -820,49 +820,31 @@ Char topology;
   fprintf(fout->f, "* %ld\n", bpint);
   piece(fin, fout, piecenum, libtitle, bpint, entryname, topology);
 }
-
-
-
-
-
 Static Void organism(fin, fout, piecenum, libtitle, bpint, entryname,
 		     firstorganism, orgname, oldorgname, topology)
-_TEXT *fin, *fout;
-long piecenum;
-libsused libtitle;
-long bpint;
-Char *entryname;
-boolean *firstorganism;
-Char *orgname, *oldorgname;
-Char topology;
+_TEXT *fin;   /* holds embl and genb entries */
+_TEXT *fout;  /* contains delila style entries converted from fin entries */
+long piecenum; /* delila pieces are numbered */
+libsused libtitle;  /* indicates whether fin entry is of embl or genbank format */
+long bpint;  /* holds number of base pairs found in the fin entry sequenc data */
+Char *entryname;  /* holds the name of the fout delila style entry */
+boolean *firstorganism;  /* true if this is the first organism to be written */
+Char *orgname; /* holds the name of the organism in which the sequence occurs */
+Char *oldorgname; /* old organism name,track of to avoid writing new organism structure when it is not needed. */
+Char topology;  /* linear or circular topology */
 {
-  /*
-*/
-  /*
-*/
-  /*
-*/
-  /*
-*/
-  /*
-*/
-  /*
-*/
-  /*
-
-*/
   _TEXT TEMP;
 
   if (idequal(orgname, oldorgname))
     piece(fin, fout, piecenum, libtitle, bpint, entryname, topology);
   else {
     if (*firstorganism)
-      *firstorganism = false;
+      *firstorganism = false;  /* avoid closing non-existant previous */
     else {
+      /* close up previous organism */
       fprintf(fout->f, "chromosome\n");
       fprintf(fout->f, "organism\n");
     }
-
 
     printf("organism ");
     TEMP.f = stdout;
@@ -883,60 +865,42 @@ Char topology;
   TEMP.f = stdout;
   *TEMP.name = '\0';
 
-
+  /* identify the entry under this organism */
   writeidptype(&TEMP, false, false, entryname);
   putchar('\n');
 }
 
-
-
-
-
 Static Void getentry(fin, fout, piecenum, firstorganism, oldorgname)
-_TEXT *fin, *fout;
-long piecenum;
-boolean *firstorganism;
-Char *oldorgname;
+_TEXT *fin; /* holds embl and genb entries */
+_TEXT *fout; /* contains delila style entries converted from fin entries */
+long piecenum; /* delila pieces are numbered */
+boolean *firstorganism; /* true if this is the first organism to be written */
+Char *oldorgname; /* old organism name, track to avoid writing new organism structure when it is not needed. */
 {
-  /*
-*/
-  /*
-*/
-  /*
-
-*/
-  /*
-*/
-  boolean done = false;
-  idptype dumpword;
-  /*
-*/
-  lcutype finlcu;
-  lcptype finlcp;
-  libsused libtitle;
-  /*
-*/
-  long bpint;
-  /*
-*/
-  idptype entryname, locusname, orgname;
-  /*
-*/
-
-  Char topology;
+ /* goes to the beginning of a fin entry, and then runs through it
+    grabbing values for dna, piece, etc. to use */
+  boolean done = false; /* terminates loops when certain conditions are met */
+  idptype dumpword; /* grabs words that come between the fin file cursor and data that it is trying to get to */
+  lcutype finlcu;  /* grabs fin line codes */
+  lcptype finlcp;  /* packs fin line codes for string comparisons */
+  libsused libtitle; /* indicates whether a fin entry is an embl or genbank format */
+  long bpint; /* holds the number of base pairs found in the fin entry sequence data */
+  idptype entryname;  /* holds the name of a fout entry */
+  idptype locusname;  /* dummy variable holds the name of a fout entry */
+  idptype orgname; /* holds the name of the organism in which the genetic sequence occurs */
+  Char topology; /* linear or circular topology for this piece */
   _TEXT TEMP;
 
   do {
     readlcu(fin, finlcu, finlcp);
     if (lcequal(finlcp, lcid)) {
       libtitle = embl;
-      getid(fin, entryname);
+      getid(fin, entryname); /* entryname is filled with the id code of the entry */
 
       do {
 	readlcu(fin, finlcu, finlcp);
 	if (lcequal(finlcp, lcos)) {
-	  /*
-*/
+	  /** the first 'os ' coded line generally starts with the name of the entry organism */
 	  getid(fin, orgname);
 	  done = true;
 	}
@@ -947,11 +911,10 @@ Char *oldorgname;
       do {
 	readlcu(fin, finlcu, finlcp);
 	if (lcequal(finlcp, lcsq) | BUFEOF(fin->f)) {
-	  getid(fin, dumpword);
-	  fscanf(fin->f, "%ld%*[^\n]", &bpint);
+	  getid(fin, dumpword);  /* dumps the word 'sequence' */
+	  fscanf(fin->f, "%ld%*[^\n]", &bpint);  //* gets cursor to beginning of the genetic sequence data */
 	  getc(fin->f);
-	  /*
-*/
+
 	  done = true;
 	} else {
 	  fscanf(fin->f, "%*[^\n]");
@@ -966,17 +929,11 @@ Char *oldorgname;
 
       getc(fin->f);
       getc(fin->f);
-
-      /*
-
-
-*/
-
-      getid(fin, locusname);
-      fscanf(fin->f, "%ld", &bpint);
-      skipcolumn(fin);
-      skipcolumn(fin);
-      skipblanks(fin);
+      getid(fin, locusname);  /* entryname assigned id code */
+      fscanf(fin->f, "%ld", &bpint); /* get the length */
+      skipcolumn(fin); /* skip 'bp' */
+      skipcolumn(fin); /* skip 'DNA' */
+      skipblanks(fin); /* skip blanks */
       if (P_eoln(fin->f)) {
 	printf("Cannot get topology for ");
 	TEMP.f = stdout;
@@ -1001,51 +958,8 @@ Char *oldorgname;
 	topology = 'l';
       }
       fscanf(fin->f, "%*[^\n]");
-
-      /*
-
-
-*/
-
-      /*
-
-
-*/
-      /*
-
-
-*/
-      /*
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-
-
-      /*
-
-
-
-
-
-
-
-*/
       getc(fin->f);
-      /*
-
-
-
-*/
+/* now instead we pick up the ACCSSION NUMBER: */
       while (P_peek(fin->f) != 'V') {
 	fscanf(fin->f, "%*[^\n]");
 	getc(fin->f);
@@ -1064,6 +978,7 @@ Char *oldorgname;
 	  _EscIO2(FileNotFound, fin->name);
 	}
 	RESETBUF(fin->f, Char);
+  /* now instead we pick up the VERSION NUMBER: */
 	while (P_peek(fin->f) != 'A') {
 	  fscanf(fin->f, "%*[^\n]");
 	  getc(fin->f);
@@ -1126,22 +1041,17 @@ Char *oldorgname;
   } while (!((libtitle != none) | BUFEOF(fin->f)));
 
 }
-
-
-
-
-
+/* adds computer system date and possibly fin date to first line of fout */
 Static Void datebook(fin, fout)
 _TEXT *fin, *fout;
 {
-  /*
-*/
   long index;
-  Char dumpchar;
-  boolean findated = false;
-  datetimearray oldate, adatetime;
-  lcutype finlcu;
-  lcptype finlcp;
+  Char dumpchar; /* holds an unwanted character */
+  boolean findated = false; /* 'true' indicates that fin has a dateline */
+  datetimearray oldate;     /* holds fin date */ 
+  datetimearray adatetime;  /* holds computer system date */
+  lcutype finlcu;           /* holds a fin line code */
+  lcptype finlcp;           /* finlcu(unpacked), finlcp(packed) */
 
   readlcu(fin, finlcu, finlcp);
   if (lcequal(finlcp, lcdat)) {
@@ -1181,25 +1091,20 @@ _TEXT *fin, *fout;
     fprintf(fout->f, ", ");
   }
 }
-
-
-
-
-
+/* structures the whole program by calling other procedures */
 Static Void order(fin, fout)
 _TEXT *fin, *fout;
 {
   /*
 */
   boolean firstorganism = true;
-  /*
-
-*/
+  /*true only when the first organsism is
+   about to be written.  used to avoid closing the (non-existant)
+   previous organism */
   idptype oldorgname;
-  /*
-*/
-  long piecenum = 0;
-
+  /*old organism name.  kept track of to
+    avoid writing new organism structure when it is not needed. */
+  long piecenum = 0; /* each delila 'piece' posesses a unique number */
 
   if (*fin->name != '\0') {
     if (fin->f != NULL)
@@ -1232,9 +1137,6 @@ _TEXT *fin, *fout;
   idclear(oldorgname);
   notwarned = true;
 
-
-
-
   datebook(fin, fout);
   fprintf(fout->f, "dbbk %4.2f\n", version);
 
@@ -1255,18 +1157,19 @@ _TEXT *fin, *fout;
 
 int main(int argc, Char **argv)
 {
-
   extern char *optarg;
 	extern int optind;
 	int c, err = 0; 
-	int fflag=0;
-  int cflag=0;
-  int oflag=0;
+  /* flags marking arguments passed */
+	int fflag=0;       /* file flag */
+  int cflag=0;       /* Change output file name */
+  int oflag=0;       /* Output file name  */
 	char *fName = "filename.txt";
   char *change = "outputChanges.txt";
   char *outFile = "output.txt";
 	static char usage[] = "usage: %s -f genome.gff -c changes.txt -o output.txt\n";
 
+/* Process command line arguments  */
 while ((c = getopt(argc, argv, "f:c:o:")) != -1)
 		switch (c) {
 		case 'o':
@@ -1285,25 +1188,28 @@ while ((c = getopt(argc, argv, "f:c:o:")) != -1)
 			err = 1;
 			break;
 		}
+  /* Is the Output file name present */  
 	if (oflag == 0) {	/* -o was mandatory */ 
 		fprintf(stderr, "%s: missing -o option\n", argv[0]);
 		fprintf(stderr, usage, argv[0]);
 		exit(1);
 	} 
-    
-    if (fflag == 0) { /* -f was mandatory */        
+
+  /* Input file genbank file */
+  if (fflag == 0) { /* -f was mandatory */        
 		fprintf(stderr, "%s: missing -f option\n", argv[0]);
 		fprintf(stderr, usage, argv[0]);
 		exit(1);
-    } 
-    
-    if (cflag == 0) { 
-        fprintf(stderr, "%s: missing -c option really\n", argv[0]);
+  } 
+
+  /* Change file name  */  
+  if (cflag == 0) { 
+    fprintf(stderr, "%s: missing -c option really\n", argv[0]);
 		fprintf(stderr, usage, argv[0]);
 		exit(1);
     } 
 
-    if (err) {
+  if (err) {
 		fprintf(stderr, usage, argv[0]);
 		exit(1);
 	}
@@ -1330,7 +1236,4 @@ _L1:
 
   return 0;
 }
-
-
-
 /* End. */
