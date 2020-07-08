@@ -49,17 +49,16 @@ while ((c = getopt(argc, argv, "f:")) != -1)
 	// Declaration of delimiter 
 	const char d[4] = "=";
 	char *rest = NULL;
-	char *token;
+	char *param;
+	char *fname;
 
 	// Loop through file
 	while (fgets(buf, 1024, fp)){
 	
-		// split line and get values
-		for( token = strtok_r(buf, d, &rest); token != NULL; token = strtok_r(NULL, d, &rest)){
-			printf("token is %s \t", token);
-
-			}
-		printf("\n");
+		param = strtok_r(buf, d, &rest);
+		printf("param = %s \t", param);
+		fname = strtok_r(NULL, d, &rest);
+		printf(" value is %s \n", fname);
 
 	}
 
