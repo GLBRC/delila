@@ -1,0 +1,71 @@
+//**************************//
+/* fileParsing.c */
+/* Mike Place June 2020 */
+
+#include <getopt.h>  /* getopt API */ 
+#include <stdio.h> /* printf */
+#include <stdlib.h> 
+#include <string.h> /* strtok_r */
+#include </home/mplace/bin/p2c/src/p2c.h>
+
+int main(int argc, char **argv)
+{
+	extern char *optarg;
+	extern int optind;
+	int c, err = 0; 
+  	/* flags marking arguments passed */
+	int fflag=0;       /* file flag */
+  	char *fName = "filename.txt";
+  	static char usage[] = "usage: %s -f <parameter file>\n";
+
+/* Process command line arguments  */
+while ((c = getopt(argc, argv, "f:")) != -1)
+		switch (c) {
+		case 'f':
+      		fflag = 1;
+			fName = optarg;
+			break;
+		case '?':
+			err = 1;
+			break;
+		}
+  /* Is the Output file name present */  
+	if (fflag == 0) {	/* -o was mandatory */ 
+		fprintf(stderr, "%s: missing -f parameter file\n", argv[0]);
+		fprintf(stderr, usage, argv[0]);
+		exit(1);
+	} 
+	
+	// Open input file
+	FILE *fp = fopen(fName, "r");
+	char buf[1024];
+	
+	// Check if input file exists
+	if (!fp){
+		printf("Can't open file\n");
+		return 1;
+	}
+	
+	// Declaration of delimiter 
+	const char d[4] = "=";
+	char *rest = NULL;
+	char *token;
+
+	// Loop through file
+	while (fgets(buf, 1024, fp)){
+	
+		// split line and get values
+		for( token = strtok_r(buf, d, &rest); token != NULL; token = strtok_r(NULL, d, &rest)){
+			printf("token is %s \t", token);
+
+			}
+		printf("\n");
+
+	}
+
+	// Close file
+	fclose(fp);
+    
+return 0;
+}
+
