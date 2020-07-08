@@ -56,9 +56,15 @@ while ((c = getopt(argc, argv, "f:")) != -1)
 	while (fgets(buf, 1024, fp)){
 	
 		param = strtok_r(buf, d, &rest);
-		printf("param = %s \t", param);
+		//printf("param = %s \t", param);
 		fname = strtok_r(NULL, d, &rest);
-		printf(" value is %s \n", fname);
+		//printf(" value is %s \n", fname);
+
+		if (strcmp(param, "l1") == 0){
+			printf("l1 file name is %s\n", fname);
+		} else if (strcmp(param, "l2") == 0){
+			printf("l2 file name is %s\n", fname);
+		} 
 
 	}
 
