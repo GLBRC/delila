@@ -2155,15 +2155,13 @@ namandlistptr **node;
   freelistptr = lptr;
 }
 
-
+/* compare the two names.
+2004 July 8: Code stolen from module equalstring in prgmod.p */
 Static boolean equalname(a, b)
 name *a, *b;
 {
-  /*
-
-*/
-  boolean equal;
-  long index;
+  boolean equal; /* true if the two are equal */
+  long index;    /* counter for the names */
 
   if (a->length == b->length) {
     index = 1;
@@ -2176,24 +2174,25 @@ name *a, *b;
     return false;
 }
 
-
+/* put a name on a list */
 Static Void pushname(the, latest)
 namandlistptr **the, **latest;
 {
-  if (*the == NULL) {
+  if (*the == NULL) {   /* no names on here */
     allocate(the);
     (*the)->nam = aname;
     (*the)->nextonlist = NULL;
     *latest = *the;
     return;
   }
+  /* check for duplicate and go deeper */
   if (equalname(&(*the)->nam, &aname))
     unique = false;
   else
     pushname(&(*the)->nextonlist, latest);
 }
 
-
+/* clear a list completely */
 Static Void popnames(the)
 namandlistptr **the;
 {
@@ -2204,18 +2203,21 @@ namandlistptr **the;
   return_(the);
 }
 
-
+/* duplicate name-handling procedures*********************************/
 /* Local variables for up: */
 struct LOC_up {
   long endofnum;
 } ;
 
+/* procedure carry shifts a number right starting with the special
+   character and going to the end of the number. it puts a '1'
+   in the new location and updates the name and line lengths */
 Local Void shift(endofnum)
-long endofnum;
+long endofnum;  /*the right end of a generated number in the
+    line buffer, in case shifting is needed to
+    fit the number */
 {
-  /*
-
-*/
+ 
   long position, FORLIM;
 
   FORLIM = uniquebeg;
@@ -2227,19 +2229,16 @@ long endofnum;
   length_++;
 }
 
-/*
-
-*/
+/* procedure addcarry sets a nine to a zero and propagates a carry
+   if we get back to the top of the number and still need a carry
+   addcarry will call a subroutine, shift, to shift the number
+   in the line buffer. to propagate carries through the number,
+   addcarry calls itself with successively lower numbers as
+   subscripts for the line buffer. */
 Local Void addcarry(position, LINK)
 long position;
 struct LOC_up *LINK;
 {
-  /*
-
-
-
-
-*/
   line[position-1] = '0';
   position--;
   if (line[position-1] == specialchar) {
@@ -2247,77 +2246,72 @@ struct LOC_up *LINK;
     return;
   }
   switch (line[position-1]) {
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+      line[position-1]++;
+      break;
 
-  case '0':
-  case '1':
-  case '2':
-  case '3':
-  case '4':
-  case '5':
-  case '6':
-  case '7':
-  case '8':
-    line[position-1]++;
-    break;
-
-  case '9':
-    addcarry(position, LINK);
-    break;
+    case '9':
+      addcarry(position, LINK);
+      break;
   }
 }
 
-
-
+/* procedure up increments a 'number' in character format and calls
+      a carry routine if needed. */
 Static Void up(position)
 long position;
 {
-  /*
-*/
   struct LOC_up V;
 
   while (line[position-1] == ' ' && position > uniquebeg)
     position--;
 
   switch (line[position-1]) {
+    case ' ':
+      catitem.nam.length += 2;
+      length_ += 2;
+      line[position-1] = specialchar;
+      position++;
+      line[position-1] = firstnumber;
+      break;
 
-  case ' ':
-    catitem.nam.length += 2;
-    length_ += 2;
-    line[position-1] = specialchar;
-    position++;
-    line[position-1] = firstnumber;
-    break;
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+      line[position-1]++;
+      break;
 
-  case '0':
-  case '1':
-  case '2':
-  case '3':
-  case '4':
-  case '5':
-  case '6':
-  case '7':
-  case '8':
-    line[position-1]++;
-    break;
-
-  case '9':
-    V.endofnum = position;
-    addcarry(V.endofnum, &V);
-    break;
+    case '9':
+      V.endofnum = position;
+      addcarry(V.endofnum, &V);
+      break;
   }
 }
 
-
+/* procedure changename calls one subroutine, up, if a name
+   can be changed. if it cannot, a message is printed out and
+   the program is aborted. if it can, it is changed and procedure
+   pushname is called to insert the new name on the list. if
+   it is still non-unique, the main program will call changename
+   until it aborts or puts the name on the list.
+   this is required by libdef catalogue definition p. 3.1 2b */
 Static Void changename(the, latest)
 namandlistptr **the, **latest;
 {
-  /*
-
-
-
-
-
-*/
   toolong = false;
   if (line[namelength+1] == ' ' || isdigit(line[namelength+1]))
     up(namelength + 2L);
@@ -2340,53 +2334,43 @@ namandlistptr **the, **latest;
   pushname(the, latest);
 }
 
-
+/*duplicate writes out a message saying a duplicate name was found then
+  dumps the lists of names. it then makes the name unique and writes
+  a message giving the old and new names.*/
 Static Void duplicate(callingproc, root)
 calltype callingproc;
 namandlistptr **root;
 {
-  /*
-
-*/
-  _TEXT TEMP;
+   _TEXT TEMP;
 
   printf(" duplicate ");
   switch (callingproc) {
-
-  case organism:
-    printf("organism");
-    break;
-
-  case recognitionclass:
-    printf("recognition-class");
-    break;
-
-  case enzyme:
-    printf("enzyme");
-    break;
-
-  case chromosome:
-    printf("chromosome");
-    break;
-
-  case marker:
-    printf("marker");
-    break;
-
-  case transcript:
-    printf("transcript");
-    break;
-
-  case gene:
-    printf("gene");
-    break;
-
-  case piece:
-    printf("piece");
-    break;
+    case organism:
+      printf("organism");
+      break;
+    case recognitionclass:
+      printf("recognition-class");
+      break;
+    case enzyme:
+      printf("enzyme");
+      break;
+    case chromosome:
+      printf("chromosome");
+      break;
+    case marker:
+      printf("marker");
+      break;
+    case transcript:
+      printf("transcript");
+      break;
+    case gene:
+      printf("gene");
+      break;
+    case piece:
+      printf("piece");
+      break;
   }
   printf(" name found.\n");
-
   dumplists();
 
   printf(" old name was ");
@@ -2395,7 +2379,7 @@ namandlistptr **root;
   writename(&TEMP, aname);
   putchar('\n');
   uniquebeg = catitem.nam.length + 3;
-
+/* star, space, then to the other side of the name */
   do {
     changename(root, &latest);
   } while (!unique);
@@ -2406,72 +2390,59 @@ namandlistptr **root;
   putchar('\n');
 }
 
-
+/* changes a name in the current line to an already known new name. */
 Static Void changeto(newname)
 name newname;
 {
-  long i, difference, FORLIM;
-
-  /*
-*/
+  long i;
+  long difference; /* difference in length between old new names */
+  long FORLIM;
   getname();
   difference = newnamelength - catitem.nam.length;
-  length_ += difference;
+  length_ += difference; /* note: we know at this time that the new name
+                            is at least as long as the old name */
   FORLIM = length_ - catitem.nam.length - 2;
-  /*
-*/
+
   for (i = 0; i <= FORLIM; i++)
     line[length_ - i - 1] = line[length_ - i - difference - 1];
   FORLIM = newnamelength;
   for (i = 1; i <= FORLIM; i++)
     line[i+1] = newname.letters[i-1];
-  /*
-
-
-
-
-
-*/
+ 
   getname();
 }
 
-
-
-
+/* write the direction d to the file f */
 Static Void writedirect(f, d)
 _TEXT *f;
 direction d;
 {
   switch (d) {
-
-  case minus:
-    fprintf(f->f, "%*s", dfield, "- ");
-    break;
-
-  case plus:
-    fprintf(f->f, "%*s", dfield, "+ ");
-    break;
+    case minus:
+      fprintf(f->f, "%*s", dfield, "- ");
+      break;
+    case plus:
+      fprintf(f->f, "%*s", dfield, "+ ");
+      break;
   }
 }
 
-
+/* write the configuration c to the file f */
 Static Void writeconfig(f, c)
 _TEXT *f;
 configuration c;
 {
   switch (c) {
-
-  case linear:
-    fprintf(f->f, "%*s", cfield, "   linear");
-    break;
-
-  case circular:
-    fprintf(f->f, "%*s", cfield, " circular");
-    break;
+    case linear:
+      fprintf(f->f, "%*s", cfield, "   linear");
+      break;
+    case circular:
+      fprintf(f->f, "%*s", cfield, " circular");
+      break;
   }
 }
 
-
+/* write the piece information to f */
 Static Void writepieceinfo(f, p)
 _TEXT *f;
 pieceinfo p;
@@ -2482,24 +2453,23 @@ pieceinfo p;
   fprintf(f->f, " %*ld", nfield, p.ending);
 }
 
-
+/* check that the location is in the map.  this is required by libdef
+catalogue definition p. 3.1, 2c */
 Static Void checkmap(geneticlocation)
 double geneticlocation;
 {
-  /*
-*/
   if (geneticlocation < mapbeg || mapend < geneticlocation)
     error(maplocation);
 }
 
-
+/* skip the rest of the header-nothing useful here */
 Static Void skipheader(lib, newlib)
 _TEXT *lib, *newlib;
 {
-  checkstar(true);
-  needlibline(lib, newlib, &length_);
-  checkstar(false);
-
+  checkstar(true); /* check short name */
+  needlibline(lib, newlib, &length_);  /* skip full name */
+  checkstar(false); /* check full name */
+/* skip the note, if one exists */
   if (P_peek(lib->f) != 'n')
     return;
   needlibline(lib, newlib, &length_);
@@ -2507,25 +2477,25 @@ _TEXT *lib, *newlib;
     needlibline(lib, newlib, &length_);
     if (line[0] != '*') {
       if (line[0] != 'n') {
-	erroratline();
-	fprintf(humcat.f, " missing asterisk (*) in note\n");
-	fprintf(catin.f, " missing asterisk (*) in note\n");
-	humcatlines++;
-	fatal++;
+        erroratline();
+        fprintf(humcat.f, " missing asterisk (*) in note\n");
+        fprintf(catin.f, " missing asterisk (*) in note\n");
+        humcatlines++;
+        fatal++;
       }
     } else if (length_ > 1) {
       if (line[1] != ' ') {
-	erroratline();
-	fprintf(humcat.f, " missing blank in note\n");
-	fprintf(catin.f, " missing blank in note\n");
-	humcatlines++;
-	fatal++;
+        erroratline();
+        fprintf(humcat.f, " missing blank in note\n");
+        fprintf(catin.f, " missing blank in note\n");
+        humcatlines++;
+        fatal++;
       }
     }
   } while (line[0] != 'n');
 }
 
-
+/* parses a piece key information */
 Static Void piecekey(lib, newlib, coo, pie)
 _TEXT *lib, *newlib;
 pieceinfo *coo, *pie;
@@ -2569,7 +2539,7 @@ pieceinfo *coo, *pie;
   if (badtoken)
     error(pieendingbad);
 
-
+/* write the piece info to humcat */
   fprintf(humcat.f, "%*.2f", nfield, geneticmap);
   fprintf(humcat.f, " |");
   writepieceinfo(&humcat, *coo);
@@ -2577,7 +2547,7 @@ pieceinfo *coo, *pie;
   writepieceinfo(&humcat, *pie);
   checkmap(geneticmap);
 
-
+/* write the piece info to catin */
   if (docomments) {
     fprintf(catin.f, "(* coordinates: ");
     fprintf(catin.f, "%*.1f", nfield, geneticmap);
@@ -2588,11 +2558,10 @@ pieceinfo *coo, *pie;
     fprintf(catin.f, ": piece config, dir, beg, end *)\n");
   }
 
-
   checkmap(geneticmap);
 }
 
-
+/* write the header info for pieces */
 Static Void writehumpieceinfo()
 {
   fprintf(humcat.f, "%*s", cfield, "|   config");
@@ -2607,13 +2576,10 @@ Local Void alignit()
   fprintf(humcat.f, "       %*c", levelsize + namespace, ' ');
 }
 
-
+/* write the names of the information about each piece */
 Static Void piecehumhead()
 {
   alignit();
-  /*
-
-*/
   fprintf(humcat.f, "genetic  ");
   fprintf(humcat.f, "| coordinate%*c", (int)(pfield - 10), ' ');
   fprintf(humcat.f, "| piece\n");
@@ -2625,15 +2591,10 @@ Static Void piecehumhead()
   putc(' ', humcat.f);
   writehumpieceinfo();
   fprintf(humcat.f, "%*s", bfield, "length");
-  /*
-
-
-
-
-*/
+  
 }
 
-
+/* check the genetic map beginning and ending coordinates */
 Static Void mapbegend(lib, newlib)
 _TEXT *lib, *newlib;
 {
@@ -2647,10 +2608,6 @@ _TEXT *lib, *newlib;
   if (badtoken)
     error(geneending);
 
-  /*
-
-
-*/
   fprintf(humcat.f, " %*.2f %*.2f (genetic map range)\n",
 	  nfield, mapbeg, nfield, mapend);
   if (docomments)
@@ -2664,14 +2621,13 @@ _TEXT *lib, *newlib;
 Static Void piereference(lib, newlib)
 _TEXT *lib, *newlib;
 {
-  double geneticmap;
-  boolean badtoken;
+  double geneticmap;  /* the genetic map location */
+  boolean badtoken;   /* true iff next token is not proper */
 
-  needline(lib, &length_);
-  /*
-*/
+  needline(lib, &length_);  /* note: must not write out yet: the name could change */
+
   getname();
-  if (equalname(&piecename, &none)) {
+  if (equalname(&piecename, &none)) {   /* no other references made yet */
     changed = false;
     piecename = aname;
     unique = true;
@@ -2705,12 +2661,7 @@ _TEXT *lib, *newlib;
   if (badtoken)
     error(refendingbad);
 
-
-  /*
-
-*/
-
-
+/* write reference info to humcat */
   putc(' ', humcat.f);
   fprintf(humcat.f, "%*.2f", nfield, geneticmap);
 
@@ -2728,7 +2679,7 @@ _TEXT *lib, *newlib;
   fprintf(catin.f, " *)\n");
 }
 
-
+/* skip sites for now */
 Static Void dosite(lib, newlib)
 _TEXT *lib, *newlib;
 {
@@ -2738,21 +2689,20 @@ _TEXT *lib, *newlib;
   needlibline(lib, newlib, &length_);
 }
 
-
+/* check the DNA of a piece, as required by
+   libdef catalogue definition p. 3.1 2k */
 Static Void dodna(lib, newlib)
 _TEXT *lib, *newlib;
 {
-  /*
-*/
-  long i;
+  long i;   /* the current character on a line */
   _TEXT TEMP;
 
-  needlibline(lib, newlib, &length_);
+  needlibline(lib, newlib, &length_);   /* move past the "DNA" */
   basecount = 0;
-  while (line[0] == '*') {
+  while (line[0] == '*') {    /* for each line of DNA */
     checkstar(true);
-    i = 3;
-    while (i <= length_) {
+    i = 3;   /* the first base is the third character on the line */
+    while (i <= length_) {          /* count bases on the line */
       if (line[i-1] == 'g' || line[i-1] == 't' || line[i-1] == 'c' ||
 	  line[i-1] == 'a')
 	basecount++;
@@ -2784,7 +2734,7 @@ _TEXT *lib, *newlib;
   if (line[0] != 'd')
     strange(dna);
 
-
+/* print the name of the object containing the dna */
   if (!equalname(&current.piece_.nam, &none)) {
     putchar(' ');
     TEMP.f = stdout;
@@ -2811,28 +2761,25 @@ _TEXT *lib, *newlib;
   else
     fprintf(catin.f, "get all piece;\n");
 
-
-  /*
-*/
   needlibline(lib, newlib, &length_);
 }
 
 
-
+/* high-level procedures**********************************************/
 
 Static Void domarker(lib, newlib, c1, c2, c3)
 _TEXT *lib, *newlib;
 catfile *c1, *c2, *c3;
 {
   level = 2;
-  needline(lib, &length_);
+  needline(lib, &length_);   /* get to line with marker name */
   getname();
   unique = true;
   pushname(&first.marker_.nextonlist, &latest);
-  if (!unique)
+  if (!unique)         /* duplicate names */
     duplicate(marker, &first.marker_.nextonlist);
   current.marker_.nam = latest->nam;
-  dumptocat('m', c1, c2, c3);
+  dumptocat('m', c1, c2, c3);     /* dump a line to the cat */
   dumpline(newlib, length_);
   writehumcat(marker);
   skipheader(lib, newlib);
@@ -2846,9 +2793,9 @@ catfile *c1, *c2, *c3;
   needlibline(lib, newlib, &length_);
   if (line[0] == 'd')
     dodna(lib, newlib);
-  else
+  else          /* must be dna here */
     strange(dna);
-  if (line[0] != 'm')
+  if (line[0] != 'm')    /* after which we must be done */
     strange(marker);
   needlibline(lib, newlib, &length_);
   current.marker_.nam = none;
@@ -2859,7 +2806,7 @@ Static Void dogene(lib, newlib, c1, c2, c3)
 _TEXT *lib, *newlib;
 catfile *c1, *c2, *c3;
 {
-  level = 2;
+  level = 2;        /* level is set for the catalog listing */
   needline(lib, &length_);
   getname();
   unique = true;
@@ -2879,7 +2826,7 @@ catfile *c1, *c2, *c3;
   if (line[0] != 'g')
     strange(gene);
   needlibline(lib, newlib, &length_);
-  current.gene_.nam = none;
+  current.gene_.nam = none;    /* clear current gene name */
 }
 
 
@@ -2907,36 +2854,32 @@ catfile *c1, *c2, *c3;
   if (line[0] != 't')
     strange(transcript);
   needlibline(lib, newlib, &length_);
-  /*
-*/
+
   current.transcript_.nam = none;
 }
 
-
+/* calculate the length of a piece with the input piecekey values.
+the function was derived from the standard piecelength and
+pietoint functions in delmods. */
 Static long checkcoordinates(piedir, piebeg, pieend, coobeg, cooend)
 direction piedir;
 long piebeg, pieend, coobeg, cooend;
 {
-  /*
-
-*/
-  long length;
+  long length;   /* temporary answer */
 
   switch (piedir) {
-
-  case plus:
-    if (pieend >= piebeg)
-      length = pieend - piebeg + 1;
-    else
-      length = pieend - coobeg + cooend - piebeg + 2;
-    break;
-
-  case minus:
-    if (pieend <= piebeg)
-      length = piebeg - pieend + 1;
-    else
-      length = cooend - pieend + piebeg - coobeg + 2;
-    break;
+    case plus:
+      if (pieend >= piebeg)
+        length = pieend - piebeg + 1;
+      else
+        length = pieend - coobeg + cooend - piebeg + 2;
+      break;
+    case minus:
+      if (pieend <= piebeg)
+        length = piebeg - pieend + 1;
+      else
+        length = cooend - pieend + piebeg - coobeg + 2;
+      break;
   }
   return length;
 }
@@ -2954,8 +2897,8 @@ catfile *c1, *c2, *c3;
   needline(lib, &length_);
   getname();
   if (equalname(&piecename, &none)) {
-    /*
-*/
+  /* cautions for pieces without a family - show only
+     when debugging because they are a pain most of the time. */
     if (debugging)
       error(noreference);
     unique = true;
@@ -2989,9 +2932,9 @@ catfile *c1, *c2, *c3;
   else
     strange(dna);
 
-  /*
-
-*/
+/* use pie and coo to check the expected length of the piece
+      compared to basecount as required by
+      libdef catalogue definition p. 3.1 2i  */
   predictedlength = checkcoordinates(pie.direct, pie.beginning, pie.ending,
 				     coo.beginning, coo.ending);
   if (predictedlength != basecount) {
@@ -3016,23 +2959,12 @@ catfile *c1, *c2, *c3;
     fprintf(catin.f, " for piece ");
     writename(&catin, current.piece_.nam);
     putc('\n', catin.f);
-
-
-    /*
-
-
-
-
-
-
-
-*/
     humcatlines += 4;
     fatal++;
   }
 
-  /*
-*/
+  /* check coordinate order
+     as required by libdef catalogue definition p. 3.1 2h */
   if (coo.beginning > coo.ending) {
     erroratline();
     fprintf(humcat.f,
@@ -3043,8 +2975,8 @@ catfile *c1, *c2, *c3;
     fatal++;
   }
 
-  /*
-*/
+  /* check configuration
+         as required by libdef catalogue definition p. 3.1 2j */
   if (coo.config == linear) {
     if (pie.config != linear) {
       erroratline();
@@ -3055,22 +2987,13 @@ catfile *c1, *c2, *c3;
     }
   }
 
-
   if (line[0] != 'p')
     strange(piece);
   needlibline(lib, newlib, &length_);
   current.piece_.nam = none;
 
-  /*
-
-
-
-
-
-*/
-
-  /*
-*/
+  /* although the name of the piece of this family may have been
+   changed, we do not want to change the names of later pieces: */
   changed = false;
 }
 
@@ -3091,30 +3014,30 @@ catfile *c1, *c2, *c3;
   current.chromosome_.nam = latest->nam;
   writehumcat(chromosome);
   skipheader(lib, newlib);
-  mapbegend(lib, newlib);
+  mapbegend(lib, newlib);    /* check map beginning and ending */
   needlibline(lib, newlib, &length_);
   while (line[0] == 'p' || line[0] == 'g' || line[0] == 't' || line[0] == 'm') {
-    if (line[0] == 'm') {
+    if (line[0] == 'm') {           /* we have a marker next */
       domarker(lib, newlib, c1, c2, c3);
       continue;
     }
-    if (line[0] == 't')
+    if (line[0] == 't')   /* we have a transcript */
       dotranscript(lib, newlib, c1, c2, c3);
     else {
-      if (line[0] == 'g')
+      if (line[0] == 'g')   /* we have a gene */ 
 	dogene(lib, newlib, c1, c2, c3);
       else
 	dopiece(lib, newlib, c1, c2, c3);
     }
   }
+  
+  /* no more of those, so our chromosome must be done */
   if (line[0] != 'c') {
-    /*
-*/
     strange(chromosome);
   }
 
-  /*
-*/
+ /* clear the lists of names of markers, transcripts,
+    genes, and pieces in this chromosome */
   popnames(&first.marker_.nextonlist);
   popnames(&first.transcript_.nextonlist);
   popnames(&first.gene_.nextonlist);
@@ -3290,8 +3213,8 @@ catfile *c2;
 _TEXT *newl2, *l3;
 catfile *c3;
 _TEXT *newl3, *humcat, *catin, *fout;
-{
-  printf(" IN THE MAIN: ");
+{ 
+  /* the main procedure of the program */
   fprintf(fout->f, " catal %4.2f ", version);
 
   getdatetime(daytime);
@@ -3300,7 +3223,7 @@ _TEXT *newl3, *humcat, *catin, *fout;
 
   maxnamelength = 0;
 
-
+/* Check that there is at least one library. */
   if (*l1->name != '\0') {
     if (l1->f != NULL)
       l1->f = freopen(l1->name, "r", l1->f);
@@ -3342,8 +3265,7 @@ _TEXT *newl3, *humcat, *catin, *fout;
   dolibrary(l2, newl2, c1, c2, c3);
   dolibrary(l3, newl3, c1, c2, c3);
 
-  /*
-*/
+/* destroy new libraries and catalogues if there was any problem */
   if (fatal == 0) {
     putc('\n', humcat->f);
     return;
