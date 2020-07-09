@@ -2,6 +2,252 @@
 /* From input file "catal.p" */
 
 /* 
+catal: the catalog program
+
+    by Michael Aden and Thomas Schneider
+    module libraries needed: delman, delmods.
+
+Thomas D. Schneider, Ph.D.
+https://alum.mit.edu/www/toms 
+ 
+ version = 9.64; (* of catal.p 2020 Feb 20
+2020 Feb 20, 9.64: add dbbk to list of See Also
+2018 Sep 17, 9.63: switch to timegpc.p modules
+2017 Oct 02, 9.62: ecoli fails: 'catin: Pascal system error 0'
+                   This was files not permitted to be writable
+2017 Jul 14, 9.61: duplicate piece name problem
+                   -
+                   In version 9.41 of catal originally linelength was
+                   80 characters and namelength was 50 characters. 
+                   Procedure changename assumes that linelength is at
+                   least 2 characters longer than namelength, probably
+                   because in Delila books the lines begin with '* '. 
+                   So linelength should be at least 2 characters
+                   longer than namelength.  I'll use 210 for safety.
+                   -
+2017 Jul 11, 9.60: namelength/linelength set to 300 to allow even longer names
+2017 Jul 10, 9.59: namelength set to 200 to allow even longer names
+2016 Jan 25, 9.58: backup
+2011 Nov 03, 9.56: new parameters: no comments and get from to format
+2011 Jan 19, 9.55: writepieceinfo not squish coordinates together
+2004 Jul  8, 9.54: tidy up
+2004 Jul  8, 9.53: fix invalid operands to binary, introduce equalname
+2004 Jul  8, 9.52: attack gpc compiler errors, upgrademodule catal.p gpctime.p
+2001 Mar 16, 9.51: length of date in cat file corrected
+2000 Sep 25, 9.50: duplicate titles removed
+1999 Mar 31, 9.49: previous change not noted
+1999 Mar 18, 9.46: names only written to their length
+prior version: 1998 January 27
+
+name
+      catal: cataloguer of delila libraries, the catalogue program
+
+synopsis
+      catal(catalp: in,
+            l1: in, cat1: out, lib1: out,
+            l2: in, cat2: out, lib2: out,
+            l3: in, cat3: out, lib3: out,
+            humcat: out, catin: out,
+            output: out)
+
+files
+      catalp: parameters to control the program.
+
+         first line:  the library dates are not changed if the first
+         character is 'n' (no date modification) or 'b' (book source
+         of library, dates are not to be changed).  otherwise the
+         dates are advanced.
+
+         second line:  docomments: If there is a second line, then if
+         it begins with 'n' comments are suppressed.
+
+         third line:  fromtoinst: If there is a second line, then the third line must exist
+         If it begins with 'f' then the Delila instructions in catin will be in from-to form:
+
+            get from 50 -0 to same +[piecelength-1];
+
+      l1: the first input file of the library
+      cat1: the first catalogue
+      lib1: the first output library
+
+      l2: the second input file of the library
+      cat2: the second catalogue
+      lib2: the second output library
+
+      l3: the third input file of the library
+      cat3: the third catalogue
+      lib3: the third output library
+
+      output: progress report and error messages
+
+      humcat: the catalogue generated for humans.  it includes the names
+         of things in the libraries and their coordinates.  humcat is quite
+         wide so you will need a line-printer to print it.  alternatively
+         you can use the split program.
+      catin:  Catalog listing as delila instructions.  This is a set of Delila
+         instructions for grabbing each of the pieces in the library.  These
+         make it easy to start writing instructions.
+
+description
+      The catalogue program checks all the input libraries for correct
+      structure.  Duplicated names are removed and a new set of library
+      files is created, along with their catalogues for delila.  A catalogue
+      is also generated for people to use.  Each new library is associated with
+      one catalogue.  Under most circumstances this pair can be given to
+      delila along with pairs created at different times.
+
+documentation
+      libdef (defines catal), delman.use.coordinates, delman.construction
+
+see also
+      dbbk.p loocat.p, delila.p, split.p
+
+author
+      Michael Aden and Thomas Schneider
+
+bugs
+      Not all checks on the library structure are made.  Some checks from
+      libdef are now outdated or not done: p. 3.1 2 d, e, f, g and l.
+
+technical notes
+      The circumstances when a library-catalogue pair must not be used with
+      another pair:  it is not possible for delila to check for two
+      organisms with the same name that exist in different libraries.  In
+      this case, run the two libraries through catal together to eliminate
+      the ambiguity.  If this is not done, the results will be anomalous.
+
+history of changes to catal:
+      from original concepts by thomas schneider 1979 october 28
+      written 1980 june 10 by michael aden
+      modified 1980 june 14 - thomas schneider
+      modified 1980 june 22 - michael aden
+         insertion of code to handle duplicate names.
+      modified 1980 july 5 - michael aden
+         correction in listing indentation
+      modified 1980 december 23 - thomas schneider: rearrange file names
+      modified 1981 march 23 - michael aden: insertion of standard halt
+         as opposed to non-standard halt.
+      modified 1982 july 12 - michael aden: change to take care of forward
+         reference duplicate names. more error checking is now done.
+      modified 1982 july 14 - thomas schneider: standard program format and
+         documentation.  modules inserted.  name changes.
+      modified 1982 july 17 - thomas schneider: unlimitln added,
+         readline logic altered.
+      modified 1982 aug 1 - 'problems encountered', errors to humcat, checkstar
+      modified 1983 dec 15 - duplicate names start with *2 using global
+         constant firstnumber.
+      modified 1984 jan 26 - procedure dumpline cannot produce lines
+         shorter than 2 characters.  this assures that delila is happy
+         when reading the library, since delila assumes that there is
+         at least one space following each '*'.
+      modified 1992 sep 14 - output names are the same as delila uses.
+         This is by far the most common use of the program - why fight it?
+         old name     new name
+         --------     --------
+         newl1        lib1
+         newl2        lib2
+         newl3        lib3
+         c1           cat1
+         c2           cat2
+         c3           cat3
+      modified 1994 March 4 - The humin file is introduced.
+      modified 1994 April 7 - The humin file is renamed catin.
+
+      1995 Nov 21:  Catal objected to a 1 base long piece, "coordinate
+      beginning must be less than ending" This should be "less than or equal
+      to".  "as required by libdef catalogue definition p. 3.1 2h" Libdef was
+      also modified.
+
+      1995 Dec 8:  Routine checkstar is modified so that it allows the
+      fullname to be empty.  This allows the new <NAME> feature of Delila
+      (see libdef) to give a blank when no name is assigned.
+
+      1999 March 18: made names have type name, like in delila (!)
+         tightened humcat output.
+
+technical notes:
+      l1, l2, ... numlibfil = the files of the old library
+      c1, c2, ... numcatfil = the files of the new catalog for the librarian
+      lib1, lib2, ... numcatfil = the files of the new library
+      humcat = the catalog for humans
+      catalp = a file used to set catalog parameters.
+         the library dates are not modified if the first character
+         is 'n' (no date modification) or
+            'b' (book source of library, dates not to be changed)
+      output = progress report and error messages
+
+
+   the catalog program checks to see that the library
+  is in proper format and checks to see that the names in each
+  classification are unique .
+     the catalog also generates:
+(1) new library files
+(2) a catalog for the librarian
+(3) a human-readable catalog.
+
+      lll = places that must be changed when one changes the number of
+         library files: numlibfil
+      ccc = places that must be changed when one changes the number of
+         catalog files: numcatfil
+
+      further documentation for this program is in:
+      'organism and recognition class library definition:
+       a dna sequence data base' 1980 june 9
+
+
+problems encountered and resolved during delila catalog implementation
+
+problem 1.
+      duplicate entry names for any two of a given type of structure
+      (e.g., two transcripts with the same name) may not necessarily
+      be fatal (as in a library of transcripts, which may have dup-
+      licate names after being pulled out).
+
+resolution 1.
+      duplicate names are changed and a warning is issued.
+
+problem 2.
+      if a piece name duplicates a previous piece name, it is not
+      sufficient to change only the second piece name, since that
+      piece may have had prior references made to it.
+
+resolution 2.
+      a list of pieces is started using the name of each piece
+      reference encountered in transcripts, genes, etc.
+      it was decided to conform to a strict familial structure
+      which requires that only one piece reference may be active
+      at any given time; (i.e., before going on to a new piece
+      reference, a piece for the existing reference must first be
+      encountered).
+
+
+consider the following structure:
+
+transcript
+* transcript1
+* ...
+* piece1
+
+
+transcript
+transcript
+* transcript2
+* ...
+* piece1
+
+
+piece
+* piece1
+
+piece
+piece
+* piece1
+
+
+      note that if strict family ordering was not observed, it would
+      be impossible to tell which piece each of the transcripts made
+      a reference to.
+
 TO COMPILE:
 
 gcc catal.c -o catal -I/home/mplace/bin/p2c/src -L /home/mplace/bin/p2c/src -lm -lp2c
@@ -13,42 +259,48 @@ gcc catal.c -o catal -I/home/mplace/bin/p2c/src -L /home/mplace/bin/p2c/src -lm 
 #include <stdlib.h> 
 #include </home/mplace/bin/p2c/src/p2c.h>
 
-#define version         9.64
-#define debugging       false
-#define verbose         false
-#define namelength      200
-#define linelength      210
-#define namespace       15
-#define numlibfil       3
-#define numcatfil       3
-#define pagesize        60
-#define listingwidth    60
-#define specialchar     '*'
-#define levelsize       1
-#define datafield       110
-#define bfield          10
-#define cfield          9
-#define dfield          5
-#define nfield          8
-#define firstnumber     '2'
-#define datetimearraylength  19
-
+#define version         9.64      
+#define debugging       false  /* flag for selective writes  */
+#define verbose         false  /* control for all those long lists produced by the dumplists procedure */
+#define namelength      200    /* maximum key name length */   
+#define linelength      210    /* maximum line readable in the library */
+#define namespace       15     /* maximum length for printing name on humcat */
+#define numlibfil       3      /* number of library files lll */
+#define numcatfil       3      /* number of catalog files ccc */
+#define pagesize        60     /* page size for human catalog */
+#define listingwidth    60     /* humcat listing width */
+#define specialchar     '*'    /* separator between original part of a name and part added for uniqueness */
+#define levelsize       1      /* the number of spaces to indent for a level of the library */
+#define datafield       110    /* the last character before fields of data are printed */
+#define bfield          10     /* for basepairs */
+#define cfield          9      /* for coordinates */
+#define dfield          5      /* for directions */
+#define nfield          8      /* for numbers */
+#define firstnumber     '2'    /* when a duplicate name is found the first time,
+         this number is tacked on to the end.  the number '2' is recommended
+         because it is the second name found. */
+#define datetimearraylength  19 /* length of dataarray for dates,
+It is just long enough to include the 4 digit year - solving the  year 2000 problem:
+1980/06/09 18:49:11
+123456789 123456789 
+         1         2
+*/
 typedef Char datetimearray[datetimearraylength];
 typedef Char alpha[namelength];
 
+/* name is a left justified string with blanks following the characters */
 typedef struct name {
   alpha letters;
   uchar length;
 } name;
 
-
-
+/* catalog types */
 typedef enum {
   firstpage, chromosome, dna, enzyme, gene, library, marker, organism, piece,
   recognitionclass, transcript
 } calltype;
 
-
+/* routines which may invoke a non-fatal error */
 typedef enum {
   cooconfigurationbad, coordirectionbad, coordbeginningbad, coordendingbad,
   pieconfigurationbad, piedirectionbad, piebeginningbad, pieendingbad,
@@ -56,11 +308,11 @@ typedef enum {
   mapbeginning, maplocation, nolastpiece, noreference, wrongreference
 } errtype;
 
-
+/* an item in the catalog */
 typedef struct item {
-  Char letter;
-  name nam;
-  long line;
+  Char letter; /* type of structure */
+  name nam;    /* the structure"s key name */
+  long line;   /* location of the structure in the library */
 } item;
 
 typedef struct catfile {
@@ -69,30 +321,30 @@ typedef struct catfile {
   Char name[_FNSIZE];
 } catfile;
 
-
-
+/* types defined for the catalog program */
 typedef Char buffer[linelength];
 
-
-
+//
 typedef struct namandlistptr {
   name nam;
   struct namandlistptr *nextonlist;
 } namandlistptr;
 
+/* used for maintaining a list of names */
 typedef struct currvals {
   namandlistptr marker_, transcript_, gene_, piece_, chromosome_, enzyme_,
 		organism_, recognition;
 } currvals;
 
-
 typedef enum {
   plus, minus
 } direction;
+
 typedef enum {
   linear, circular
 } configuration;
 
+/* info about numbering of a piece */
 typedef struct pieceinfo {
   configuration config;
   direction direct;
@@ -100,8 +352,7 @@ typedef struct pieceinfo {
 } pieceinfo;
 
 typedef struct refnode {
-  /*
-*/
+  /* record containing information for a piece reference */
   enum {
     markref, transref, generef
   } nodetype;
@@ -111,36 +362,28 @@ typedef struct refnode {
   struct refnode *nodenext;
 } refnode;
 
-
-
-Static _TEXT catalp;
-/*
-*/
-Static boolean keepdates;
-/*
-
-
-
-*/
+Static _TEXT catalp; /* catalog parameters.  used to decide how to handle dates see var keepdates */
+Static boolean keepdates; /* false: advance dates in library
+                             true:  do not advance dates since date of
+                             creation is date of book creation by the
+                             librarian. keepdates is set in initialize-
+                             catalogs from catalp. */
+/* write comments to the inst file */
 Static boolean docomments, fromtoinst;
-
-
-Static item catitem;
-/*
-
-
-*/
+Static item catitem; 
+/* catalog files ccc */
 Static catfile cat1, cat2, cat3;
-
+/* catalog number */
 Static long catnumber;
 
-Static _TEXT humcat, catin;
-Static long humcatpage, humcatlines;
+Static _TEXT humcat; /* human readable catalog listing */ 
+Static _TEXT catin;  /* catalog listing as delila instructions */
+Static long humcatpage;  /* current page of listing */
+Static long humcatlines; /* current line on that page */
 
-Static currvals current, first;
-/*
+/* values for names so far..first has pointers to lists of names for each classification. */
+Static currvals current, first; 
 
-*/
 
 Static namandlistptr *freelistptr, *latest;
 
