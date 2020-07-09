@@ -1,343 +1,40 @@
 /* Output from p2c 2.00.Oct.15, the Pascal-to-C translator */
 /* From input file "catal.p" */
 
+/* 
+TO COMPILE:
 
- #include "/root/src/p2c-2.01/home/src/p2c.h"
-
-
-/*
-
-
-
-
-
-
+gcc catal.c -o catal -I/home/mplace/bin/p2c/src -L /home/mplace/bin/p2c/src -lm -lp2c
 
 */
 
-
-
-
-
+#include <getopt.h>  /* getopt API */ 
+#include <stdio.h> /* printf */
+#include <stdlib.h> 
+#include </home/mplace/bin/p2c/src/p2c.h>
 
 #define version         9.64
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-
-
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-
 #define debugging       false
 #define verbose         false
-/*
-*/
-
 #define namelength      200
 #define linelength      210
-
 #define namespace       15
 #define numlibfil       3
 #define numcatfil       3
 #define pagesize        60
 #define listingwidth    60
-
-
 #define specialchar     '*'
-/*
-*/
-
 #define levelsize       1
-/*
-*/
-
-
 #define datafield       110
-/*
-*/
 #define bfield          10
 #define cfield          9
 #define dfield          5
 #define nfield          8
-
-
-
 #define firstnumber     '2'
-/*
-
-*/
-
-
 #define datetimearraylength  19
 
-
-/*
-
-
-
-
-
-*/
-
-
-
-
-
-
 typedef Char datetimearray[datetimearraylength];
-
-
 typedef Char alpha[namelength];
-
-
-
-/*
-*/
 
 typedef struct name {
   alpha letters;
@@ -3466,6 +3163,7 @@ _TEXT *newl2, *l3;
 catfile *c3;
 _TEXT *newl3, *humcat, *catin, *fout;
 {
+  printf(" IN THE MAIN: ");
   fprintf(fout->f, " catal %4.2f ", version);
 
   getdatetime(daytime);
@@ -3620,43 +3318,128 @@ _TEXT *newl3, *humcat, *catin, *fout;
 }
 
 
-main(argc, argv)
-int argc;
-Char *argv[];
+int main(int argc, Char **argv)
 {
   _TEXT TEMP;
+	extern char *optarg;
+	extern int optind;
+	int c, err = 0; 
+  /* flags marking arguments passed */
+	int fflag=0;     // file flag 
+  char *param;    // 
+	char *fName;
+  static char usage[] = "usage: %s -f <parameter file>\n";
 
+  /* Process command line arguments  */
+  while ((c = getopt(argc, argv, "f:")) != -1)
+		switch (c) {
+		case 'f':
+      		fflag = 1;
+			fName = optarg;
+			break;
+		case '?':
+			err = 1;
+			break;
+		}
+  
+  /* Is the input parameter file name present */  
+	if (fflag == 0) {	/* -f was mandatory */ 
+		fprintf(stderr, "%s: missing -f parameter file\n", argv[0]);
+		fprintf(stderr, usage, argv[0]);
+		exit(1);
+	} 
+	
+	// Open input file
+	FILE *fp = fopen(fName, "r");
+	char buf[1024];
+	
+	// Check if input file exists
+	if (!fp){
+		printf("Can't open file\n");
+		return 1;
+	}
+	
+	// Declaration of delimiter 
+	const char d[4] = "=";
+	char *rest = NULL;
+  TEMP.f = stdout;
+  *TEMP.name = '\0';
+  
   PASCAL_MAIN(argc, argv);
   if (setjmp(_JL1))
     goto _L1;
-  lib3.f = NULL;
-  strcpy(lib3.name, "lib3");
-  lib2.f = NULL;
-  strcpy(lib2.name, "lib2");
-  lib1.f = NULL;
-  strcpy(lib1.name, "lib1");
-  l3.f = NULL;
-  strcpy(l3.name, "l3");
-  l2.f = NULL;
-  strcpy(l2.name, "l2");
-  l1.f = NULL;
-  strcpy(l1.name, "l1");
-  catin.f = NULL;
-  strcpy(catin.name, "catin");
-  humcat.f = NULL;
-  strcpy(humcat.name, "humcat");
-  cat3.f = NULL;
-  strcpy(cat3.name, "cat3");
-  cat2.f = NULL;
-  strcpy(cat2.name, "cat2");
-  cat1.f = NULL;
-  strcpy(cat1.name, "cat1");
-  catalp.f = NULL;
-  strcpy(catalp.name, "catalp");
-  TEMP.f = stdout;
-  *TEMP.name = '\0';
-  themain(&catalp, &l1, &cat1, &lib1, &l2, &cat2, &lib2, &l3, &cat3, &lib3,
-	  &humcat, &catin, &TEMP);
+	  // Loop through file
+  	while (fgets(buf, 1024, fp)){
+      // split line and get values
+      param = strtok_r(buf, d, &rest);
+      fName = strtok_r(NULL, d, &rest);
+      // Define input file names and parse file input
+      // match values to variable
+      if (strcmp(param, "l1") == 0){
+        l1.f = NULL;
+        strcpy(l1.name, fName);
+        l1.name[strlen(l1.name) -1] = '\0';
+      } 
+      else if (strcmp(param, "l2") == 0){
+        l2.f = NULL;        
+        strcpy(l2.name, fName);
+        l2.name[strlen(l2.name) -1] = '\0';
+      } 
+      else if (strcmp(param, "l3") == 0){
+        l3.f = NULL;
+        strcpy(l3.name, fName);
+        l3.name[strlen(l3.name) -1] = '\0';
+      }else if (strcmp(param, "lib1") == 0){
+        lib1.f = NULL;
+        strcpy(lib1.name, fName);
+        lib1.name[strlen(lib1.name) -1] = '\0';
+      }
+      else if (strcmp(param, "lib2") == 0){
+        lib2.f = NULL;
+        strcpy(lib2.name, fName);
+        lib2.name[strlen(lib2.name) -1] = '\0';
+      }
+      else if (strcmp(param, "lib3") == 0){
+        lib3.f = NULL;
+        strcpy(lib3.name, fName);
+        lib3.name[strlen(lib3.name) -1] = '\0';
+      }
+      else if (strcmp(param, "cat1") == 0){
+        cat1.f = NULL;
+        strcpy(cat1.name, fName);
+        cat1.name[strlen(cat1.name) -1] = '\0';
+      }
+      else if (strcmp(param, "cat2") == 0){
+        cat2.f = NULL;
+        strcpy(cat2.name, fName);
+        cat2.name[strlen(cat2.name) -1] = '\0';
+      }
+      else if (strcmp(param, "cat3") == 0){
+        cat3.f = NULL;
+        strcpy(cat3.name, fName);
+        cat3.name[strlen(cat3.name) -1] = '\0';
+      }
+      else if (strcmp(param, "catin") == 0){
+        catin.f = NULL;
+        strcpy(catin.name, fName);
+        catin.name[strlen(catin.name) -1] = '\0';
+      }
+      else if (strcmp(param, "humcat") == 0){
+        humcat.f = NULL;
+        strcpy(humcat.name, fName);
+        humcat.name[strlen(humcat.name) -1] = '\0';
+      }
+      else if (strcmp(param, "catalp") == 0){
+        catalp.f = NULL;
+        strcpy(catalp.name, fName);
+        catalp.name[strlen(catalp.name) -1] = '\0';
+      }
+    }
+
+    // Close parameter file
+    fclose(fp); 
+    themain(&catalp, &l1, &cat1, &lib1, &l2, &cat2, &lib2, &l3, &cat3, &lib3, 
+    &humcat, &catin, &TEMP);
 _L1:
   if (catalp.f != NULL)
     fclose(catalp.f);
@@ -3683,8 +3466,7 @@ _L1:
   if (lib3.f != NULL)
     fclose(lib3.f);
   exit(EXIT_SUCCESS);
+
+  return 0;
 }
-
-
-
 /* End. */
