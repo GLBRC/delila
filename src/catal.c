@@ -252,6 +252,25 @@ TO COMPILE:
 
 gcc catal.c -o catal -I/home/mplace/bin/p2c/src -L /home/mplace/bin/p2c/src -lm -lp2c
 
+TO RUN:
+ catal -f sample.csv
+
+ sample text file looks like:
+
+l1=l1
+l2=l2
+l3=l3
+cat1=cat1
+cat2=cat2
+cat3=cat3
+humcat=humcat
+catin=catin
+lib1=lib1
+lib2=lib2
+lib3=lib3
+catalp=catalp
+
+
 */
 
 #include <getopt.h>  /* getopt API */ 
@@ -384,122 +403,118 @@ Static long humcatlines; /* current line on that page */
 /* values for names so far..first has pointers to lists of names for each classification. */
 Static currvals current, first; 
 
-
+/* a list of free links */
 Static namandlistptr *freelistptr, *latest;
 
+/* old library files lll */
 Static _TEXT l1, l2, l3;
-/*
 
-
-*/
+/* new library files lll */
 Static _TEXT lib1, lib2, lib3;
 
+/* set if old library file has hit eof */
 Static boolean libdone;
-/*
-*/
-Static long libline, libnumber;
 
+/* current line in old library */
+Static long libline;
+
+/* number of current library */
+Static long libnumber;
+
+/* levels deep in our structure used for indentation purposes */
 Static long level;
-/*
-*/
 
+/* set to false if duplicate name in any one family is encountered.  */
 Static boolean unique;
-/*
-*/
 
+/*holds date and time in one variable. */
 Static datetimearray daytime;
-/*
-*/
-Static name none, aname;
-/*
-*/
-Static boolean toolong;
-/*
-*/
 
+/* for clearing out names  */
+Static name none;
+
+/* a name which is pulled out of buffer */
+Static name aname;
+
+/* set if the name is too long to change */
+Static boolean toolong;
+
+/* buffer holding the current line  */
 Static buffer line;
+
+/* current length of the line */
 Static long length_;
 
+/* point where we start to change a name. */
 Static long uniquebeg;
-/*
-*/
+
+/* largest integer available on this machine*/
 Static long maxinteger;
-/*
-*/
-/*
 
-*/
+/* number of bases for the current piece */
 Static long basecount;
-/*
-*/
 
+/* name of currently referenced piece */
 Static name piecename;
-/*
-*/
+
+/*  set if the current piece name is now different */
 Static boolean changed;
-/*
-*/
+
+/*  new name of currently referenced piece */
 Static name newpiecename;
-/*
-*/
 
+/* set if the piece for the current reference has been found yet*/
 Static boolean piecefound;
-/*
-*/
 
+/*newname length for a changing name  */
 Static long newnamelength;
 
+/* info about the numbering system */
 Static pieceinfo coo, pie;
 
+/* reference information for a transcript, gene, or piece */
 Static refnode pieceref;
-/*
-*/
+
+/* root of piece reference list */
 Static refnode *refroot;
 
+/* a count of errors found that prevent making
+   a new library, but not expected to snow ball */
 Static long fatal;
-/*
-*/
 
-Static long pfield, todatafield;
-/*
-*/
+/*fields involved in piece info.  see constants */
+Static long pfield;
 
+/* the number of blanks to get to the beginning of the data fields in humcat *   /
+Static long todatafield;
+
+/* the genetic map range, read by mapbegend */
 Static double mapbeg, mapend;
 
+/* false until we have written the title.
+   This prevents multiple titles from being written to catin in
+   procedure writehumcat.  */
 Static boolean titlewritten;
-/*
 
-*/
-
+/* maximum name length found */
 Static long maxnamelength;
-
 
 Static jmp_buf _JL1;
 
-
-
-
-
-
-
+/* stop the program.  the procedure performs a goto to the end of the
+   program.  you must have a label:
+      label 1;
+   declared, and also the end of the program must have this label:
+      1: end.
+   examples are in the module libraries.
+   this is the only goto in the delila system. */
 Static Void halt()
 {
-  /*
-
-
-
-
-
-*/
   printf(" program halt.\n");
   longjmp(_JL1, 1);
 }
 
-
-
-
-
-
+/* write the name n to file f */
 Static Void writename(f, n)
 _TEXT *f;
 name n;
@@ -510,15 +525,11 @@ name n;
     putc(n.letters[i], f->f);
 }
 
-
-
-
-
+/* indicate to both humcat, catin and output that there was an error
+in the current line of the library.  note that the actual libarary
+line number is pred(line).  (crazy, i know.) */
 Static Void erroratline()
 {
-  /*
-
-*/
   fprintf(humcat.f,
 	  "\n error *********************************************\n");
   fprintf(humcat.f, " at line %ld in file %ld\n", libline - 1, libnumber);
@@ -534,8 +545,7 @@ struct LOC_error {
   errtype indicator;
 } ;
 
-/*
-*/
+/* put the message to the file, increment filelines */
 Local Void message(thefile, filelines, LINK)
 _TEXT *thefile;
 long *filelines;
@@ -685,21 +695,21 @@ struct LOC_error *LINK;
 }
 
 
+/* this procedure flags errors in piece referencing by
+   markers, transcripts, and genes. it also as a result
+   checks the ordering of families, with the stipulation
+   that all references to a piece must be made before the
+   piece is found, with only one active forward reference
+   at any given time. if no references are made to a piece
+   by the time that piece is found, then a warning will be
+   issued. all of these warnings are non-fatal, with
+   the checking continuing after the flagged error.
+      note: one line of error text is counted at the end of the procedure;
+   additional lines are counted separately.
+*/
 Static Void error(indicator_)
 errtype indicator_;
 {
-  /*
-
-
-
-
-
-
-
-
-
-
-*/
   struct LOC_error V;
   long dummy;
 
@@ -709,7 +719,7 @@ errtype indicator_;
   message(&catin, &dummy, &V);
 }
 
-
+/* give message on strange structure and abort */
 Static Void strange(callingproc)
 calltype callingproc;
 {
@@ -765,8 +775,7 @@ calltype callingproc;
   halt();
 }
 
-
-
+/* help the user */
 Static Void docathelp(h)
 _TEXT *h;
 {
@@ -782,9 +791,7 @@ _TEXT *h;
   fprintf(h->f, " See delman for further help.\n");
 }
 
-
-
-
+/* write out each name in a list */
 Static Void traversealist(the)
 namandlistptr **the;
 {
@@ -798,10 +805,10 @@ namandlistptr **the;
   writename(&TEMP, (*the)->nam);
   putchar('\n');
 
-  traversealist(&(*the)->nextonlist);
+  traversealist(&(*the)->nextonlist);  /* do the rest of the list */
 }
 
-
+/* dump all of the names on each list up to now for this family.*/
 Static Void dumplists()
 {
   if (!verbose)
@@ -809,78 +816,82 @@ Static Void dumplists()
 
   printf(" lists at time of error:\n");
 
-  /*
-*/
+  /* print out the list of recognition -classes, starting at the
+      root of the list. this is done by the traversealist procedure.*/
   printf(" recognition-class names\n");
   traversealist(&first.recognition.nextonlist);
 
-
+/* list of enzyme names for the current recognition-class */
   printf(" enzyme names for the current recognition-class\n");
   traversealist(&first.enzyme_.nextonlist);
 
-
+/* list of organism names */
   printf(" organism names\n");
   traversealist(&first.organism_.nextonlist);
 
-
+/* list of chromosome names for the current organism */
   printf(" chromosome names for the current organism\n");
   traversealist(&first.chromosome_.nextonlist);
 
-
+/* list of markers for the current chromosome */
   printf(" marker names for the current chromosome\n");
   traversealist(&first.marker_.nextonlist);
 
-
+/* lists of transcript names for current chromosome */
   printf(" transcript names for current chromosome\n");
   traversealist(&first.transcript_.nextonlist);
 
-
+/* lists of gene names for current chromosome */
   printf(" gene names for the current chromosome\n");
   traversealist(&first.gene_.nextonlist);
 
-
+/* lists of piece names for the current chromosome */
   printf(" piece names for the current chromosome\n");
   traversealist(&first.piece_.nextonlist);
 }
 
+/* get the date and time into a single array from the system clock.
+   adatetime contains the date:
+       1980/06/09 18:49:11
+         ye mo da ho mi se
+(year, month, day, hour, minute, second).
+As of 2000 February 18, the Sun Pascal compiler requires a formatting
+statement.  This statement allows the date to be generated in this
+standard Delila format in a single call.  Information about the
+formatting statement is available on the manual page for date in Unix.
+If a computer does not have this method, see the 'oldgetdatetime' routine
+in delmod.p (https://alum.mit.edu/www/toms/delila/delmod.html)
+for some conversion code.
 
+GPC Functions:
+function  GetUnixTime (var MicroSecond : Integer) : UnixTimeType;
 
+http://agnes.dida.physik.uni-essen.de/~gnu-pascal/gpc_109.html#SEC109
 
+7.10.8 Date And Time Routines 
 
+procedure GetTimeStamp (var t : TimeStamp); 
+function Date (t : TimeStamp) : packed array [1 .. DateLength] of Char; 
+function Time (t : TimeStamp) : packed array [1 .. TimeLength] of Char; 
 
+DateLength and TimeLength are implementation dependent constants. 
 
+GetTimeStamp (t) fills the record `t' with values. If they are valid, the Boolean
+flags are set to True. 
+
+TimeStamp is a predefined type in the Extended Pascal standard. It may be
+extended in an implementation, and is indeed extended in GPC. For the full
+definition of `TimeStamp', see section 8.255 TimeStamp. */
 Static Void getdatetime(adatetime)
 Char *adatetime;
 {
-  /*
-
-
-
-
-
-*/
+  
   Char adate[datetimearraylength], atime[datetimearraylength];
-  /*
-
-
-*/
   Char month[3];
   long index;
 
-  /*
-
-
-
-
-*/
-
   VAXdate(adate);
   VAXtime(atime);
-
-  /*
-
-*/
-
 
   for (index = 1; index <= 4; index++)
     adatetime[index-1] = adate[index+6];
@@ -945,19 +956,7 @@ Static Void readdatetime(thefile, adatetime)
 _TEXT *thefile;
 Char *adatetime;
 {
-  /*
-
-
-
-*/
-  /*
-
-
-
-*/
-  long index;
-  /*
-*/
+ long index;
   Char udatetime[datetimearraylength];
 
   for (index = 0; index < datetimearraylength; index++) {
@@ -986,8 +985,12 @@ Char *adatetime;
   halt();
 }
 
-
-
+/* Read the computer date and time.  Reverse the order of the digits and put
+a decimal point in front.  This gives a fraction between zero and one that
+varies quite quickly, and is always unique (if the computer has sufficient
+accuracy).  It is to be used as a seed to a random number generator.  This
+has the nice property that the seed changes every second and does not repeat
+for thousands of years!  */
 Static Void writedatetime(thefile, adatetime)
 _TEXT *thefile;
 Char *adatetime;
@@ -998,25 +1001,14 @@ Char *adatetime;
     putc(adatetime[index], thefile->f);
 }
 
-
-
-/*
-
-
-
-
-*/
+/* add the digit represented by c to the seed at the power position */
 Static Void addtoseed(seed, power, c)
 double *seed, *power;
 Char c;
 {
   long n;
-
   *power /= 10;
-  /*
-
-
-*/
+  
   n = c - '0';
   if ((unsigned long)n > 9) {
     printf("timeseed: error in datetime\n");
@@ -1027,17 +1019,15 @@ Char c;
   *seed += *power * n;
 }
 
-
+/* convert adatetime to a real number in seed, reversed order
+Here is the standard adatetime format:
+123456789 123456789
+         1         
+1980/06/09 18:49:11 */
 Static Void makeseed(adatetime, seed)
 Char *adatetime;
 double *seed;
 {
-  /*
-
-
-
-
-*/
   double power = 1.0;
 
   *seed = 0.0;
@@ -1062,7 +1052,7 @@ double *seed;
   addtoseed(seed, &power, adatetime[0]);
 }
 
-
+/* convert adatetime to a real number in seed, normal order */
 Static Void orderseedDelila(adatetime, seed)
 Char *adatetime;
 double *seed;
@@ -1088,27 +1078,22 @@ double *seed;
   addtoseed(seed, &power, adatetime[18]);
 }
 
-
+/* read the computer date and time.  reverse the order of the digits
+and put a decimal point in front.  this gives a fraction between
+zero and one that varies quite quickly, and is always unique (if the
+computer has sufficient accuracy).  it is to be used as a seed to
+a random number generator. */
 Static Void timeseed(seed)
 double *seed;
 {
-  /*
-
-
-
-*/
   datetimearray adatetime;
-
   getdatetime(adatetime);
-  /*
-
-*/
   makeseed(adatetime, seed);
 }
 
 
-
-
+/* test whether the current time is before the limit.
+If it is later, halt the program */
 Static Void limitdate(a, b, c, d, limitdatetime_)
 Char a, b, c, d;
 Char *limitdatetime_;
@@ -1116,18 +1101,11 @@ Char *limitdatetime_;
   /*
 */
   datetimearray limitdatetime, adatetime;
-  double Dday, now;
+  double Dday; /* the critical day */
+  double now;  /* this very moment */
 
   memcpy(limitdatetime, limitdatetime_, sizeof(datetimearray));
   getdatetime(adatetime);
-  /*
-
-
-
-
-
-
-*/
 
   orderseedDelila(adatetime, &now);
 
@@ -1142,10 +1120,6 @@ Char *limitdatetime_;
 
   orderseedDelila(limitdatetime, &Dday);
 
-  /*
-
-
-*/
   if (now <= Dday)
     return;
   printf("This program expired on %.*s\n", datetimearraylength, limitdatetime);
@@ -1153,29 +1127,22 @@ Char *limitdatetime_;
   halt();
 }
 
-
-
-
-
-
-
-
-
+/* this procedure calculates the largest real number
+  possible on this machine.
+   this procedure assumes the range of numbers is somewhat
+  balanced to either side of 1 (i.e., 2^-n< 1 < 2^n , approximately )
+  The routine doesn't work too well with using 1/lastsmall because
+  dividing by such a small number produces infinity on a Sun workstation.
+  Using the small number before that one (prelastsmall) avoids the
+  difficulty.  HA!  NO IT DOESN'T!!!  Even preprelastsmall still
+  causes overflow.  Drop it!  Who cares? */
 Static Void maxnum(maxreal)
 double *maxreal;
 {
-  /*
-
-
-
-
-
-
-
-
-*/
-  double small = 1.0;
-  double lastsmall, prelastsmall, preprelastsmall;
+  double small = 1.0;      /* a small real number */
+  double lastsmall;        /* the small real number before small */
+  double prelastsmall;     /* the small real number before lastsmall */
+  double preprelastsmall;  /* the small real number before prelastsmall */
 
   while (small != 0) {
     preprelastsmall = prelastsmall;
@@ -1191,7 +1158,7 @@ double *maxreal;
   printf("maxnum: maxreal = % .3E\n", *maxreal);
 }
 
-
+/* copy a line from file fin to file fout */
 Static Void copyaline(fin, fout)
 _TEXT *fin, *fout;
 {
@@ -1204,7 +1171,7 @@ _TEXT *fin, *fout;
   putc('\n', fout->f);
 }
 
-
+/* report the parantage of the library (if it exists) */
 Static Void reportparent(l)
 _TEXT *l;
 {
@@ -1256,7 +1223,7 @@ _TEXT *l;
   RESETBUF(l->f, Char);
 }
 
-
+/* provide 0 if the library is empty and 1 if it is not */
 Static long countlibrary(l)
 _TEXT *l;
 {
@@ -1303,10 +1270,7 @@ _TEXT *catalp;
 catfile *c1, *c2, *c3;
 {
   long i;
-  Char ch;
-
-
-
+  Char ch;  /* reading character */
 
   if (*catalp->name != '\0') {
     if (catalp->f != NULL)
@@ -1460,7 +1424,6 @@ catfile *c1, *c2, *c3;
   piecefound = false;
   refroot = NULL;
 
-
   current.marker_.nam = none;
   current.transcript_.nam = none;
   current.gene_.nam = none;
@@ -1470,7 +1433,7 @@ catfile *c1, *c2, *c3;
   current.recognition.nam = none;
   current.organism_.nam = none;
   freelistptr = NULL;
-
+/* reset the pointers to the lists of names to nil */
   first.marker_.nextonlist = NULL;
   first.transcript_.nextonlist = NULL;
   first.gene_.nextonlist = NULL;
@@ -1479,34 +1442,26 @@ catfile *c1, *c2, *c3;
   first.enzyme_.nextonlist = NULL;
   first.recognition.nextonlist = NULL;
   first.organism_.nextonlist = NULL;
-  /*
-*/
-  /*
 
-
-*/
   todatafield = namespace;
 
-
+/* these are the fields of a coordinate system half */
   pfield = cfield + dfield + nfield * 2;
 
-
+/* we will start this enterprise with an open mind: */
   fatal = 0;
 
 }
 
-
-
-
+/* dump a line of length i to the new library.  if the line would be only
+ one character long (just an '*'), then delila will have problems
+ because it assumes that there is a space following each '*'.
+ rather than slow down delila, we check for this case and add
+ a space if there is none. */
 Static Void dumpline(newlib, i)
 _TEXT *newlib;
 long i;
 {
-  /*
-
-
-
-*/
   long j;
 
   if (libdone)
@@ -1521,7 +1476,7 @@ long i;
   putc('\n', newlib->f);
 }
 
-
+/* dump an item to a cat */
 Static Void dumpitem(cat, it)
 catfile *cat;
 item it;
@@ -1529,17 +1484,15 @@ item it;
   fwrite(&it, sizeof(item), 1, cat->f);
 }
 
-
+/* read a line from the library into the global 'line' */
 Static Void readline(lib, length)
 _TEXT *lib;
 long *length;
 {
   long j;
-
   Char uline[linelength];
-
-  /*
-*/
+  /* update line number at this point so that if there is an error,
+     the correct line number will be given... */
   libline++;
   *length = 0;
 
@@ -1556,7 +1509,7 @@ long *length;
 
   memcpy(line, uline, sizeof(buffer));
 
-
+/* fill the rest of the line buffer with blanks */
   for (j = *length; j < linelength; j++)
     line[j] = ' ';
 
@@ -1595,16 +1548,12 @@ long *length;
 }
 
 
-/*
-
-
-*/
+/*procedure needline is called when it is imperative that we get a new
+      line, but do not want to dump it to the new library yet. */
 Static Void needline(lib, length)
 _TEXT *lib;
 long *length;
 {
-  /*
-*/
   readline(lib, length);
   if (!libdone)
     return;
@@ -1613,26 +1562,23 @@ long *length;
   halt();
 }
 
-
+/* needlibline is called when it is imperative that we get a line.
+   it is then dumped to the catalog.  */
 Static Void needlibline(lib, newlib, length)
 _TEXT *lib, *newlib;
 long *length;
 {
-  /*
-*/
   needline(lib, length);
   dumpline(newlib, *length);
 }
 
-
-
+/* check the star at the start of each line using the global 'line'.
+If checkattribute is true, then not check for the existance of the attribute,
+otherwise let it slide.  That allows one to use the Delila <NAME> function so
+that unnamed objects get a blank name. */
 Static Void checkstar(checkattribute)
 boolean checkattribute;
 {
-  /*
-
-
-*/
   if (length_ < 3) {
     if (!checkattribute)
       return;
@@ -1660,21 +1606,20 @@ boolean checkattribute;
   humcatlines++;
 }
 
-
+ /** skip blanks on the global line, after the '* '.  this procedure is
+absolutely required because some compilers (eg:
+      digital vax/vms 3.0 pascal
+but not
+      dec cyber pascal
+or    ibm personal computer pascal )
+will put an extra blank in front of real numbers (but not integers...).
+this happens even when one writes with a field size 1 (as re:1:2).
+programs that write books (eg. makebk) therefore make bad books if catal
+does not accept the blanks... subtle and silly.  */
 Static Void skipblanks(linepos, bad)
 long *linepos;
 boolean *bad;
 {
-  /*
-
-
-
-
-
-
-
-
-*/
   *linepos = 3;
 
   while (*linepos <= length_ && line[*linepos - 1] == ' ')
@@ -1683,16 +1628,16 @@ boolean *bad;
   *bad = (*linepos > length_);
 }
 
-
+/* this procedure pulls an integer off the current input line
+  and returns its value if valid. if a valid integer does not exist,
+  badtoken returns a value true. otherwise, badtoken is false.
+*/
 Static Void getinteger(lib, newlib, intnumber, badtoken)
 _TEXT *lib, *newlib;
 long *intnumber;
 boolean *badtoken;
 {
-  /*
 
-
-*/
   long subtotal, linepos, thesign;
 
   needlibline(lib, newlib, &length_);
@@ -1765,21 +1710,20 @@ boolean *badtoken;
     *intnumber = 0;
 }
 
-
+/* this procedure extracts a real number from the current input
+  line, if one exists.if so, on exit, realnumber is the value
+  of that real number;if not, badtoken is set to true.
+*/
 Static Void getreal(lib, newlib, realnumber, badtoken)
 _TEXT *lib, *newlib;
-double *realnumber;
+double *realnumber; 
 boolean *badtoken;
 {
-  /*
-
-
-*/
-  double subtotal;
-  long linepos;
-  boolean pointfound;
-  double multiplier;
-  long thesign;
+  double subtotal;    /* total for the token so far */
+  long linepos;       /* position on the input line */
+  boolean pointfound; /* set if a decimal point has been found yet */
+  double multiplier;  /* multiplier for this point in token */
+  long thesign;       /* multiplier for sign */
 
   needlibline(lib, newlib, &length_);
   checkstar(true);
@@ -1870,7 +1814,7 @@ boolean *badtoken;
     *realnumber = 0.0;
 }
 
-
+/* obtain a configuration and the line buffer */
 Static Void getconfig(lib, newlib, c, badtoken)
 _TEXT *lib, *newlib;
 configuration *c;
@@ -1889,7 +1833,7 @@ boolean *badtoken;
     *badtoken = true;
 }
 
-
+/* obtain a configuration from the line buffer */
 Static Void getdirect(lib, newlib, d, badtoken)
 _TEXT *lib, *newlib;
 direction *d;
@@ -1908,16 +1852,16 @@ boolean *badtoken;
     *badtoken = true;
 }
 
-
+/* pull a name out of the line buffer,  note that no needlibline is done, because of the way getname
+      is used in changename.  changename is used in a loop in
+      procedure duplicate... */
 Static Void getname()
 {
   long i = 1;
   long j;
 
-  /*
-
-*/
   checkstar(true);
+  /* skip star and space in first two positions */
   while (i <= namelength && line[i+1] != ' ') {
     aname.letters[i-1] = line[i+1];
     i++;
@@ -1928,27 +1872,25 @@ Static Void getname()
     maxnamelength = aname.length;
   j = i;
   while (j <= namelength) {
-    aname.letters[j-1] = ' ';
+    aname.letters[j-1] = ' '; /* fill character must be space to avoid trouble with delila */
     j++;
   }
 
   catitem.nam.length = i - 1;
-
 }
 
-
-
-
+/* read a date into the first catalog and update the library date */
 Static Void readlibdate(lib, newlib, c1, c2, c3)
 _TEXT *lib, *newlib;
 catfile *c1, *c2, *c3;
 {
-  Char ch;
-  long i;
+  Char ch; /* a reading character */
+  long i;  /* index for transfering the date to the name */
   datetimearray olddaytime;
   _TEXT TEMP;
   long FORLIM;
-
+/* readlibdate */
+/* insert date in the new library */
   fprintf(newlib->f, "* ");
   ch = getc(lib->f);
   ch = getc(lib->f);
@@ -1956,22 +1898,25 @@ catfile *c1, *c2, *c3;
     ch = ' ';
   if (ch == '\n')
     ch = ' ';
+
+  /* pick up daytime from library itself 
+    readdatetime(lib, daytime);
+    put daytime right back ... 
+    writedatetime(newlib, daytime);
+    and copy rest of line (below) */
   if (keepdates) {
     readdatetime(lib, daytime);
 
     writedatetime(newlib, daytime);
 
   }
-
   else {
-    writedatetime(newlib, daytime);
-
-
-    fprintf(newlib->f, ", ");
+    writedatetime(newlib, daytime); /* new date */
+    fprintf(newlib->f, ", "); /* copy old date into second position in newlib */
     readdatetime(lib, olddaytime);
     writedatetime(newlib, olddaytime);
 
-
+  /* skip second date of oldlib */
     ch = getc(lib->f);
     ch = getc(lib->f);
     if (ch == '\n')
@@ -1981,8 +1926,7 @@ catfile *c1, *c2, *c3;
     readdatetime(lib, olddaytime);
   }
 
-
-
+/* copy name of library (or rest of header if keepdates = true) */
   while (!P_eoln(lib->f)) {
     ch = getc(lib->f);
     if (ch == '\n')
@@ -1997,89 +1941,73 @@ catfile *c1, *c2, *c3;
   writedatetime(&TEMP, daytime);
   putchar('\n');
 
-
-
-
+/* set up the first item of the catalog */
   catitem.letter = '*';
   catitem.nam.length = datetimearraylength;
   FORLIM = catitem.nam.length;
-  /*
 
-
-*/
   for (i = 0; i < FORLIM; i++)
     catitem.nam.letters[i] = daytime[i];
 
-
+/* clear the rest of the array */
   for (i = catitem.nam.length; i < namelength; i++)
     catitem.nam.letters[i] = ' ';
 
   catitem.line = libline;
-  switch (catnumber) {
 
+  /* insert date in the catalog */
+  switch (catnumber) {
   case 1:
     dumpitem(c1, catitem);
     break;
-
   case 2:
     dumpitem(c2, catitem);
     break;
-
   case 3:
     dumpitem(c3, catitem);
     break;
   }
-
-
+/* complete skip of library header line */
   fscanf(lib->f, "%*[^\n]");
   getc(lib->f);
   libline++;
 }
 
-
-
-
-/*
-
+/* catalog writing procedures *****************************************
+ dump an item to the cat
 */
+
 Static Void dumptocat(chr, c1, c2, c3)
 Char chr;
 catfile *c1, *c2, *c3;
 {
-  /*
-
-
-
-
-
-
-
-
-*/
-
-  memcpy(catitem.nam.letters, aname.letters, sizeof(alpha));
+/* reason for use of libline-2:
+      we are already 2 lines ahead of the first line of the item.
+      example:
+      ...
+      organism             libline-2
+      * name               libline-1
+      * ...                libline
+      ^ is the next character to be read, but the organism
+      starts at libline-2. */
+  memcpy(catitem.nam.letters, aname.letters, sizeof(alpha));  /* the nam.length was set in procedure getname */
 
   catitem.letter = chr;
   catitem.line = libline - 2;
   switch (catnumber) {
-
-  case 1:
-    dumpitem(c1, catitem);
-    break;
-
-  case 2:
-    dumpitem(c2, catitem);
-    break;
-
-  case 3:
-    dumpitem(c3, catitem);
-    break;
+    case 1:
+      dumpitem(c1, catitem);
+      break;
+    case 2:
+      dumpitem(c2, catitem);
+      break;
+    case 3:
+      dumpitem(c3, catitem);
+      break;
   }
 }
 
-
-
-
+/* write the name n without blanks */
 Static Void shortname(afile, n)
 _TEXT *afile;
 name n;
@@ -2092,157 +2020,114 @@ name n;
   }
 }
 
-
+/* write out a nice human listing */
 Static Void writehumcat(callingproc)
 calltype callingproc;
 {
-  long fieldsize = 11;
-  long l, FORLIM;
+  long fieldsize = 11;   /* size to put a name or spaces in */
+  long l;                /* index to levelsize */ 
+  long FORLIM;
 
   putc('\n', humcat.f);
   humcatlines++;
-  /*
-
-
-*/
-
-  if (humcatlines >= pagesize)
+  /*  doing this as a carriage return of the previous line allows
+      many things to be put on each line of cat after the call to
+      humcat.  note that the last carriage return is done at the end
+      of the program. */
+  if (humcatlines >= pagesize) /* paging control */
     dopage();
 
 
   FORLIM = levelsize * level;
   for (l = 1; l <= FORLIM; l++)
     putc(' ', humcat.f);
-  /*
-
-
-*/
-  /*
-
-*/
+  
+/* note: each part in quotes is 17 characters */
   switch (callingproc) {
-
-  case organism:
-    fprintf(humcat.f, "organism ");
-    writename(&humcat, current.organism_.nam);
-    fprintf(humcat.f, "%*c", namespace - current.organism_.nam.length, ' ');
-    break;
-
-  case chromosome:
-    fprintf(humcat.f, "chromosome ");
-    writename(&humcat, current.chromosome_.nam);
-    fprintf(humcat.f, "%*c", namespace - current.chromosome_.nam.length, ' ');
-    break;
-
-  case marker:
-    fprintf(humcat.f, "marker ");
-    writename(&humcat, current.marker_.nam);
-    fprintf(humcat.f, "%*c", namespace - current.marker_.nam.length, ' ');
-    break;
-
-  case transcript:
-    fprintf(humcat.f, "transcript ");
-    writename(&humcat, current.transcript_.nam);
-    fprintf(humcat.f, "%*c", namespace - current.transcript_.nam.length, ' ');
-    break;
-
-  case gene:
-    fprintf(humcat.f, "gene ");
-    writename(&humcat, current.gene_.nam);
-    fprintf(humcat.f, "%*c", namespace - current.gene_.nam.length, ' ');
-    break;
-
-  case piece:
-    fprintf(humcat.f, "piece ");
-    writename(&humcat, current.piece_.nam);
-    fprintf(humcat.f, "%*c", namespace - current.piece_.nam.length, ' ');
-    break;
-
-  case recognitionclass:
-    fprintf(humcat.f, "recognition-class ");
-    writename(&humcat, current.recognition.nam);
-    fprintf(humcat.f, "%*c", namespace - current.recognition.nam.length, ' ');
-    break;
-
-  case enzyme:
-    fprintf(humcat.f, "enzyme ");
-    writename(&humcat, current.enzyme_.nam);
-    fprintf(humcat.f, "%*c", namespace - current.enzyme_.nam.length, ' ');
-    break;
-
-    /*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
+    case organism:
+      fprintf(humcat.f, "organism ");
+      writename(&humcat, current.organism_.nam);
+      fprintf(humcat.f, "%*c", namespace - current.organism_.nam.length, ' ');
+      break;
+    case chromosome:
+      fprintf(humcat.f, "chromosome ");
+      writename(&humcat, current.chromosome_.nam);
+      fprintf(humcat.f, "%*c", namespace - current.chromosome_.nam.length, ' ');
+      break;
+    case marker:
+      fprintf(humcat.f, "marker ");
+      writename(&humcat, current.marker_.nam);
+      fprintf(humcat.f, "%*c", namespace - current.marker_.nam.length, ' ');
+      break;
+    case transcript:
+      fprintf(humcat.f, "transcript ");
+      writename(&humcat, current.transcript_.nam);
+      fprintf(humcat.f, "%*c", namespace - current.transcript_.nam.length, ' ');
+      break;
+    case gene:
+      fprintf(humcat.f, "gene ");
+      writename(&humcat, current.gene_.nam);
+      fprintf(humcat.f, "%*c", namespace - current.gene_.nam.length, ' ');
+      break;
+    case piece:
+      fprintf(humcat.f, "piece ");
+      writename(&humcat, current.piece_.nam);
+      fprintf(humcat.f, "%*c", namespace - current.piece_.nam.length, ' ');
+      break;
+    case recognitionclass:
+      fprintf(humcat.f, "recognition-class ");
+      writename(&humcat, current.recognition.nam);
+      fprintf(humcat.f, "%*c", namespace - current.recognition.nam.length, ' ');
+      break;
+    case enzyme:
+      fprintf(humcat.f, "enzyme ");
+      writename(&humcat, current.enzyme_.nam);
+      fprintf(humcat.f, "%*c", namespace - current.enzyme_.nam.length, ' ');
+      break;
 
   }
-
-
-
+/* old: we are now 28 + namelength characters over... 
+   do the instructions */
   if (docomments)
     putc('\n', catin.f);
   switch (callingproc) {
-
-  case organism:
-    fprintf(catin.f, "organism ");
-    writename(&catin, current.organism_.nam);
-    break;
-
-  case chromosome:
-    fprintf(catin.f, "chromosome ");
-    writename(&catin, current.chromosome_.nam);
-    break;
-
-  case marker:
-    fprintf(catin.f, "marker ");
-    writename(&catin, current.marker_.nam);
-    break;
-
-  case transcript:
-    fprintf(catin.f, "transcript ");
-    writename(&catin, current.transcript_.nam);
-    break;
-
-  case gene:
-    fprintf(catin.f, "gene ");
-    writename(&catin, current.gene_.nam);
-    break;
-
-  case piece:
-    fprintf(catin.f, "piece ");
-    writename(&catin, current.piece_.nam);
-    break;
-
-  case recognitionclass:
-    fprintf(catin.f, "recognition-class");
-    writename(&catin, current.recognition.nam);
-    break;
-
-  case enzyme:
-    fprintf(catin.f, "enzyme ");
-    writename(&catin, current.enzyme_.nam);
-    break;
-  }
-  fprintf(catin.f, ";\n");
-
+    case organism:
+      fprintf(catin.f, "organism ");
+      writename(&catin, current.organism_.nam);
+      break;
+    case chromosome:
+      fprintf(catin.f, "chromosome ");
+      writename(&catin, current.chromosome_.nam);
+      break;
+    case marker:
+      fprintf(catin.f, "marker ");
+      writename(&catin, current.marker_.nam);
+      break;
+    case transcript:
+      fprintf(catin.f, "transcript ");
+      writename(&catin, current.transcript_.nam);
+      break;
+    case gene:
+      fprintf(catin.f, "gene ");
+      writename(&catin, current.gene_.nam);
+      break;
+    case piece:
+      fprintf(catin.f, "piece ");
+      writename(&catin, current.piece_.nam);
+      break;
+    case recognitionclass:
+      fprintf(catin.f, "recognition-class");
+      writename(&catin, current.recognition.nam);
+      break;
+    case enzyme:
+      fprintf(catin.f, "enzyme ");
+      writename(&catin, current.enzyme_.nam);
+      break;
+    }
+    fprintf(catin.f, ";\n");
 }
 
-
-
+/* obtain a listptr */
 Static Void allocate(last)
 namandlistptr **last;
 {
@@ -2256,11 +2141,11 @@ namandlistptr **last;
   (*last)->nextonlist = NULL;
 }
 
-
+/* return a listptr to the free pool */
 Static Void return_(node)
 namandlistptr **node;
 {
-  namandlistptr *lptr;
+  namandlistptr *lptr; /* temporary ptr for holding the lists */
 
   if (*node == NULL)
     return;
