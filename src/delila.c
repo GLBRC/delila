@@ -6570,7 +6570,6 @@ struct LOC_readinstruction *LINK;
   }
 }
 
-
 Local Void dnaconcat(Adna, Bdna, Cdna, LINK)
 dnastring *Adna, *Bdna, **Cdna;
 struct LOC_readinstruction *LINK;
@@ -6578,12 +6577,11 @@ struct LOC_readinstruction *LINK;
   dnastring *aDNAptr, *bDNAptr, *cpart;
   long pb = 1;
   long pc, TEMP;
-
   emptydna(Cdna);
   getdna(Cdna);
   cpart = *Cdna;
-
   aDNAptr = Adna;
+
   while (aDNAptr != NULL) {
     memcpy(cpart->part, aDNAptr->part, sizeof(seq));
     cpart->length = aDNAptr->length;
@@ -6595,7 +6593,6 @@ struct LOC_readinstruction *LINK;
       cpart->next = NULL;
   }
 
-
   pc = cpart->length;
   bDNAptr = Bdna;
   do {
@@ -6606,7 +6603,6 @@ struct LOC_readinstruction *LINK;
       cpart->length = 1;
     } else {
       cpart->length++;
-
     }
     TEMP = cpart->length - 1;
     P_clrbits_B(cpart->part, TEMP, 1, 3);
@@ -6630,10 +6626,6 @@ struct LOC_readinstruction *LINK;
   long p;
   boolean done = false;
   long FORLIM, TEMP;
-
-  /*
-
-*/
   emptydna(Bdna);
   getdna(Bdna);
   bpart = *Bdna;
@@ -6650,23 +6642,15 @@ struct LOC_readinstruction *LINK;
     }
     if (a_->next == NULL) {
       done = true;
-      /*
 
-*/
       break;
     }
     bpart = (dnastring *)Malloc(sizeof(dnastring));
-    /*
-
-*/
     bpart->next = *Bdna;
     *Bdna = bpart;
     a_ = a_->next;
   }
-  /*
-
-
-*/
+  
 }
 
 Local Void getdnasegment(big, little, s, e, LINK)
@@ -6674,30 +6658,18 @@ dnastring *big, **little;
 long s, e;
 struct LOC_readinstruction *LINK;
 {
-  /*
-*/
   long b;
   dnastring *bDNAptr;
   long l = 0;
   dnastring *ldna;
   long p;
 
-  /*
-
-*/
   if (s > e) {
     printf("getdnasegment: s < e is required\n");
     halt();
   }
 
   bDNAptr = big;
-  /*
-
-
-
-*/
-
-
   p = bDNAptr->length;
   if (p < s - 1) {
     while (p < s - 1) {
@@ -6707,84 +6679,44 @@ struct LOC_readinstruction *LINK;
       }
       bDNAptr = bDNAptr->next;
       p += bDNAptr->length;
-      /*
-
-*/
     }
     b = bDNAptr->length - p + s - 1;
-    /*
-*/
 
   } else
     b = s - 1;
-  /*
-*/
+
   emptydna(little);
   getdna(little);
   ldna = *little;
   for (p = s; p <= e; p++) {
     l++;
     if (l > dnamax) {
-      /*
-
-*/
+     
       ldna->length = dnamax;
       getdna(&ldna->next);
       ldna = ldna->next;
       l = 1;
-      /*
-
-*/
+  
     }
-
     b++;
 
-
     if (b > bDNAptr->length) {
-      /*
 
-*/
       if (bDNAptr->next == NULL) {
 	printf("getdnasegment: request e (%ld) is beyond piece end\n", e);
 	crash();
 	halt();
       }
-      /*
-
-*/
       b = 1;
       bDNAptr = bDNAptr->next;
     }
-
 
     P_clrbits_B(ldna->part, l - 1, 1, 3);
     P_putbits_UB(ldna->part, l - 1,
 		 (int)((base)P_getbits_UB(bDNAptr->part, b - 1, 1, 3)), 1, 3);
   }
-
-  /*
-
-
-
-
-
-
-
-*/
   ldna->length = l;
 
-  /*
-
-
-
-
-
-
-
-
-
-
-*/
 }
 
 /* Local variables for circledna: */
@@ -6797,7 +6729,6 @@ dnastring **d;
 struct LOC_circledna *LINK;
 {
   dnastring *i;
-
   i = *d;
   *d = NULL;
   dnacomplement(i, d, LINK->LINK);
@@ -6811,31 +6742,13 @@ long s, e;
 boolean inverting;
 struct LOC_readinstruction *LINK;
 {
-  /*
-
-
-
-
-
-
-
-*/
   struct LOC_circledna V;
-
   dnastring *first;
   long n;
   dnastring *second;
-
   V.LINK = LINK;
   n = piecelength(big);
 
-  /*
-
-
-
-
-
-*/
   if (s < e) {
     if (inverting) {
       if (showcase)
@@ -6861,13 +6774,6 @@ struct LOC_readinstruction *LINK;
       if (showcase)
 	printf("    1  e<-s  n     inverting\n");
       getdnasegment(big->dna, &(*little)->dna, e, s, LINK);
-      /*
-
-*/
-      /*
-
-
-*/
       invert(&(*little)->dna, &V);
       return;
     }
@@ -6885,14 +6791,7 @@ struct LOC_readinstruction *LINK;
   getdnasegment(big->dna, &(*little)->dna, s, s, LINK);
   if (inverting) {
     invert(&(*little)->dna, &V);
-    /*
-
-
-
-
-
-
-*/
+    
   }
 }
 
@@ -6902,46 +6801,24 @@ Local Void compress(pie, LINK)
 piece **pie;
 struct LOC_readinstruction *LINK;
 {
-  /*
-
-*/
   long p, pielength;
   long previous = 0;
   dnastring *workdna;
-
-  /*
-
-
-*/
   pielength = piecelength(*pie);
 
   workdna = (*pie)->dna;
   p = workdna->length;
   while (pielength > p && workdna->next != NULL) {
-    /*
-
-*/
+ 
     previous += workdna->length;
     workdna = workdna->next;
     p += workdna->length;
   }
-  /*
-
-
-*/
-  /*
-
-
-
-*/
+  
   workdna->length = pielength - previous;
   if (workdna->next != NULL)
     emptydna(&workdna->next);
-  /*
-
-
-*/
-
+  
 }
 
 
@@ -6951,51 +6828,36 @@ long excess;
 direction coordinateside;
 struct LOC_readinstruction *LINK;
 {
-  /*
-*/
   piekey *WITH;
-
-  /*
-
-*/
   WITH = &(*pie)->key;
   switch (coordinateside) {
 
   case minus:
     switch (WITH->piedir) {
-
-    case minus:
-      WITH->pieend -= excess;
-      WITH->coobeg -= excess;
+      case minus:
+        WITH->pieend -= excess;
+        WITH->coobeg -= excess;
+        break;
+      case plus:
+        WITH->piebeg -= excess;
+        WITH->coobeg -= excess;
+        break;
+      }
       break;
-
-    case plus:
-      WITH->piebeg -= excess;
-      WITH->coobeg -= excess;
-      break;
-
-    }
-    break;
-
   case plus:
     switch (WITH->piedir) {
-
     case minus:
       WITH->piebeg += excess;
       WITH->cooend += excess;
       break;
-
     case plus:
       WITH->pieend += excess;
       WITH->cooend += excess;
       break;
-
     }
     break;
   }
 }
-
-
 
 Local Void putbase(b, position_, pie, coordinateside, LINK)
 base b;
@@ -7004,26 +6866,11 @@ piece **pie;
 direction coordinateside;
 struct LOC_readinstruction *LINK;
 {
-  /*
-
-
-
-
-
-*/
   long excess;
   dnastring *workdna;
   long p, pielength, TEMP;
-
-  /*
-
-*/
   pielength = piecelength(*pie);
-  /*
-
-
-
-*/
+  
   if (position_ < 1) {
     printf(
       "putbase: can not put bases before the start of the piece (position < 1)\n");
@@ -7034,123 +6881,44 @@ struct LOC_readinstruction *LINK;
   if (position_ > pielength) {
     excess = position_ - pielength;
     fixpiececoordinate(pie, excess, coordinateside, LINK);
-    /*
-
-*/
-
-
     p = workdna->length;
     while (workdna->next != NULL) {
-      /*
-
-*/
       workdna = workdna->next;
       p += workdna->length;
     }
-    /*
-
-*/
 
     if (workdna->length + excess <= dnamax) {
-      /*
-
-*/
       workdna->length += excess;
-      /*
-
-*/
-
-
-      /*
-
-
-
-
-
-*/
-
       TEMP = workdna->length - 1;
       P_clrbits_B(workdna->part, TEMP, 1, 3);
       P_putbits_UB(workdna->part, TEMP, (int)b, 1, 3);
       return;
     }
 
-
-    /*
-*/
     p += dnamax - workdna->length;
     workdna->length = dnamax;
-
 
     while (p < position_) {
       p += dnamax;
       getdna(&workdna->next);
       workdna = workdna->next;
       workdna->length = dnamax;
-      /*
 
-
-*/
     }
-    /*
-
-*/
-
-
     workdna->length = dnamax - p + position_;
-
-    /*
-
-
-*/
-
     TEMP = workdna->length - 1;
     P_clrbits_B(workdna->part, TEMP, 1, 3);
     P_putbits_UB(workdna->part, TEMP, (int)b, 1, 3);
     return;
   }
-  /*
-
-*/
-
-
-
-  /*
-
-*/
-  /*
-
-
-
-
-*/
 
   p = workdna->length;
   while (position_ > p) {
-    /*
 
-*/
     if (workdna->next != NULL)
       workdna = workdna->next;
     p += workdna->length;
-    /*
 
-
-
-
-
-
-
-*/
-    /*
-
-*/
-    /*
-
-
-
-
-*/
   }
   TEMP = workdna->length - p + position_ - 1;
   P_clrbits_B(workdna->part, TEMP, 1, 3);
@@ -7163,8 +6931,6 @@ long position_;
 piece *pie;
 struct LOC_readinstruction *LINK;
 {
-  /*
-*/
   return (basetochar(getbase(position_, pie)));
 }
 
@@ -7175,10 +6941,6 @@ piece *pie;
 direction coordinateside;
 struct LOC_readinstruction *LINK;
 {
-  /*
-
-
-*/
   putbase(chartobase(c_), position_, &pie, coordinateside, LINK);
 }
 
@@ -7193,7 +6955,6 @@ Local Void digit(LINK)
 struct LOC_numberdigit *LINK;
 {
   long tenplace, z, d;
-
   tenplace = LINK->place * 10;
   z = LINK->myabsolute - LINK->myabsolute / tenplace * tenplace;
   if (LINK->place == 1)
@@ -7201,46 +6962,36 @@ struct LOC_numberdigit *LINK;
   else
     d = z / LINK->place;
   switch (d) {
-
-  case 0:
-    LINK->acharacter = '0';
-    break;
-
-  case 1:
-    LINK->acharacter = '1';
-    break;
-
-  case 2:
-    LINK->acharacter = '2';
-    break;
-
-  case 3:
-    LINK->acharacter = '3';
-    break;
-
-  case 4:
-    LINK->acharacter = '4';
-    break;
-
-  case 5:
-    LINK->acharacter = '5';
-    break;
-
-  case 6:
-    LINK->acharacter = '6';
-    break;
-
-  case 7:
-    LINK->acharacter = '7';
-    break;
-
-  case 8:
-    LINK->acharacter = '8';
-    break;
-
-  case 9:
-    LINK->acharacter = '9';
-    break;
+    case 0:
+      LINK->acharacter = '0';
+      break;
+    case 1:
+      LINK->acharacter = '1';
+      break;
+    case 2:
+      LINK->acharacter = '2';
+      break;
+    case 3:
+      LINK->acharacter = '3';
+      break;
+    case 4:
+      LINK->acharacter = '4';
+      break;
+    case 5:
+      LINK->acharacter = '5';
+      break;
+    case 6:
+      LINK->acharacter = '6';
+      break;
+    case 7:
+      LINK->acharacter = '7';
+      break;
+    case 8:
+      LINK->acharacter = '8';
+      break;
+    case 9:
+      LINK->acharacter = '9';
+      break;
   }
 }
 
@@ -7253,50 +7004,12 @@ struct LOC_numberdigit *LINK;
     LINK->acharacter = '+';
 }
 
-
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-
-
 Local Char numberdigit(number_, logplace, LINK)
 long number_, logplace;
 struct LOC_readinstruction *LINK;
 {
-  /*
-
-
-
-
-
-
-*/
   struct LOC_numberdigit V;
   long count;
-
   V.LINK = LINK;
   V.number = number_;
   V.place = 1;
@@ -7322,8 +7035,6 @@ struct LOC_readinstruction *LINK;
   return V.acharacter;
 }
 
-
-
 Local long numbersize(n, LINK)
 long n;
 struct LOC_readinstruction *LINK;
@@ -7335,10 +7046,6 @@ struct LOC_readinstruction *LINK;
   else {
     size = (long)(log((double)labs(n)) / ln10 + epsilon) + 1;
 
-    /*
-
-
-*/
     if (n < 0)
       size++;
     return size;
@@ -7359,11 +7066,8 @@ Char c_;
 struct LOC_namechangeset *LINK;
 {
   name *WITH;
-
-  /*
-
-*/
   WITH = &(*LINK->pie)->key.hea.keynam;
+
   if (WITH->length < namelength) {
     WITH->length++;
     WITH->letters[WITH->length - 1] = c_;
@@ -7380,16 +7084,10 @@ struct LOC_namechangeset *LINK;
   i = (long)floor(r + 0.5);
   for (n = numbersize(i, LINK->LINK) - 1; n >= 0; n--) {
     c_ = numberdigit(i, n, LINK->LINK);
-    /*
 
-
-
-*/
     if (c_ != '+')
       putin(c_, LINK);
-    /*
 
-*/
   }
 }
 
@@ -7462,15 +7160,11 @@ struct LOC_readinstruction *LINK;
 {
   Char c_;
   long n, i;
-
   i = (long)floor(r + 0.5);
+
   for (n = numbersize(i, LINK) - 1; n >= 0; n--) {
     c_ = numberdigit(i, n, LINK);
-    /*
 
-
-
-*/
     if (c_ != '+')
       putinline(pie, c_, LINK);
   }
@@ -7493,7 +7187,6 @@ struct LOC_readinstruction *LINK;
     }
     WITH = &changes.data[n-1];
     switch (WITH->changetype) {
-
     case 'c':
       putinline(pie, 'a', LINK);
       putinline(pie, 't', LINK);
@@ -7505,7 +7198,6 @@ struct LOC_readinstruction *LINK;
       putinline(pie, '>', LINK);
       putinline(pie, WITH->basenew, LINK);
       break;
-
     case 'i':
       putinline(pie, 'i', LINK);
       putinline(pie, 'n', LINK);
@@ -7584,14 +7276,11 @@ long n;
 double *first, *last;
 struct LOC_checkoneoverlap *LINK;
 {
-  /*
-
-*/
   changedata *WITH;
-
   WITH = &LINK->c_.data[n-1];
   *first = WITH->internal1;
   *last = WITH->internal2;
+
   if (WITH->changetype == 'i') {
     if (*first + 1 == *last) {
       *first += 0.5;
@@ -7612,8 +7301,6 @@ changeset c__;
 long x;
 struct LOC_readinstruction *LINK;
 {
-  /*
-*/
   struct LOC_checkoneoverlap V;
   long y;
   double x1, x2, y1, y2;
@@ -7655,7 +7342,6 @@ struct LOC_readinstruction *LINK;
       error(222L, LINK->LINK);
     }
 
-
   }
 }
 
@@ -7668,40 +7354,15 @@ direction coordinateside;
 boolean *deleted;
 struct LOC_readinstruction *LINK;
 {
-  /*
-
-
-
-
-*/
   long b1, b2;
-  /*
-*/
   long deletes, i, n, shift, pielength, FORLIM;
   changedata *WITH;
   _TEXT TEMP;
   long FORLIM1;
-
-  /*
-
-
-
-
-
-*/
   namechangeset(thesequence, changes, LINK);
   pielength = piecelength(*thesequence);
-  /*
-
-*/
   *deleted = false;
-
   FORLIM = changes.number;
-  /*
-
-
-*/
-
 
   for (n = 1; n <= FORLIM; n++) {
     WITH = &changes.data[n-1];
@@ -7711,7 +7372,6 @@ struct LOC_readinstruction *LINK;
     b2 = WITH->internal2;
 
     switch (WITH->changetype) {
-
     case 'c':
       if (WITH->baseold == WITH->basenew) {
 	printf("You wrote ");
@@ -7725,20 +7385,9 @@ struct LOC_readinstruction *LINK;
 	geteoinst(LINK);
       } else {
 	if ((*thesequence)->key.coodir != (*thesequence)->key.piedir) {
-	  /*
-*/
-	  /*
-
-
-
-*/
 	  WITH->baseold = basetochar(complement(chartobase(WITH->baseold)));
 	  WITH->basenew = basetochar(complement(chartobase(WITH->basenew)));
-	  /*
-
-
-
-*/
+	  
 	}
 	if (b1 < 1) {
 	  mutposition1 = WITH->basecoo1;
@@ -7760,22 +7409,12 @@ struct LOC_readinstruction *LINK;
 	  mutnotchar = WITH->baseold;
 	  mutischar = getbasech(b1, *thesequence, LINK);
 	  if ((*thesequence)->key.coodir != (*thesequence)->key.piedir) {
-	    /*
-*/
-	    /*
-
-
-
-*/
+	   
 	    WITH->baseold = chomplement(WITH->baseold);
 	    WITH->basenew = chomplement(WITH->basenew);
 	    mutischar = chomplement(mutischar);
 	    mutnotchar = chomplement(mutnotchar);
-	    /*
-
-
-
-*/
+	  
 	  }
 	  printf(
 	    "On the positively oriented strand, the old base at %ld is NOT %c!  It is %c.\n",
@@ -7798,50 +7437,25 @@ struct LOC_readinstruction *LINK;
     }
   }
   FORLIM = changes.number;
-  /*
-*/
-  /*
-
-
-
-
-
-*/
-
+ 
   for (n = 1; n <= FORLIM; n++) {
     WITH = &changes.data[n-1];
-
-    /*
-
-
-
-
-
-
-
-
-
-*/
-
     b1 = WITH->internal1;
     b2 = WITH->internal2;
 
     switch (WITH->changetype) {
-
     case 'c':
       if (b1 < 1 || b2 > pielength)
-	error(219L, LINK->LINK);
-      else
-	putbasech(WITH->basenew, b1, *thesequence, coordinateside, LINK);
-      break;
-
+      error(219L, LINK->LINK);
+          else
+      putbasech(WITH->basenew, b1, *thesequence, coordinateside, LINK);
+          break;
     case 'i':
       if (b1 < 0 && b2 > pielength && WITH->inserts == 0) {
 	error(220L, LINK->LINK);
 
 	geteoinst(LINK);
 	*deleted = true;
-
       } else {
 	if (b1 > pielength)
 	  b1 = pielength;
@@ -7851,9 +7465,6 @@ struct LOC_readinstruction *LINK;
 	  b1 = 0;
 	if (b2 < 1)
 	  b2 = 1;
-	/*
-
-*/
 
 	if (b1 == b2) {
 	  printf(
@@ -7869,108 +7480,26 @@ struct LOC_readinstruction *LINK;
 	deletes = b2 - b1 - 1;
 	shift = WITH->inserts - deletes;
 	pielength += shift;
-	/*
-
-
-
-*/
 
 	if (shift > 0) {
-	  /*
-*/
-	  /*
-
-
-*/
 
 	  switch ((*thesequence)->key.piedir) {
-
 	  case plus:
 	    if (b2 - shift < 1)
 	      b2 += shift;
 	    break;
-
 	  case minus:
 	    if (b2 - shift < 1)
 	      b2 += shift;
 	    break;
 	  }
 
-	  /*
-
-
-*/
-
-	  /*
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-
 	  for (i = pielength; i >= b2; i--)
 	    putbasech(getbasech(i - shift, *thesequence, LINK), i,
 		      *thesequence, coordinateside, LINK);
 
-	  /*
-
-
-
-
-
-*/
-
-
-	  /*
-
-
-
-*/
-
-	  /*
-
-
-
-
-
-
-
-
-
-
-*/
-
-
-	}
-	/*
-
-*/
-
-	else if (shift < 0) {
-	  /*
-
-
-
-
-
-
-
-
-*/
-	  /*
-
-
-*/
-
-
+	}	else if (shift < 0) {
+	 
 	  for (i = b2 + shift; i <= pielength; i++) {
 	    putbasech(getbasech(i - shift, *thesequence, LINK), i,
 		      *thesequence, coordinateside, LINK);
@@ -7978,13 +7507,6 @@ struct LOC_readinstruction *LINK;
 	  }
 
 	  fixpiececoordinate(thesequence, shift, coordinateside, LINK);
-
-	  /*
-
-
-
-*/
-
 	  if (shift < 0)
 	    compress(thesequence, LINK);
 	} else {
@@ -7993,112 +7515,34 @@ struct LOC_readinstruction *LINK;
 
 	}
 
-	/*
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-
-	/*
-
-
-
-
-
-
-
-
-
-*/
 	if (((*thesequence)->key.coodir == (*thesequence)->key.piedir) !=
 	    WITH->insertcomplement) {
 	  FORLIM1 = WITH->inserts;
 	  for (i = 1; i <= FORLIM1; i++)
 	    putbasech(WITH->insert[i-1], b1 + i, *thesequence, coordinateside,
 		      LINK);
-	  /*
 
-
-*/
 	}
 
 	else {
 	  FORLIM1 = WITH->inserts;
 	  for (i = 1; i <= FORLIM1; i++) {
-	    /*
-
-
-
-*/
 	    putbasech(chomplement(WITH->insert[i-1]),
 		      b1 + WITH->inserts - i + 1, *thesequence,
 		      coordinateside, LINK);
 
-	    /*
-
-
-
-
-*/
-
 	  }
 
-	  /*
-
-
-*/
 	}
       }
       break;
-
-    /*
-
-*/
-
     case 'd':
-      /*
-
-
-
-
-*/
-
       if (b1 <= 1 && b2 >= pielength) {
-	error(220L, LINK->LINK);
-
-	geteoinst(LINK);
-	*deleted = true;
+      	error(220L, LINK->LINK);
+	      geteoinst(LINK);
+	      *deleted = true;
       } else if (b1 > pielength && b2 > pielength || b1 < 1 && b2 < 1) {
-	/*
-*/
-	error(221L, LINK->LINK);
-	/*
-
-
-
-*/
-	/*
-
-
-
-
-
-
-
-
-
-
-
-*/
+          	error(221L, LINK->LINK);
       }
 
       else {
@@ -8110,10 +7554,6 @@ struct LOC_readinstruction *LINK;
 	  b1 = pielength;
 	if (b2 > pielength)
 	  b2 = pielength;
-	/*
-
-
-*/
 
 	shift = b2 - b1 + 1;
 
@@ -8122,36 +7562,15 @@ struct LOC_readinstruction *LINK;
 	  putbasech(getbasech(i + shift, *thesequence, LINK), i, *thesequence,
 		    coordinateside, LINK);
 
-
-
 	fixpiececoordinate(thesequence, -shift, coordinateside, LINK);
 
-	/*
-
-
-
-*/
 	if (shift > 0)
 	  compress(thesequence, LINK);
-	/*
-
-
-*/
       }
       break;
-
     }
-
-    /*
-
-
-*/
     propagateonechange(&changes, n, *thesequence, LINK);
-    /*
 
-
-
-*/
   }
 }
 
@@ -8161,10 +7580,6 @@ struct LOC_extractpiece {
   piece *libpie, **pie;
   long cutposition;
   boolean reversing, acrossboundary;
-  /*
-*/
-  /*
-*/
   long startread, stopread;
 } ;
 
@@ -8180,11 +7595,7 @@ struct LOC_extractpiece *LINK;
 			   within(*LINK->pie, LINK->libpie->key.pieend);
   else
     LINK->acrossboundary = false;
-
-  /*
-
-
-*/
+ 
   if (LINK->acrossboundary) {
     if (LINK->reversing) {
       if (LINK->libpie->key.piebeg == (*LINK->pie)->key.pieend &&
@@ -8199,14 +7610,7 @@ struct LOC_extractpiece *LINK;
 
 
   getdna(&(*LINK->pie)->dna);
-
-  /*
-
-
-
-
-
-*/
+ 
 }
 
 Local Void case1(LINK)
@@ -8214,18 +7618,9 @@ struct LOC_extractpiece *LINK;
 {
   if (debugging)
     fprintf(debug.f, "case1\n");
-  /*
-
-*/
+ 
   LINK->startread = pietoint((*LINK->pie)->key.piebeg, LINK->libpie);
   LINK->stopread = pietoint((*LINK->pie)->key.pieend, LINK->libpie);
-  /*
-
-
-
-
-
-*/
   circledna(LINK->libpie, LINK->pie, LINK->startread, LINK->stopread,
 	    LINK->reversing, LINK->LINK);
 }
@@ -8233,14 +7628,9 @@ struct LOC_extractpiece *LINK;
 Local Void case2(LINK)
 struct LOC_extractpiece *LINK;
 {
-  /*
-
-*/
   if (debugging)
     fprintf(debug.f, "case2\n");
-  /*
-
-*/
+ 
   if (LINK->reversing) {
     LINK->startread = pietoint(LINK->cutposition, LINK->libpie);
     if (LINK->startread < piecelength(LINK->libpie))
@@ -8263,14 +7653,8 @@ struct LOC_extractpiece *LINK;
 Local Void case3(LINK)
 struct LOC_extractpiece *LINK;
 {
-  /*
-
-*/
   if (debugging)
     fprintf(debug.f, "case3\n");
-  /*
-
-*/
   LINK->startread = pietoint((*LINK->pie)->key.piebeg, LINK->libpie);
   LINK->stopread = pietoint((*LINK->pie)->key.pieend, LINK->libpie);
   circledna(LINK->libpie, LINK->pie, LINK->startread, LINK->stopread,
@@ -8282,58 +7666,13 @@ piece *libpie_, **pie_;
 long cutposition_;
 struct LOC_readinstruction *LINK;
 {
-  /*
-*/
-
-
-  /*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
   struct LOC_extractpiece V;
-
   V.LINK = LINK;
-  /*
-
-*/
   V.libpie = libpie_;
   V.pie = pie_;
   V.cutposition = cutposition_;
-  /*
-
-
-
-
-*/
   setvariables(&V);
+
   if (V.acrossboundary) {
     case3(&V);
     return;
@@ -8353,52 +7692,38 @@ struct LOC_readinstruction *LINK;
   (*Apiece)->key.coocon = linear;
   (*Apiece)->key.coodir = plus;
   switch ((*Apiece)->key.piedir) {
-
-  case plus:
-    zeroBS = zerobase - zeroshift;
-    (*Apiece)->key.coobeg = (*Apiece)->key.piebeg - zeroBS;
-    (*Apiece)->key.cooend = (*Apiece)->key.pieend - zeroBS;
-    (*Apiece)->key.piecon = linear;
-    (*Apiece)->key.piedir = plus;
-    (*Apiece)->key.piebeg -= zeroBS;
-    (*Apiece)->key.pieend -= zeroBS;
-    break;
-
-  case minus:
-    zeroBS = zerobase + zeroshift;
-    (*Apiece)->key.coobeg = zeroBS - (*Apiece)->key.piebeg;
-    (*Apiece)->key.cooend = zeroBS - (*Apiece)->key.pieend;
-    (*Apiece)->key.piecon = linear;
-    (*Apiece)->key.piedir = plus;
-    (*Apiece)->key.piebeg = zeroBS - (*Apiece)->key.piebeg;
-    (*Apiece)->key.pieend = zeroBS - (*Apiece)->key.pieend;
-    break;
+    case plus:
+      zeroBS = zerobase - zeroshift;
+      (*Apiece)->key.coobeg = (*Apiece)->key.piebeg - zeroBS;
+      (*Apiece)->key.cooend = (*Apiece)->key.pieend - zeroBS;
+      (*Apiece)->key.piecon = linear;
+      (*Apiece)->key.piedir = plus;
+      (*Apiece)->key.piebeg -= zeroBS;
+      (*Apiece)->key.pieend -= zeroBS;
+      break;
+    case minus:
+      zeroBS = zerobase + zeroshift;
+      (*Apiece)->key.coobeg = zeroBS - (*Apiece)->key.piebeg;
+      (*Apiece)->key.cooend = zeroBS - (*Apiece)->key.pieend;
+      (*Apiece)->key.piecon = linear;
+      (*Apiece)->key.piedir = plus;
+      (*Apiece)->key.piebeg = zeroBS - (*Apiece)->key.piebeg;
+      (*Apiece)->key.pieend = zeroBS - (*Apiece)->key.pieend;
+      break;
   }
 }
-
-
-
 
 Local Void addnumber(hea, n, LINK)
 header *hea;
 long n;
 struct LOC_readinstruction *LINK;
 {
-  /*
-
-*/
   line *numbernote;
-  /*
-*/
   long signspace;
-  /*
-*/
   long numdigits, digit, index;
   Char charnum;
   line *noteindex;
-
   getlineDelila(&numbernote);
-
 
   for (index = 0; index < numberlength; index++)
     numbernote->letters[index] = LINK->LINK->numberword[index];
@@ -8410,9 +7735,7 @@ struct LOC_readinstruction *LINK;
     signspace = 0;
   if (n == 0) {
     numdigits = 1;
-    /*
-*/
-
+ 
   } else
     numdigits = (long)(log((double)n) / log(10.0) + 1 + precision);
 
@@ -8421,46 +7744,36 @@ struct LOC_readinstruction *LINK;
     digit = n % 10;
     n /= 10;
     switch (digit) {
-
-    case 0:
-      charnum = '0';
-      break;
-
-    case 1:
-      charnum = '1';
-      break;
-
-    case 2:
-      charnum = '2';
-      break;
-
-    case 3:
-      charnum = '3';
-      break;
-
-    case 4:
-      charnum = '4';
-      break;
-
-    case 5:
-      charnum = '5';
-      break;
-
-    case 6:
-      charnum = '6';
-      break;
-
-    case 7:
-      charnum = '7';
-      break;
-
-    case 8:
-      charnum = '8';
-      break;
-
-    case 9:
-      charnum = '9';
-      break;
+        case 0:
+          charnum = '0';
+          break;
+        case 1:
+          charnum = '1';
+          break;
+        case 2:
+          charnum = '2';
+          break;
+        case 3:
+          charnum = '3';
+          break;
+        case 4:
+          charnum = '4';
+          break;
+        case 5:
+          charnum = '5';
+          break;
+        case 6:
+          charnum = '6';
+          break;
+        case 7:
+          charnum = '7';
+          break;
+        case 8:
+          charnum = '8';
+          break;
+        case 9:
+          charnum = '9';
+          break;
     }
     numbernote->letters[index] = charnum;
   }
@@ -8472,23 +7785,16 @@ struct LOC_readinstruction *LINK;
   if (hea->note != NULL) {
     noteindex = hea->note;
 
-
     while (noteindex->next != NULL)
       noteindex = noteindex->next;
 
-
     noteindex->next = LINK->LINK->usernotes;
-  }
-
-  else
+  }  else
     hea->note = LINK->LINK->usernotes;
-
-
   LINK->LINK->usernotes = NULL;
 }
 
 #undef precision
-
 
 Local Void spec(hea, numberable, object, LINK)
 header *hea;
@@ -8530,15 +7836,12 @@ Local Void specpiece(ref, LINK)
 reference ref;
 struct LOC_readinstruction *LINK;
 {
-  /*
-*/
   specified(LINK->LINK->pkspec, LINK);
   if (!LINK->LINK->correct ||
       strncmp(ref.pienam.letters, LINK->LINK->pk->key.hea.keynam.letters,
 	      sizeof(alpha)))
     lrpiece(ref.pienam, &libpie);
-  /*
-*/
+
   LINK->LINK->pkspec = -0.5;
 }
 
@@ -8558,15 +7861,10 @@ struct LOC_readinstruction *LINK;
   unspec(&LINK->LINK->pkspec, LINK);
 }
 
-
-
-
 Local Void checksize(pk, LINK)
 piece *pk;
 struct LOC_readinstruction *LINK;
 {
-  /*
-*/
   booksize += piecelength(pk);
   if (booksize <= maxbook)
     return;
@@ -8576,32 +7874,24 @@ struct LOC_readinstruction *LINK;
   geteoinst(LINK);
 }
 
-/*
-
-*/
-
 Local long dirvalue(d)
 direction d;
 {
   long Result;
 
   switch (d) {
-
-  case plus:
-    Result = 1;
-    break;
-
-  case minus:
-    Result = -1;
-    break;
-
-  case dirhomologous:
-    Result = 0;
-    break;
-
-  case dircomplement:
-    Result = 0;
-    break;
+      case plus:
+        Result = 1;
+        break;
+      case minus:
+        Result = -1;
+        break;
+      case dirhomologous:
+        Result = 0;
+        break;
+      case dircomplement:
+        Result = 0;
+        break;
   }
   return Result;
 }
@@ -8624,39 +7914,13 @@ boolean a_, b;
 Local Void dopiece(LINK)
 struct LOC_readinstruction *LINK;
 {
-  /*
-
-
-
-
-
-
-
-
-
-*/
+  
   long vdirwanted, vdirimplied, libstart;
-  /*
-*/
   boolean deleted;
   piekey *WITH;
 
-  /*
-
-
-
-*/
-
   WITH = &LINK->LINK->pk->key;
-  /*
-*/
-  /*
-
-
-
-*/
-
-
+  
   if (((1L << ((long)LINK->LINK->dirwanted)) &
        ((1L << ((long)plus)) | (1L << ((long)minus)))) != 0)
     vdirwanted = dirvalue(LINK->LINK->dirwanted);
@@ -8665,39 +7929,29 @@ struct LOC_readinstruction *LINK;
   else
     vdirwanted = -dirvalue(libpie->key.piedir);
 
-  /*
-*/
   if (LINK->LINK->toposition == LINK->LINK->fromposition)
     vdirimplied = vdirwanted;
   else {
     switch (WITH->coocon) {
-
     case linear:
       vdirimplied = sign_(LINK->LINK->toposition - LINK->LINK->fromposition);
       break;
-
     case circular:
       switch (libpie->key.piecon) {
-
       case circular:
 	vdirimplied = vdirwanted;
 	break;
-
       case linear:
 	if (within(libpie, WITH->coobeg) & within(libpie, WITH->cooend)) {
 	  switch (libpie->key.piedir) {
-
 	  case plus:
 	    libstart = libpie->key.cooend;
 	    break;
-
 	  case minus:
 	    libstart = libpie->key.coobeg;
 	    break;
 	  }
-	  /*
-
-*/
+	
 	  if (BooleanXOR(between(libpie->key.piebeg, LINK->LINK->toposition,
 				 libstart),
 			 between(libpie->key.piebeg, LINK->LINK->fromposition,
@@ -8718,13 +7972,11 @@ struct LOC_readinstruction *LINK;
     }
 
     switch (LINK->LINK->dirwanted) {
-
     case plus:
     case minus:
       if (vdirwanted != vdirimplied)
-	error(204L, LINK->LINK);
+	        error(204L, LINK->LINK);
       break;
-
     case dirhomologous:
       vdirwanted = vdirimplied;
       break;
@@ -8742,11 +7994,9 @@ struct LOC_readinstruction *LINK;
     WITH->piebeg = LINK->LINK->fromposition;
     WITH->pieend = LINK->LINK->toposition;
     switch (vdirwanted) {
-
     case 1:
       WITH->piedir = plus;
       break;
-
     case -1:
       WITH->piedir = minus;
       break;
@@ -8758,116 +8008,35 @@ struct LOC_readinstruction *LINK;
       fprintf(debug.f, "ord(piedir)=%12d\n", (int)WITH->piedir);
     }
 
-    /*
-
-
-
-*/
-
-
     copyline(libpie->key.hea.fulnam, &LINK->LINK->pk->key.hea.fulnam);
-
-    /*
-
-
-
-*/
-
-
-
     extractpiece(libpie, &LINK->LINK->pk, LINK->LINK->cutposition, LINK);
-
-
     gozero(&LINK->LINK->pk, LINK);
-
-
     deleted = false;
     if (mutations.number > 0) {
-      /*
-*/
       setinternal(&mutations, LINK->LINK->pk, LINK);
-
-
       if (def.doubling == on) {
-	/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-	if (longnameexists) {
-	  /*
-*/
-	  copyline(longname, &LINK->LINK->pk->key.hea.fulnam);
+      	if (longnameexists) {
+            copyline(longname, &LINK->LINK->pk->key.hea.fulnam);
 	}
-
 
 	checksize(LINK->LINK->pk, LINK);
 	bwpie(&book, LINK->LINK->pk);
-	/*
-
-
-
-*/
-	/*
-
-
-*/
-
 	LINK->LINK->getcount++;
-
 
 	spec(&LINK->LINK->pk->key.hea, def.num.str[(long)pienum],
 	     &LINK->LINK->pkspec, LINK);
       }
-
-      /*
-
-
-
-
-*/
-
-
-
       if (def.doubling == on) {
 	writewildtypemarks(&marksdelila, mutations, insertupperbits,
 			   insertlowerbits, deleteupperbits, deletelowerbits,
 			   changeupperbits, changelowerbits, LINK->LINK->pk,
 			   def.num.item, LINK);
-
-	/*
-
-*/
-
 	skippiece(&marksdelila, LINK);
       }
 
       changesequence(mutations, &LINK->LINK->pk, LINK->LINK->coordinateside,
 		     &deleted, LINK);
-      /*
-
-
-*/
-
-      /*
-*/
-      if (!deleted)
+       if (!deleted)
 	writemutantmarks(&marksdelila, mutations, insertupperbits,
 			 insertlowerbits, deleteupperbits, deletelowerbits,
 			 changeupperbits, changelowerbits, LINK->LINK->pk,
@@ -8878,45 +8047,18 @@ struct LOC_readinstruction *LINK;
       linechangeset(&LINK->LINK->pk, mutations, LINK);
     }
 
-
-
-
     if (!deleted) {
-      /*
-
-
-
-
-
-
-*/
-
-      if (longnameexists) {
+         if (longnameexists) {
 	copyline(longname, &LINK->LINK->pk->key.hea.fulnam);
 	longnameexists = false;
       }
-
-
       if (withused)
 	skippiece(&marksdelila, LINK);
-
-
-
       checksize(LINK->LINK->pk, LINK);
       bwpie(&book, LINK->LINK->pk);
-
       LINK->LINK->getcount++;
-
     }
-
-    /*
-
-*/
-
-
     else {
-      /*
-*/
       if (withused)
 	skippiece(&marksdelila, LINK);
     }
@@ -8925,12 +8067,6 @@ struct LOC_readinstruction *LINK;
   if (debugging)
     fprintf(debug.f, "dopiece-out\n");
 }
-
-
-
-
-
-
 
 Local Void irdirection(LINK)
 struct LOC_readinstruction *LINK;
@@ -8943,51 +8079,30 @@ struct LOC_readinstruction *LINK;
   if (!LINK->LINK->correct)
     return;
   if (LINK->LINK->chr == '-' || LINK->LINK->chr == '+') {
-    /*
-
-*/
-    parse(false, LINK);
-    /*
-
-
-*/
-
-    if (!LINK->LINK->correct)
+     parse(false, LINK);
+     if (!LINK->LINK->correct)
       return;
     if (LINK->LINK->parsedword[1] != ' ') {
       error(2L, LINK->LINK);
       return;
     }
     switch (LINK->LINK->parsedword[0]) {
-
     case '+':
       LINK->LINK->dirwanted = plus;
       break;
-
     case '-':
       LINK->LINK->dirwanted = minus;
       break;
-
     case ' ':
       printf("irdirection: Delila parse fault\n");
       printf(" chr: \"%c\"\n", LINK->LINK->chr);
       printf(" parsedword[1]: \"%c\"\n", LINK->LINK->parsedword[0]);
       printf(" parsedword[2]: \"%c\"\n", LINK->LINK->parsedword[1]);
-
       halt();
       break;
     }
     return;
   }
-  /*
-
-
-
-
-
-
-
-*/
 
   irword(LINK);
   if (!LINK->LINK->correct)
@@ -9018,58 +8133,34 @@ struct LOC_readinstruction *LINK;
   if (LINK->LINK->pass != 2)
     return;
   switch (LINK->LINK->word) {
-
-  case mardelila:
-    specified(LINK->LINK->mkspec, LINK);
-    if (LINK->LINK->correct)
-      LINK->LINK->dirwanted = LINK->LINK->mkoff->key.ref.refdir;
-    else
-      error(202L, LINK->LINK);
-    break;
-
-  case tradelila:
-    specified(LINK->LINK->tkspec, LINK);
-    if (LINK->LINK->correct)
-      LINK->LINK->dirwanted = LINK->LINK->tk.ref.refdir;
-    break;
-
-  case gendelila:
-    specified(LINK->LINK->gkspec, LINK);
-    if (LINK->LINK->correct)
-      LINK->LINK->dirwanted = LINK->LINK->gk.ref.refdir;
-    break;
-
-  case piedelila:
-    specified(LINK->LINK->pkspec, LINK);
-    if (LINK->LINK->correct)
-      LINK->LINK->dirwanted = LINK->LINK->pk->key.piedir;
-    break;
+    case mardelila:
+      specified(LINK->LINK->mkspec, LINK);
+      if (LINK->LINK->correct)
+        LINK->LINK->dirwanted = LINK->LINK->mkoff->key.ref.refdir;
+      else
+        error(202L, LINK->LINK);
+      break;
+    case tradelila:
+      specified(LINK->LINK->tkspec, LINK);
+      if (LINK->LINK->correct)
+        LINK->LINK->dirwanted = LINK->LINK->tk.ref.refdir;
+      break;
+    case gendelila:
+      specified(LINK->LINK->gkspec, LINK);
+      if (LINK->LINK->correct)
+        LINK->LINK->dirwanted = LINK->LINK->gk.ref.refdir;
+      break;
+    case piedelila:
+      specified(LINK->LINK->pkspec, LINK);
+      if (LINK->LINK->correct)
+        LINK->LINK->dirwanted = LINK->LINK->pk->key.piedir;
+      break;
   }
 }
 
 Local Void irwith(LINK)
 struct LOC_readinstruction *LINK;
 {
-
-  /*
-
-
-
-
-
-
-
-
-*/
-  /*
-
-*/
-
-  /*
-
-
-
-*/
   if (!withused) {
     if (*marksdelila.name != '\0') {
       if (marksdelila.f != NULL)
@@ -9090,10 +8181,6 @@ struct LOC_readinstruction *LINK;
   }
 
   readchangeset(&mutations, LINK);
-  /*
-
-
-*/
   LINK->LINK->numofchanges = mutations.number;
 }
 
@@ -9127,18 +8214,14 @@ struct LOC_readinstruction *LINK;
     error(7L, LINK->LINK);
 }
 
-
-
 Local Void outofrange(pie, p, LINK)
 piece *pie;
 long *p;
 struct LOC_readinstruction *LINK;
 {
   piekey *WITH;
-
   WITH = &pie->key;
   switch (def.defout) {
-
   case rreduce:
     error(208L, LINK->LINK);
     reduceposition(pie, p);
@@ -9146,8 +8229,6 @@ struct LOC_readinstruction *LINK;
 
     if (*p == LINK->LINK->previousfromposition) {
       if (LINK->LINK->reduced) {
-	/*
-*/
 	error(210L, LINK->LINK);
       } else
 	LINK->LINK->reduced = true;
@@ -9155,13 +8236,11 @@ struct LOC_readinstruction *LINK;
 
     LINK->LINK->correct = true;
     break;
-
   case rcontinue:
     error(209L, LINK->LINK);
     LINK->LINK->correct = false;
     geteoinst(LINK);
     break;
-
   case rhalt:
     error(203L, LINK->LINK);
     LINK->LINK->correct = false;
@@ -9174,9 +8253,6 @@ Local Void known(theposition, LINK)
 long *theposition;
 struct LOC_readinstruction *LINK;
 {
-  /*
-
-*/
   if (!between(libpie->key.coobeg, *theposition, libpie->key.cooend)) {
     error(206L, LINK->LINK);
     outofrange(libpie, theposition, LINK);
@@ -9187,8 +8263,6 @@ Local Void okposition(p, LINK)
 long *p;
 struct LOC_readinstruction *LINK;
 {
-  /*
-*/
   if (within(libpie, *p))
     return;
   if (libpie->key.piecon == circular)
@@ -9242,14 +8316,12 @@ struct LOC_posit *LINK;
   if (LINK->LINK->LINK->pass != 2)
     return;
   switch (LINK->LINK->LINK->word) {
-
-  case begdelila:
-    *LINK->theposition = ref.refbeg;
-    break;
-
-  case enddelila:
-    *LINK->theposition = ref.refend;
-    break;
+      case begdelila:
+        *LINK->theposition = ref.refbeg;
+        break;
+      case enddelila:
+        *LINK->theposition = ref.refend;
+        break;
   }
   known(LINK->theposition, LINK->LINK);
 }
@@ -9286,7 +8358,6 @@ piece *pk;
 struct LOC_posit *LINK;
 {
   piekey *WITH;
-
   ivaluenumber((long)LINK->LINK->LINK->pkspec, LINK->LINK->LINK);
   irword(LINK->LINK);
   if (!LINK->LINK->LINK->correct)
@@ -9301,14 +8372,12 @@ struct LOC_posit *LINK;
     return;
   WITH = &pk->key;
   switch (LINK->LINK->LINK->word) {
-
-  case begdelila:
-    *LINK->theposition = WITH->piebeg;
-    break;
-
-  case enddelila:
-    *LINK->theposition = WITH->pieend;
-    break;
+        case begdelila:
+          *LINK->theposition = WITH->piebeg;
+          break;
+        case enddelila:
+          *LINK->theposition = WITH->pieend;
+          break;
   }
 }
 
@@ -9332,14 +8401,12 @@ struct LOC_posit *LINK;
     return;
   WITH = &pk->key;
   switch (LINK->LINK->LINK->word) {
-
-  case begdelila:
-    *LINK->theposition = WITH->coobeg;
-    break;
-
-  case enddelila:
-    *LINK->theposition = WITH->cooend;
-    break;
+        case begdelila:
+          *LINK->theposition = WITH->coobeg;
+          break;
+        case enddelila:
+          *LINK->theposition = WITH->cooend;
+          break;
   }
 }
 
@@ -9347,16 +8414,7 @@ Local Void posit(theposition_, LINK)
 long *theposition_;
 struct LOC_readinstruction *LINK;
 {
-
-  /*
-
-
-
-
-
-*/
   struct LOC_posit V;
-
   V.LINK = LINK;
   V.theposition = theposition_;
   findword(LINK);
@@ -9390,53 +8448,7 @@ struct LOC_readinstruction *LINK;
     if (LINK->LINK->parentheses == 1) {
       irword(LINK);
 
-      /*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-      if (LINK->LINK->correct) {
+     if (LINK->LINK->correct) {
 	ivalueposition(*V.theposition, LINK->LINK);
 	relative(&V);
       }
@@ -9460,7 +8472,6 @@ struct LOC_readinstruction *LINK;
 	    else
 	      error(202L, LINK->LINK);
 	    break;
-
 	  case tradelila:
 	    if (LINK->LINK->pass == 2)
 	      specified(LINK->LINK->tkspec, LINK);
@@ -9471,7 +8482,6 @@ struct LOC_readinstruction *LINK;
 	    else
 	      error(202L, LINK->LINK);
 	    break;
-
 	  case gendelila:
 	    if (LINK->LINK->pass == 2)
 	      specified(LINK->LINK->gkspec, LINK);
@@ -9482,7 +8492,6 @@ struct LOC_readinstruction *LINK;
 	    else
 	      error(202L, LINK->LINK);
 	    break;
-
 	  case piedelila:
 	    if (LINK->LINK->pass == 2)
 	      specified(LINK->LINK->pkspec, LINK);
@@ -9493,7 +8502,6 @@ struct LOC_readinstruction *LINK;
 	    else
 	      error(202L, LINK->LINK);
 	    break;
-
 	  case coodelila:
 	    if (LINK->LINK->pass == 2)
 	      specified(LINK->LINK->pkspec, LINK);
@@ -9522,8 +8530,6 @@ struct LOC_readinstruction *LINK;
 Local Void posits(LINK)
 struct LOC_readinstruction *LINK;
 {
-  /*
-*/
   if (debugging)
     fprintf(debug.f, "positions-in\n");
   LINK->LINK->previousfromposition = 0;
@@ -9548,31 +8554,23 @@ Local Void absdirection(wanted, reference_, LINK)
 direction *wanted, *reference_;
 struct LOC_readinstruction *LINK;
 {
-  /*
-*/
   switch (*wanted) {
-
   case plus:
     /* blank case */
     break;
-
   case minus:
     /* blank case */
     break;
-
   case dircomplement:
     switch (*reference_) {
-
     case plus:
       *wanted = minus;
       break;
-
     case minus:
       *wanted = plus;
       break;
     }
     break;
-
   case dirhomologous:
     *wanted = *reference_;
     break;
@@ -9584,7 +8582,6 @@ reference ref;
 struct LOC_readinstruction *LINK;
 {
   absdirection(&LINK->LINK->dirwanted, &ref.refdir, LINK);
-
 
   if (LINK->LINK->dirwanted == ref.refdir) {
     LINK->LINK->fromposition = ref.refbeg;
@@ -9610,54 +8607,40 @@ struct LOC_readinstruction *LINK;
 Local Void ircondition(LINK)
 struct LOC_readinstruction *LINK;
 {
-  /*
-
-
-
-*/
+  
 }
 
 Local Void numberstructure(LINK)
 struct LOC_readinstruction *LINK;
 {
-  /*
-*/
-  numberedstructure indnum;
+   numberedstructure indnum;
 
   if (P_inset(LINK->LINK->word, LINK->LINK->structure)) {
     switch (LINK->LINK->word) {
-
-    case orgdelila:
-      def.num.str[(long)orgnum] = on;
-      break;
-
-    case chrdelila:
-      def.num.str[(long)chrnum] = on;
-      break;
-
-    case mardelila:
-      def.num.str[(long)marnum] = on;
-      break;
-
-    case tradelila:
-      def.num.str[(long)tranum] = on;
-      break;
-
-    case gendelila:
-      def.num.str[(long)gennum] = on;
-      break;
-
-    case piedelila:
-      def.num.str[(long)pienum] = on;
-      break;
-
-    case recdelila:
-      def.num.str[(long)recnum] = on;
-      break;
-
-    case enzdelila:
-      def.num.str[(long)enznum] = on;
-      break;
+          case orgdelila:
+            def.num.str[(long)orgnum] = on;
+            break;
+          case chrdelila:
+            def.num.str[(long)chrnum] = on;
+            break;
+          case mardelila:
+            def.num.str[(long)marnum] = on;
+            break;
+          case tradelila:
+            def.num.str[(long)tranum] = on;
+            break;
+          case gendelila:
+            def.num.str[(long)gennum] = on;
+            break;
+          case piedelila:
+            def.num.str[(long)pienum] = on;
+            break;
+          case recdelila:
+            def.num.str[(long)recnum] = on;
+            break;
+          case enzdelila:
+            def.num.str[(long)enznum] = on;
+            break;
     }
     return;
   }
@@ -9679,8 +8662,6 @@ struct LOC_librarian *LINK;
   struct LOC_readinstruction V;
   numberedstructure indnum;
   piekey *WITH;
-
-
   V.LINK = LINK;
   LINK->eoinst = true;
   LINK->reduced = false;
@@ -9777,26 +8758,12 @@ struct LOC_librarian *LINK;
 	if (LINK->pass == 2) {
 	  specified(LINK->pkspec, &V);
 	  if (LINK->correct) {
-	    /*
-
-
-
-*/
-	    /*
-*/
-	    copyline(libpie->key.hea.note, &LINK->pk->key.hea.note);
+	  	    copyline(libpie->key.hea.note, &LINK->pk->key.hea.note);
 	    spec(&LINK->pk->key.hea, def.num.str[(long)pienum], &LINK->pkspec,
 		 &V);
 
-
-
-	    clearpiece(&LINK->pk);
-
-	    /*
-*/
-	    copyname(libpie->key.hea.keynam, &LINK->pk->key.hea.keynam);
-
-
+      clearpiece(&LINK->pk);
+      copyname(libpie->key.hea.keynam, &LINK->pk->key.hea.keynam);
 	    addnumber(&LINK->pk->key.hea, def.num.item, &V);
 	    LINK->pk->key.mapbeg = libpie->key.mapbeg;
 	    LINK->pk->key.coocon = libpie->key.coocon;
@@ -9807,8 +8774,6 @@ struct LOC_librarian *LINK;
 	    LINK->pk->key.piedir = libpie->key.piedir;
 	    LINK->pk->key.piebeg = libpie->key.piebeg;
 	    LINK->pk->key.pieend = libpie->key.pieend;
-
-
 
 	  } else {
 	    error(202L, LINK);
@@ -9891,11 +8856,9 @@ struct LOC_librarian *LINK;
 		  case orgdelila:
 		    /* blank case */
 		    break;
-
 		  case chrdelila:
 		    /* blank case */
 		    break;
-
 		  case mardelila:
 		    specified(LINK->mkspec, &V);
 		    if (LINK->correct)
@@ -9903,7 +8866,6 @@ struct LOC_librarian *LINK;
 		    else
 		      error(202L, LINK);
 		    break;
-
 		  case tradelila:
 		    specified(LINK->tkspec, &V);
 		    if (LINK->correct)
@@ -9911,7 +8873,6 @@ struct LOC_librarian *LINK;
 		    else
 		      error(202L, LINK);
 		    break;
-
 		  case gendelila:
 		    specified(LINK->gkspec, &V);
 		    if (LINK->correct)
@@ -9919,10 +8880,7 @@ struct LOC_librarian *LINK;
 		    else
 		      error(202L, LINK);
 		    break;
-
 		  case piedelila:
-		    /*
-*/
 		    WITH = &LINK->pk->key;
 		    absdirection(&LINK->dirwanted, &libpie->key.piedir, &V);
 		    if (WITH->piecon == linear) {
@@ -9971,10 +8929,7 @@ struct LOC_librarian *LINK;
 	    irword(&V);
 	    if (LINK->correct) {
 	      if (P_inset(LINK->word, LINK->structure)) {
-		/*
 
-
-*/
 		error(0L, LINK);
 	      } else
 		error(7L, LINK);
@@ -10066,27 +9021,24 @@ struct LOC_librarian *LINK;
 		    if (LINK->eoinst) {
 		      if (LINK->pass == 2) {
 			switch (LINK->save) {
-
-			case expdelila:
-			  if (LINK->word == ondelila)
-			    def.sit.expand = on;
-			  else
-			    def.sit.expand = off;
-			  break;
-
-			case moddelila:
-			  if (LINK->word == ondelila)
-			    def.sit.modify = on;
-			  else
-			    def.sit.modify = off;
-			  break;
-
-			case cledelila:
-			  if (LINK->word == ondelila)
-			    def.sit.cleave = on;
-			  else
-			    def.sit.cleave = off;
-			  break;
+          case expdelila:
+            if (LINK->word == ondelila)
+              def.sit.expand = on;
+            else
+              def.sit.expand = off;
+            break;
+          case moddelila:
+            if (LINK->word == ondelila)
+              def.sit.modify = on;
+            else
+              def.sit.modify = off;
+            break;
+          case cledelila:
+            if (LINK->word == ondelila)
+              def.sit.cleave = on;
+            else
+              def.sit.cleave = off;
+            break;
 			}
 		      }
 		    }
@@ -10106,18 +9058,15 @@ struct LOC_librarian *LINK;
 		  LINK->word == (int)reddelila) {
 		if (LINK->pass == 2) {
 		  switch (LINK->word) {
-
-		  case reddelila:
-		    def.defout = rreduce;
-		    break;
-
-		  case condelila:
-		    def.defout = rcontinue;
-		    break;
-
-		  case haldelila:
-		    def.defout = rhalt;
-		    break;
+            case reddelila:
+              def.defout = rreduce;
+              break;
+            case condelila:
+              def.defout = rcontinue;
+              break;
+            case haldelila:
+              def.defout = rhalt;
+              break;
 		  }
 		}
 	      } else
@@ -10142,15 +9091,12 @@ struct LOC_librarian *LINK;
 	      if (LINK->correct) {
 		if (LINK->word == (int)zerdelila ||
 		    LINK->word == (int)nordelila) {
-		  /*
-*/
-		  if (LINK->pass == 2) {
+		   if (LINK->pass == 2) {
 		    switch (LINK->word) {
 
 		    case nordelila:
 		      def.coo = coornormal;
 		      break;
-
 		    case zerdelila:
 		      def.coo = coorzero;
 		      break;
@@ -10189,11 +9135,7 @@ struct LOC_librarian *LINK;
 	      } else
 		error(7L, LINK);
 	    }
-	  }
-
-
-
-	  else if (LINK->word == arrdelila) {
+	  }	  else if (LINK->word == arrdelila) {
 
 	    findword(&V);
 	    if (P_inset(LINK->chr, LINK->numbers) || LINK->chr == '-' ||
@@ -10207,9 +9149,7 @@ struct LOC_librarian *LINK;
 		changeupperbits = def.arrowlength + changelowerbits;
 	      }
 	    }
-	  }
-
-	  else if (LINK->word == numdelila) {
+	  }	  else if (LINK->word == numdelila) {
 	    findword(&V);
 	    if (!LINK->eoinst) {
 	      if (P_inset(LINK->chr, LINK->numbers) || LINK->chr == '-' ||
@@ -10226,11 +9166,9 @@ struct LOC_librarian *LINK;
 		      ((1L << ((long)LINK->word)) & ((1L << ((long)ondelila)) |
 			 (1L << ((long)offdelila)))) != 0) {
 		    switch (LINK->word) {
-
 		    case ondelila:
 		      def.num.sta = on;
 		      break;
-
 		    case offdelila:
 		      def.num.sta = off;
 		      break;
@@ -10299,25 +9237,15 @@ struct LOC_librarian *LINK;
 
 }
 
-
-
-
 Static Void librarian()
 {
-  /*
-
-*/
-   struct LOC_librarian V;
+  struct LOC_librarian V;
   _TEXT TEMP;
-
-
   initializedelila(&V);
-
-
   V.pass = 1;
   printf("Pass 1\n");
-
   initreadinst(&V);
+
   while (!BUFEOF(inst.f))
     readinstruction(&V);
   if (!V.titleexists)
@@ -10332,7 +9260,6 @@ Static Void librarian()
   TEMP.f = stdout;
   *TEMP.name = '\0';
   writepasserrors(&TEMP, (long)V.pass, &V);
-
 
   if (!V.pass1errors) {
     printf("Pass 2\n");
@@ -10352,10 +9279,7 @@ Static Void librarian()
     bwbookheader(&V.title);
     fprintf(listing.f, "\f");
     initreadinst(&V);
-    /*
-
-
-*/
+    
     while (!BUFEOF(inst.f) && (!V.pass2errors || V.showallerrors))
       readinstruction(&V);
     putc('\n', listing.f);
@@ -10481,8 +9405,6 @@ while ((c = getopt(argc, argv, "b:i:l:")) != -1)
 		usage();
 		exit(1);
 	}
-
-
 
   PASCAL_MAIN(argc, argv);
   if (setjmp(_JL1))
