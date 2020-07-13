@@ -1675,6 +1675,13 @@ marker mark;
   fprintf(thefile->f, "marker\n");
 }
 
+/* no wrap version of pietoint *)
+ p is a coordinate on the piece.
+   we want to transform p into a number
+   from 1 to n: an internal coordinate system for
+   easy manipulation of piece coordinates.  If the coordinate
+   is off the end, bring it to just before the end. */
+
 Static long nwpietoint(p, pie)
 long p;
 piece *pie;
@@ -1753,7 +1760,12 @@ Char *alp;
   catline[catnum-1] = 2;
 }
 
-
+/* this procedure finds the next item in the files,
+   returns that item and the new current line and
+   makes itemfound = true.  if itemfound is false after calling
+   this routine it means that the last item was the end of last file.
+      by gary stormo aug 28,1979
+      modified by tom schneider 79 sep 7 */
 Static Void nextitem(newitem)
 item *newitem;
 {
@@ -2016,7 +2028,12 @@ struct LOC_finditem *LINK;
   }
 }
 
-
+/* procedure to search the catalogue for the requested item,
+   returns the file number (fi) and line number of the request in the library.
+   by gary stormo,  aug 28, 1979
+   modified by tom schneider 79 sep 5 
+  this version assumes that no organism or recognition has been
+   split in two between two files */
 Static Void finditem(newnode_, n_, newitem_, fi_)
 node newnode_;
 name n_;
@@ -2116,7 +2133,6 @@ _TEXT *thefile;
 Char *adatetime;
 {
   long index;
-
   Char udatetime[datetimearraylength];
 
   for (index = 0; index < datetimearraylength; index++) {
@@ -2132,7 +2148,7 @@ Char *adatetime;
     printf("\nConvert your database to 4 digit years.\n");
     halt();
   }
-  /**/
+  
   if (adatetime[4] == '/' && adatetime[7] == '/' && adatetime[13] == ':' &&
       adatetime[16] == ':')
     return;
@@ -3642,6 +3658,8 @@ piece **libpie_;
   }
 }
 
+/* procedure to print in the book the appropriate tree
+   traversal characters: traverse to the new (future) node */
 Static Void tvrsbook(future)
 node future;
 {
@@ -3841,6 +3859,13 @@ changeset changes;
   }
 }
 
+/*this routine is to be used to check that the instructions are
+   in proper order:
+   'if tvrschecks(this-try) then continue-analysis-of-instructions;'
+
+   in three cases we must advance (force) the node since no reads are
+   done at this time. (library reads do a force for the other traversal
+   routines) */
 Static boolean tvrschecks(futurecheck)
 node futurecheck;
 {
@@ -3912,7 +3937,35 @@ typedef long position;
 #define debug_          false
 #define precision       1e-7
 
-/* Local variables for librarian: */
+/* Local variables for librarian: 
+* by paul morrissett
+   readinstruction modified, and supporting routines written
+   by tom schnieder *)
+(* there are two passes made through the delila instructions.
+
+      pass 1 reads the code using ir routines (which all rely on
+procedure ichread to read the instructions).
+nothing happens when delila gets to a 'peak' in the code (after
+passing all the if statements), since this represents a syntactically
+correct instruction.  (in other words, the fact that one got to a
+certain spot in the code means that so far the instruction is correct.)
+ichread is responsible for writing the lines into the listing during this
+pass.  instructions are written as they are scanned.  all writes are
+done inside the read procedures.  syntax errors are pointed to.
+the title is read, if it is in the instructions.
+
+      pass 2 runs only if pass 1 had no errors.
+the instructions are reread, and variables are collected.
+calls to the library read, and the book write routines are then made.
+numerical values and numbers of items are pointed to.
+
+      note on irs and the parser:
+these routines assume that the previous actions left the inst
+file in good order.  this means that they have read past all they
+needed, and they have read their parse stop symbol.  they need not
+have done a findword however, so this is often required as the
+first action of an ir.  (extra findword calls will not hurt.)
+*/
 struct LOC_librarian {
   char pass;
   long pageline, pagenumber;
