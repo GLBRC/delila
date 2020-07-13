@@ -297,7 +297,7 @@ TO RUN:
 */
 
 #include <getopt.h>  /* getopt API */ 
-#include <stdio.h> /* printf */
+#include <stdio.h>   /* printf */
 #include <stdlib.h> 
 #include </home/mplace/bin/p2c/src/p2c.h>
 
@@ -11607,11 +11607,6 @@ struct LOC_librarian *LINK;
   piekey *WITH;
 
 
-
-
-
-
-
   V.LINK = LINK;
   LINK->eoinst = true;
   LINK->reduced = false;
@@ -11669,29 +11664,7 @@ struct LOC_librarian *LINK;
 		  error(201L, LINK);
 		break;
 
-	      /*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
+	      
 	      case gendelila:
 		lrgenkey(LINK->keyname, &LINK->gk);
 		if (itemfound) {
@@ -11714,25 +11687,7 @@ struct LOC_librarian *LINK;
 		  error(201L, LINK);
 		}
 		break;
-		/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
+		
 	      }
 	    }
 	  }
@@ -11760,18 +11715,7 @@ struct LOC_librarian *LINK;
 		 &V);
 
 
-	    /*
 
-
-
-
-
-
-
-*/
-
-	    /*
-*/
 	    clearpiece(&LINK->pk);
 
 	    /*
@@ -11790,12 +11734,7 @@ struct LOC_librarian *LINK;
 	    LINK->pk->key.piebeg = libpie->key.piebeg;
 	    LINK->pk->key.pieend = libpie->key.pieend;
 
-	    /*
 
-
-
-
-*/
 
 	  } else {
 	    error(202L, LINK);
@@ -11922,13 +11861,7 @@ struct LOC_librarian *LINK;
 		      }
 		    } else {
 		      LINK->fromposition = LINK->cutposition;
-		      /*
 
-
-
-
-
-*/
 
 		      if (LINK->dirwanted != libpie->key.piedir) {
 			if (LINK->cutposition == WITH->cooend)
@@ -11943,24 +11876,10 @@ struct LOC_librarian *LINK;
 		    ivalueposition(LINK->fromposition, LINK);
 		    ivalueposition(LINK->toposition, LINK);
 
-		    /*
 
-
-
-
-*/
 		    dopiece(&V);
 		    geteoinst(&V);
-		    /*
 
-*/
-		    /*
-
-
-
-
-
-*/
 		    break;
 
 		  case recdelila:
@@ -12144,11 +12063,7 @@ struct LOC_librarian *LINK;
 		zeroshift = LINK->inumber;
 	      }
 
-	    }
-
-
-
-	    else {
+	    }	    else {
 	      irword(&V);
 	      if (LINK->correct) {
 		if (LINK->word == (int)zerdelila ||
@@ -12172,10 +12087,7 @@ struct LOC_librarian *LINK;
 	      }
 
 	    }
-	  }
-
-
-	  else if (LINK->word == doudelila) {
+	  }	  else if (LINK->word == doudelila) {
 
 	    irword(&V);
 	    if (LINK->correct) {
@@ -12189,12 +12101,7 @@ struct LOC_librarian *LINK;
 	      } else
 		error(7L, LINK);
 	    }
-	  }
-
-
-
-
-	  else if (LINK->word == revdelila) {
+	  }	  else if (LINK->word == revdelila) {
 
 	    irword(&V);
 	    if (LINK->correct) {
@@ -12219,12 +12126,7 @@ struct LOC_librarian *LINK;
 		LINK->chr == '+') {
 	      irnumber(&V);
 	      if (LINK->correct) {
-		/*
 
-*/
-		/*
-
-*/
 		if (LINK->rnumber < 0.1)
 		  LINK->rnumber = 0.1;
 		def.arrowlength = LINK->rnumber;
@@ -12331,32 +12233,7 @@ Static Void librarian()
   /*
 
 */
-  /*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-  struct LOC_librarian V;
+   struct LOC_librarian V;
   _TEXT TEMP;
 
 
@@ -12450,67 +12327,83 @@ Static Void librarian()
 #undef maxnumbers
 #undef numberlength
 
+/* Print help for user */
+void usage() {
+  printf("\n");
+  printf(" Delila: the librarian for sequence manipulation.\n");
+  printf("  -b book output name: the set of sequences pulled out of the library.\n");
+  printf("  -i Instruction file: instructions written in the language delila that tell the\n");
+  printf("     program delila what sequences to pull out of the library.\n");
+  printf("  -l listing output file name : the instructions are listed along with errors found or\n");
+  printf("     actions taken \n");
+  printf("\n");
+  printf(" It is assumed the following files exist in the current directory.\n\n");
+  printf("  lib1: the first library from which to obtain sequences\n");
+  printf("  cat1: the first catalogue, corresponding to lib1\n");
+  printf("  lib2: the second library\n");
+  printf("  cat2: the second catalogue, corresponding to lib2\n");
+  printf("  lib3: the third library\n");
+  printf("  cat3: the third catalogue, corresponding to lib3\n\n");
+  printf("  version %4.2f\n", version);
+  exit(EXIT_SUCCESS);
+}
 
-
-
-int main(argc, argv)
-int argc;
-Char *argv[];
+int main(int argc, Char **argv) 
 {
   extern char *optarg;
 	extern int optind;
 	int c, err = 0; 
   /* flags marking arguments passed */
-	int fflag=0;       /* file flag */
-  int cflag=0;       /* Change output file name */
-  int oflag=0;       /* Output file name  */
-	char *fName = "filename.txt";
-  char *change = "outputChanges.txt";
-  char *outFile = "output.txt";
-	static char usage[] = "usage: %s -f genome.gff -c changes.txt -o output.txt\n";
+  int bflag=0;       /* book output file name  */
+	int iflag=0;       /* instruction file flag */
+  int lflag=0;       /* listing output file name */
+	char *bookName = "book.txt";
+  char *instructions = "instructions.txt";
+  char *list = "listing.txt";
 
 /* Process command line arguments  */
-while ((c = getopt(argc, argv, "f:c:o:")) != -1)
+while ((c = getopt(argc, argv, "b:i:l:")) != -1)
 		switch (c) {
-		case 'o':
-      oflag = 1;
-			outFile = optarg;
+		case 'b':
+      bflag = 1;
+			bookName = optarg;
 			break;
-		case 'f':
-      fflag = 1;
-			fName = optarg;
+		case 'i':
+      iflag = 1;
+			instructions = optarg;
 			break;
-		case 'c':
-      cflag = 1;
-			change = optarg;
+		case 'l':
+      lflag = 1;
+			list = optarg;
 			break;
 		case '?':
 			err = 1;
 			break;
 		}
-  /* Is the Output file name present */  
-	if (oflag == 0) {	/* -o was mandatory */ 
-		fprintf(stderr, "%s: missing -o option\n", argv[0]);
-		fprintf(stderr, usage, argv[0]);
+
+  /* Is the book file name present */  
+	if (bflag == 0) {	/* -b bookname was mandatory */ 
+		fprintf(stderr, "%s: missing -b bookname\n", argv[0]);
+		usage();
 		exit(1);
 	} 
 
-  /* Input file genbank file */
-  if (fflag == 0) { /* -f was mandatory */        
-		fprintf(stderr, "%s: missing -f option\n", argv[0]);
-		fprintf(stderr, usage, argv[0]);
+  /* Instruction file ? */
+  if (iflag == 0) { /* -i was mandatory */        
+		fprintf(stderr, "%s: missing -i instruction file\n", argv[0]);
+		usage();
 		exit(1);
   } 
 
-  /* Change file name  */  
-  if (cflag == 0) { 
-    fprintf(stderr, "%s: missing -c option really\n", argv[0]);
-		fprintf(stderr, usage, argv[0]);
+  /* listing file name  */  
+  if (lflag == 0) { 
+    fprintf(stderr, "%s: missing -l listing file name \n", argv[0]);
+		usage();
 		exit(1);
     } 
 
   if (err) {
-		fprintf(stderr, usage, argv[0]);
+		usage();
 		exit(1);
 	}
 
@@ -12524,11 +12417,11 @@ while ((c = getopt(argc, argv, "f:c:o:")) != -1)
   marksdelila.f = NULL;
   strcpy(marksdelila.name, "marksdelila");
   book.f = NULL;
-  strcpy(book.name, "book");
+  strcpy(book.name, bookName);
   listing.f = NULL;
-  strcpy(listing.name, "listing");
+  strcpy(listing.name, list);
   inst.f = NULL;
-  strcpy(inst.name, "inst");
+  strcpy(inst.name, instructions  );
   cat3.f = NULL;
   strcpy(cat3.name, "cat3");
   cat2.f = NULL;
