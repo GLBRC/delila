@@ -68,6 +68,16 @@ run:  src/catal -f sample.csv
 
 This will create some new files  lib1, lib2, lib3, cat1, cat2, cat3, humcat, catin
 
+3) run delila
+
+delila -b lib1 -i NC_007490.2_delila_instructions.inst -l outlisting.tx
+
+-b is the lib1 output from catal
+-i delila instructions file
+-l listing output file
+
+
+
 
 
 
