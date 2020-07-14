@@ -1167,7 +1167,7 @@ int main(int argc, Char **argv)
 	char *fName = "filename.txt";
   char *change = "outputChanges.txt";
   char *outFile = "output.txt";
-	static char usage[] = "usage: %s -f genome.gff -c changes.txt -o output.txt\n";
+	static char usage[] = "usage: %s -f genome.gnbk -c changes.txt -o output.txt\n";
 
 /* Process command line arguments  */
 while ((c = getopt(argc, argv, "f:c:o:")) != -1)
