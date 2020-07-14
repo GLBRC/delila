@@ -77,18 +77,23 @@ def main():
 
     f.close()
 
-    # write results
+    # write results working with one chromosome at a time
     for chrom in data.keys():
-        outName = chrom + '_TSS.txt'
+        # create output file name
+        outName = chrom + '_TSS.inst'
+        # open output file for writing
         with open(outName, 'w') as out:
+            # each instruction file requires a 4 line header    
             out.write('title \"{} -10 elements TSS sites version 1.0 {}  {};\n'.format(organism, outName, currDate));
             out.write('organism {};\n'.format(organism))
             out.write('chromosome {};\n'.format(organism))
             out.write('piece {};\n'.format(chrom))
+            # now process each site 
             for sites in data[chrom].values():
                 dat = sites.rstrip().split('\t')
-                out.write('name \"{}\";\n'.format(dat[1])) 
+                out.write('name \"{}\";\n'.format(dat[1]))    # each site's info is precedded by the site name 
                 
+                # handle the strandedness and write request to instruction file
                 if dat[2] == 'forward':
                     direction = '+'
                     pos = str(int(dat[3]) - 10)
@@ -98,8 +103,6 @@ def main():
                     pos = str(int(dat[3]) + 10) 
                     out.write('get from {} +8 to {} -5 direction {};\n'.format(pos, pos, direction )) 
                 
-                  
-                #out.write(sites) 
         out.close()
 
 if __name__ == "__main__":
