@@ -154,8 +154,6 @@ class delilaPipe( object ):
 
        
 
-
-
 def main():
     
     cmdparser = argparse.ArgumentParser(description="RNA-Seq alignment, HTSeq & RPKM pipeline.",
