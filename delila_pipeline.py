@@ -139,7 +139,7 @@ class delilaPipe( object ):
         Set up delilaPipe object
              
         """
-        self.gnbk        = genbank                  # genbank file, the primary input file
+        self.gnbk        = genbank             # genbank file, the primary input file
         self.dbbkChanges = 'dbbk_changes.txt'  # record seq changes from dbbk
         self.l1          = 'l1'
         self.l2          = 'l2'
