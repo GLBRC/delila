@@ -1,5 +1,5 @@
 #!/home/mplace/anaconda3.7/bin/python
-"""splitTSS.py
+"""delila_instructions.py
 
 Split input Transcription Start site file by chromosome.
 
@@ -20,7 +20,8 @@ Parameters
 f : str
     A text file with each line representing a TSS site.
 
-ex.
+example input file:
+
     NC_007488.2     RSP_4039_1700   forward 1700
     NC_007488.2     RSP_4038_2627   forward 2627
     NC_007488.2     RSP_4037_3543   forward 3543
@@ -31,21 +32,34 @@ Example
 -------
     usage:
 
-        splitTSS.py -f input.txt
+        delila_instructions.py -f input.txt
+
+Output
+------
+
+A text file with a four line header followed by site request information :
+
+title "rhodobacter -10 elements TSS sites version 1.0 NC_007490.2_TSS.txt  2020/07/14;
+organism rhodobacter;
+chromosome rhodobacter;
+piece NC_007490.2;
+name "RSP_4139_3142";
+get from 3132 -8 to 3132 +5 direction +;
+name "RSP_4139_3144";
+get from 3134 -8 to 3134 +5 direction +;
 
 """
 from datetime import date
 import argparse 
 import os
 import sys
-           
-
 
 def main():
     
     cmdparser = argparse.ArgumentParser(description="Split TSS file by chromosome.",
                                         usage='%(prog)s -f <TSS_site_file.txt>' ,prog='splitTSS.py'  )
-    cmdparser.add_argument('-f', '--file',     action='store', dest='FILE',    help='Text file, containing TSS sites', metavar='')
+    cmdparser.add_argument('-f', '--file',     action='store', dest='FILE',
+                            help='Text file, containing TSS sites', metavar='')
     cmdparser.add_argument('-o', '--organism', action='store', dest='ORGANISM',help='Organism', metavar='')
     cmdResults = vars(cmdparser.parse_args())
         
