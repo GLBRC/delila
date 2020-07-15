@@ -129,10 +129,19 @@ https://doi.org/10.1093/nar/10.9.3013
 
 """
 import argparse        # for command line args
+import logging         
 import os
 import re              # for regex 
 import subprocess      # used to call delila programs 
 import sys
+
+# set up log file configuration
+logging.basicConfig(filename='delila_pipeline.log', format='%(asctime)s %(message)s',
+                        filemode='w')
+# Create logging object
+logger=logging.getLogger()                           
+# Set logger threshold level
+logger.setLevel(logging.INFO)
 
 class delilaPipe( object ):
     """
@@ -154,17 +163,17 @@ class delilaPipe( object ):
         self.gnbk        = genbank             # genbank file, the primary input file
         self.prefix      = prefix
         self.dbbkChanges = prefix + '_' + 'dbbk_changes.txt'  # record seq changes from dbbk
-        self.l1          = 'l1'
+        self.l1          = 'l1'                # l1,l2,l3 required by delila, only l1 contains info
         self.l2          = 'l2'
         self.l3          = 'l3'
-        self.lib1        = 'lib1'
+        self.lib1        = 'lib1'              # lib1, lib2, lib3 required by delila, only lib1 contains info
         self.lib2        = 'lib2'
         self.lib3        = 'lib3'
-        self.cat1        = 'cat1'
+        self.cat1        = 'cat1'              # cat1, cat2, cat3 required by delila, only cat1 contains info
         self.cat2        = 'cat2'
         self.cat3        = 'cat3'
-        self.instructions = []                 # list of instruction files
-        self.tss         = tss
+        self.instructions = []                 # list of instruction files, one per chromosome
+        self.tss         = tss                 # Transcription Start Site information file name
 
     def __repr__(self):
         '''
@@ -197,7 +206,9 @@ class delilaPipe( object ):
       names.  Organism and chromosome only change if the name changes
       in db
         '''
-        pass
+        program = '/home/mplace/scripts/delila/src/dbbk'       # location of delila 
+        command = ['-f', self.gnbk, '-p', self.prefix, '-t', self.tss]
+
 
     def runCATAL(self):
         '''
@@ -307,6 +318,10 @@ def main():
     if cmdResults['TSS'] is not None:
         tssFile = cmdResults['TSS']
 
+    # log program start
+    logger.info("Running delila_pipeline ")
+    logger.info( "Working Directory  " + os.getcwd())
+    # create delila object and get to work
     pipe = delilaPipe(inFile, prefix, tssFile)
     print(pipe)
 
