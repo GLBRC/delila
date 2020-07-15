@@ -207,7 +207,18 @@ class delilaPipe( object ):
       in db
         '''
         program = '/home/mplace/scripts/delila/src/dbbk'       # location of delila 
-        command = ['-f', self.gnbk, '-p', self.prefix, '-t', self.tss]
+        # set up dbbk command parameters
+        cmd = [program, '-f', self.gnbk, '-c', self.dbbkChanges, '-o', self.prefix + '_' + 'dbbk.txt']
+        # log function call
+        logger.info("Running makeDBBK ")
+        logger.info(program + ' ' + ' '.join(cmd))
+        # run dbbk
+        output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        result1 = output[0].decode('utf-8')
+        result2 = output[1].decode('utf-8')
+        # log stdout and stderr 
+        logger.info(result1)
+        logger.info(result2)
 
 
     def runCATAL(self):
@@ -323,7 +334,7 @@ def main():
     logger.info( "Working Directory  " + os.getcwd())
     # create delila object and get to work
     pipe = delilaPipe(inFile, prefix, tssFile)
-    print(pipe)
+    pipe.makeDBBK()
 
 
 if __name__ == "__main__":
