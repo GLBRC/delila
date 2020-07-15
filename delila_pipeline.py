@@ -5,6 +5,9 @@ Create a sequence logo for Transcription Start sites using the Delila package.
 
 Notes
 ----- 
+
+(From the Delila Documentation)
+
 DELILA stands for DEoxyribnucleaic-acid LIbrary LAnguage.
 
 It is a language for extracting DNA fragments from a large collection of sequences,
@@ -33,6 +36,9 @@ and using Delila instructions.
 
 Method
 ------
+
+(From the Delila Documentation)
+
 If you are working with binding sites in GenBank, you will need many programs.
 They are given below in the order you use them, with a brief explanation of each.
 Be sure to read the manual page of each one. In particular, note how the output
@@ -156,8 +162,10 @@ def main():
     cmdparser = argparse.ArgumentParser(description="Delila pipeline to make sequence logo from Transcription start sites.",
                                         usage='%(prog)s -f genome.genbank -p prefix -t tss_file.txt ',
                                         prog='delila_pipeline.py'  )
+    cmdparser.add_argument('-d', '--detail', action='store_true', dest='DETAIL',
+                            help='Print more information to stdout')
     cmdparser.add_argument('-f', '--file', action='store', dest='FILE', 
-                            help='Text file, one fastq file name per line. (Forward file name only)', metavar='')
+                            help='genome genbank file', metavar='')
     cmdparser.add_argument('-p', '--prefix', action='store', dest='PREFIX',  help='Prefix names used on output files',
                             metavar='')
     cmdparser.add_argument('-t', '--tss',  action='store', dest='TSS',  
@@ -170,14 +178,38 @@ def main():
         cmdparser.print_help()
         sys.exit(1)
         
+    # if user asked for more information
     if cmdResults['DETAIL']:
-        print("\n")
-        print("This script is designed to run on the GLBRC scarcity servers 6-10.")
-        print("See Mike Place for problems with this script.")
+        print("")
+        print("    Program: delila_pipline.py ")
+        print("")
+        print("    Create a sequence logo for Transcription Start sites using the Delila package.")
+        print("")
+        print("To Run:\n")
+        print("delila_pipeline.py -f genome.gbff -p ecoli -t ecoli_tss_info.txt")
+        print("")
+        print("    -f genome genbank file ")
+        print("    -p prefix name to use for output files")
+        print("    -t transcription start site information file")
+        print("")
+        print("    TSS file provides chromosome, name, strand, position information in a tab delimited format.")
+        print("")
+        print("\t NC_007488.2     RSP_4039_1700   forward 1700")
+        print("\t NC_007488.2     RSP_4025_19218  reverse 19218")
+        print("")
+        print("Output :")
+        print("")
+        print("    LOGO postscript file")
+        print("")
+        print("")
+        print("")
+        print("For help contact:  bioinformaticshelp@glbrc.wisc.edu\n")
         sys.exit(1)
     
     if cmdResults['FILE'] is not None:
         inFile = cmdResults['FILE']        
+
+
 
 if __name__ == "__main__":
     main()
