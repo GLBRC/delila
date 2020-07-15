@@ -96,13 +96,11 @@ f : str
     A text file with a list of RNA-Seq fastq files to be processed one file 
     name per line. Files maybe gzip or decompressed.
 
-
 Example
 -------
     usage:
 
         rnaSeqPipelineGLBRC.py -f input.txt
-    
 
 Requirements
 ------------
@@ -120,7 +118,6 @@ A design for computer nucleic-acid-sequence storage, retrieval, and manipulation
 Thomas D. Schneider, Gary D. Stormo, Jeffrey S. Haemer, Larry Gold
 Nucleic Acids Research, Volume 10, Issue 9, 11 May 1982, Pages 3013–3024, 
 https://doi.org/10.1093/nar/10.9.3013
-
 
 
 
@@ -156,9 +153,15 @@ class delilaPipe( object ):
 
 def main():
     
-    cmdparser = argparse.ArgumentParser(description="RNA-Seq alignment, HTSeq & RPKM pipeline.",
-                                        usage='%(prog)s -f <fastq file list.txt> [optional args: -a -r -d -ref ]' ,prog='rnaSeqPipelineGLBRC.py'  )
-    cmdparser.add_argument('-f', '--file',    action='store', dest='FILE',    help='Text file, one fastq file name per line. (Forward file name only)', metavar='')
+    cmdparser = argparse.ArgumentParser(description="Delila pipeline to make sequence logo from Transcription start sites.",
+                                        usage='%(prog)s -f genome.genbank -p prefix -t tss_file.txt ',
+                                        prog='delila_pipeline.py'  )
+    cmdparser.add_argument('-f', '--file', action='store', dest='FILE', 
+                            help='Text file, one fastq file name per line. (Forward file name only)', metavar='')
+    cmdparser.add_argument('-p', '--prefix', action='store', dest='PREFIX',  help='Prefix names used on output files',
+                            metavar='')
+    cmdparser.add_argument('-t', '--tss',  action='store', dest='TSS',  
+                            help='TSS site information text file.)', metavar='')    
     cmdResults = vars(cmdparser.parse_args())
         
     # if no args print help
