@@ -128,22 +128,32 @@ https://doi.org/10.1093/nar/10.9.3013
 
 
 """
+import argparse        # for command line args
 import os
-import re
+import re              # for regex 
+import subprocess      # used to call delila programs 
 import sys
-import argparse            
 
 class delilaPipe( object ):
     """
     Methods and data structures for delila pipeline
     """
-    def __init__(self, genbank):
+    def __init__(self, genbank, prefix, tss):
         """
         Set up delilaPipe object
-             
+        
+        gnbk            Delila book, result of running makeDBBK
+        dbbkChanges     Changes recored from makeDBBK
+        l1              l1 is output of makeDBBK
+        l2,l3           empty files required by Delila
+        lib1,lib2,lib3  
+        cat1,cat2,cat3
+        instructions     A list of instruction files, one for each chromosome
+
         """
         self.gnbk        = genbank             # genbank file, the primary input file
-        self.dbbkChanges = 'dbbk_changes.txt'  # record seq changes from dbbk
+        self.prefix      = prefix
+        self.dbbkChanges = prefix + '_' + 'dbbk_changes.txt'  # record seq changes from dbbk
         self.l1          = 'l1'
         self.l2          = 'l2'
         self.l3          = 'l3'
@@ -153,11 +163,39 @@ class delilaPipe( object ):
         self.cat1        = 'cat1'
         self.cat2        = 'cat2'
         self.cat3        = 'cat3'
-        self.instructions = 'delila_instructions.txt'
+        self.instructions = []                 # list of instruction files
+        self.tss         = tss
 
+    def __repr__(self):
+        '''
+        Print delilaPipe object information for debugging.
+        '''
+        rep = 'delilaPipe object\n'
+        rep += 'gnbk  {}\n'.format(self.gnbk)
+        rep += 'prefix {}\n'.format(self.prefix)
+        rep += 'dbkkChanges {}\n'.format(self.dbbkChanges)
+        rep += 'l1\n'
+        rep += 'l2\n'
+        rep += 'l3\n'
+        rep += 'lib1\n'
+        rep += 'lib2\n'
+        rep += 'lib3\n'
+        rep += 'cat1\n'
+        rep += 'cat2\n'
+        rep += 'cat3\n'   
+        rep += 'TSS File {}'.format(self.tss)     
+        rep += 'instruction files: {} \n'.format('\t'.join(self.instructions))
+        return rep 
+        
     def makeDBBK(self):
         '''
+      Call to Delila dbbk.
 
+      This program converts GenBank and EMBL data base entries into a
+      book of delila entries.  The organism name is fused together
+      with a period and is used for both organsim and chromosome
+      names.  Organism and chromosome only change if the name changes
+      in db
         '''
         pass
 
@@ -263,6 +301,14 @@ def main():
     if cmdResults['FILE'] is not None:
         inFile = cmdResults['FILE']        
 
+    if cmdResults['PREFIX'] is not None:
+        prefix = cmdResults['PREFIX']
+
+    if cmdResults['TSS'] is not None:
+        tssFile = cmdResults['TSS']
+
+    pipe = delilaPipe(inFile, prefix, tssFile)
+    print(pipe)
 
 
 if __name__ == "__main__":
