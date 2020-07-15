@@ -163,6 +163,7 @@ class delilaPipe( object ):
         self.gnbk        = genbank             # genbank file, the primary input file
         self.prefix      = prefix
         self.dbbkChanges = prefix + '_' + 'dbbk_changes.txt'  # record seq changes from dbbk
+        self.catalParams = self.catalParameters()
         self.l1          = 'l1'                # l1,l2,l3 required by delila, only l1 contains info
         self.l2          = 'l2'
         self.l3          = 'l3'
@@ -198,13 +199,13 @@ class delilaPipe( object ):
         
     def makeDBBK(self):
         '''
-      Call to Delila dbbk.
+        Call to Delila dbbk.
 
-      This program converts GenBank and EMBL data base entries into a
-      book of delila entries.  The organism name is fused together
-      with a period and is used for both organsim and chromosome
-      names.  Organism and chromosome only change if the name changes
-      in db
+        This program converts GenBank and EMBL data base entries into a
+        book of delila entries.  The organism name is fused together
+        with a period and is used for both organsim and chromosome
+        names.  Organism and chromosome only change if the name changes
+        in db
         '''
         program = '/home/mplace/scripts/delila/src/dbbk'       # location of delila 
         # set up dbbk command parameters
@@ -219,12 +220,62 @@ class delilaPipe( object ):
         # log stdout and stderr 
         logger.info(result1)
         logger.info(result2)
+        # create a symbolic link to l1
+        os.symlink(self.prefix + '_' + 'dbbk.txt', 'l1')
 
+    def catalParameters(self):
+        '''
+        Write catal parameters file
+        '''
+        with open('catal_parameters.txt', 'w') as out:
+            out.write('l1=l1\n')
+            out.write('l2=l2\n')
+            out.write('l3=l3\n')
+            out.write('cat1=cat1\n')
+            out.write('cat2=cat2\n')
+            out.write('cat3=cat3\n')
+            out.write('humcat=humcat\n')
+            out.write('catin=catin\n')
+            out.write('lib1=lib1\n')
+            out.write('lib2=lib2\n')
+            out.write('lib3=lib3\n')
+            out.write('catalp=catalp\n')
+        out.close()
+
+        return 'catal_parameters.txt'
 
     def runCATAL(self):
         '''
+        Call to Delila catal
+        
+        The catalogue program checks all the input libraries for correct
+        structure.  Duplicated names are removed and a new set of library
+        files is created, along with their catalogues for delila.
+        
+        Need to create 3 empty files for delila catal
+        l2, l3, catalp
         '''
-        pass
+        # create l2
+        with open('l2', 'w') as l2:
+            pass
+        # create l3
+        with open('l3', 'w') as l3:
+            pass
+        # create catalp
+        with open('catalp', 'w') as catalp:
+            pass
+
+        program = '/home/mplace/scripts/delila/src/catal'
+        cmd = [program , '-f', self.catalParams ]
+        logger.info("Running catal ")
+        logger.info(program + ' ' + ' '.join(cmd))
+        # run dbbk
+        output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        result1 = output[0].decode('utf-8')
+        result2 = output[1].decode('utf-8')
+        # log stdout and stderr 
+        logger.info(result1)
+        logger.info(result2)
 
     def runDELILA(self):
         '''
@@ -335,7 +386,7 @@ def main():
     # create delila object and get to work
     pipe = delilaPipe(inFile, prefix, tssFile)
     pipe.makeDBBK()
-
+    pipe.runCATAL()
 
 if __name__ == "__main__":
     main()
