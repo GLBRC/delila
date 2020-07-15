@@ -155,7 +155,61 @@ class delilaPipe( object ):
         self.cat3        = 'cat3'
         self.instructions = 'delila_instructions.txt'
 
-       
+    def makeDBBK(self):
+        '''
+
+        '''
+        pass
+
+    def runCATAL(self):
+        '''
+        '''
+        pass
+
+    def runDELILA(self):
+        '''
+        '''
+        pass
+
+    def runALIST(self):
+        '''
+        '''
+        pass
+
+    def runMALIGN(self):
+        '''
+        '''
+        pass
+
+    def runECODE(self):
+        '''
+        '''
+        pass
+
+    def runRSEQ(self):
+        '''
+        '''
+        pass
+
+    def runDALVEC(self):
+        '''
+        '''
+        pass
+
+    def makeLOGO(self):
+        '''
+        '''
+        pass
+
+    def writeResults(self):
+        '''
+        '''
+        pass
+
+    def splitTSS(self):
+        '''
+        '''
+        pass       
 
 def main():
     
