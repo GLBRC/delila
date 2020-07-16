@@ -91,10 +91,14 @@ def main():
 
     f.close()
 
+    # instructions.list contains the instruction files for each chromosome in genome
+    instructions = []
+
     # write results working with one chromosome at a time
     for chrom in data.keys():
         # create output file name
         outName = chrom + '_TSS.inst'
+        instructions.append(outName)
         # open output file for writing
         with open(outName, 'w') as out:
             # each instruction file requires a 4 line header    
@@ -118,6 +122,16 @@ def main():
                     out.write('get from {} +8 to {} -5 direction {};\n'.format(pos, pos, direction )) 
                 
         out.close()
+
+    # delete a previously created file
+    if os.path.exists('instructions.list'):
+        os.unlink('instructions.list')
+    
+    # write new list to file
+    with open('instructions.list', 'w') as out:
+        for instFile in instructions:
+            out.write('{}\n'.format(instFile))
+    out.close()
 
 if __name__ == "__main__":
     main()
