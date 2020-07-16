@@ -99,21 +99,29 @@ Parameters
 ----------
 
 f : str
-    A text file with a list of RNA-Seq fastq files to be processed one file 
-    name per line. Files maybe gzip or decompressed.
+    A genbank file for a genome.
+
+p : str
+    prefix used for naming output files.
+
+t : str
+    Transcription start site information file.
+
+    NC_007488.2     RSP_4039_1700   forward 1700
+    NC_007488.2     RSP_4037_3543   forward 3543
+    NC_007488.2     RSP_4025_19218  reverse 19218
+
 
 Example
 -------
     usage:
 
-        rnaSeqPipelineGLBRC.py -f input.txt
-
+        delila_pipeline.py -f rhodo_genome.gbff -p rhodo -t all_rhodo_tss_for_delila.txt
+        
 Requirements
 ------------
 
-    1. bam2wig.pl
-    2. Bowtie2, Including reference bowtie2 built reference and index files.
-    3. Bwa, Including reference Bwa built reference and index files.
+
 
 References
 ----------
@@ -126,6 +134,8 @@ Nucleic Acids Research, Volume 10, Issue 9, 11 May 1982, Pages 3013–3024,
 https://doi.org/10.1093/nar/10.9.3013
 
 
+https://www.ncbi.nlm.nih.gov/Sitemap/samplerecord.html
+
 
 """
 import argparse        # for command line args
@@ -134,6 +144,9 @@ import os
 import re              # for regex 
 import subprocess      # used to call delila programs 
 import sys
+
+# program home directory
+pdir = '/home/mplace/scripts/delila/src/'
 
 # set up log file configuration
 logging.basicConfig(filename='delila_pipeline.log', format='%(asctime)s %(message)s',
@@ -207,7 +220,7 @@ class delilaPipe( object ):
         names.  Organism and chromosome only change if the name changes
         in db
         '''
-        program = '/home/mplace/scripts/delila/src/dbbk'       # location of delila 
+        program = pdir + 'dbbk'       # location of delila 
         # set up dbbk command parameters
         cmd = [program, '-f', self.gnbk, '-c', self.dbbkChanges, '-o', self.prefix + '_' + 'dbbk.txt']
         # log function call
@@ -265,11 +278,27 @@ class delilaPipe( object ):
         with open('catalp', 'w') as catalp:
             pass
 
-        program = '/home/mplace/scripts/delila/src/catal'
+        program = pdir + 'catal'
         cmd = [program , '-f', self.catalParams ]
         logger.info("Running catal ")
         logger.info(program + ' ' + ' '.join(cmd))
         # run dbbk
+        output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        result1 = output[0].decode('utf-8')
+        result2 = output[1].decode('utf-8')
+        # log stdout and stderr 
+        logger.info(result1)
+        logger.info(result2)
+
+    def splitTSS(self):
+        '''
+        Break up the input transcription start site input file into delila 
+        instruction files by chromosome. 
+        '''
+        program = '/home/mplace/scripts/delila/delila_instructions.py'
+        cmd = [ program, '-f', self.tss, '-o', 'R.sphaeroides-2.4.1' ]
+        logger.info('Running splitTSS ')
+        logger.info( program + ' ' +  ' '.join(cmd))
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
         result2 = output[1].decode('utf-8')
@@ -317,18 +346,17 @@ class delilaPipe( object ):
         '''
         pass
 
-    def splitTSS(self):
-        '''
-        '''
-        pass       
+      
 
 def main():
     
     cmdparser = argparse.ArgumentParser(description="Delila pipeline to make sequence logo from Transcription start sites.",
                                         usage='%(prog)s -f genome.genbank -p prefix -t tss_file.txt ',
                                         prog='delila_pipeline.py'  )
-    cmdparser.add_argument('-d', '--detail', action='store_true', dest='DETAIL',
-                            help='Print more information to stdout')
+    cmdparser.add_argument('-d', '--down', action='store', dest='DOWN',
+                            help='Number of bases downstream from target')
+    cmdparser.add_argument('-i', '--info', action='store_true', dest='INFO',
+                            help='Print more information to stdout')                            
     cmdparser.add_argument('-f', '--file', action='store', dest='FILE', 
                             help='genome genbank file', metavar='')
     cmdparser.add_argument('-p', '--prefix', action='store', dest='PREFIX',  help='Prefix names used on output files',
@@ -344,7 +372,7 @@ def main():
         sys.exit(1)
         
     # if user asked for more information
-    if cmdResults['DETAIL']:
+    if cmdResults['INFO']:
         print("")
         print("    Program: delila_pipline.py ")
         print("")
@@ -386,7 +414,9 @@ def main():
     # create delila object and get to work
     pipe = delilaPipe(inFile, prefix, tssFile)
     pipe.makeDBBK()
+    pipe.catalParameters()
     pipe.runCATAL()
+    pipe.splitTSS()
 
 if __name__ == "__main__":
     main()
