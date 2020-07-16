@@ -98,7 +98,7 @@ def main():
         # open output file for writing
         with open(outName, 'w') as out:
             # each instruction file requires a 4 line header    
-            out.write('title \"{} -10 elements TSS sites version 1.0 {}  {};\n'.format(organism, outName, currDate));
+            out.write('title \"{} -10 elements TSS sites version 1.0 {}  {}\";\n'.format(organism, outName, currDate));
             out.write('organism {};\n'.format(organism))
             out.write('chromosome {};\n'.format(organism))
             out.write('piece {};\n'.format(chrom))
