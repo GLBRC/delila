@@ -47,6 +47,27 @@ arguments:
 -o is the output file name, this is also the l1 file used with catal
 
 
+
+The pascal version of dbbk looks like this:
+
+/opt/bifxapps/delila/dbbk
+ dbbk 3.50
+Input file `db': rhodo_genome.gbff
+Output file `l1': l1
+organism * R.sphaeroides-2.4.1
+NC_007493.2
+NC_007494.2
+Output file `changes': changes.txt
+NC_009007.1
+NC_007488.2
+NC_007489.1
+NC_007490.2
+NC_009008.1
+WARNING: some sequences have been altered,see the changes file.
+
+the OUTPUT is a file called l1 (extracted chromosome sequences) and a file called changes.txt
+
+
 2) run catal, to create the Delila library
 
   copy the book from step one to a file named l1  ( cp rhodo_dbbk.txt l1 )
@@ -54,8 +75,10 @@ arguments:
   then create empty files named l2, l3, catalp    ( touch l2 l3 catalp )
 
 
+pascal version  
+
 run:  src/catal -f sample.csv
- you should see output something like this:
+you should see output something like this:
 
  catal 9.64 2020/07/10 10:20:57
 
@@ -83,10 +106,28 @@ delila -b lib1 -i NC_007490.2_delila_instructions.inst -l outlisting.tx
 
 -l listing output file
 
+pascal version
 
+/opt/bifxapps/delila/delila 
+delila 5.04
+sequence segment size (dnamax) is 1024
+Input file `lib1': lib1
+Input file `lib2': lib2
+Input file `lib3': lib3
+Input file `cat1': cat1
+Input file `cat2': cat2
+Input file `cat3': cat3
+Input file `inst': NC_007489.1_delila_instructions.inst
+Output file `listing': results
+Output file `book': book
+1 library
+Pass 1
+No syntax errors found.
 
+Pass 2
+Request for: NC_007489.1 - reading in the piece
+No extraction errors found.
 
-
-
-
+30 pieces extracted
+420 bases extracted
 
