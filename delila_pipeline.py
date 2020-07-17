@@ -188,6 +188,7 @@ class delilaPipe( object ):
         self.cat3        = 'cat3'
         self.instructions = []                 # list of instruction files, one per chromosome
         self.tss         = tss                 # Transcription Start Site information file name
+        self.delilaBOOK  = []                  # list of books, Output of Delila program   
 
     def __repr__(self):
         '''
@@ -282,7 +283,7 @@ class delilaPipe( object ):
         cmd = [program , '-f', self.catalParams ]
         logger.info("Running catal ")
         logger.info(program + ' ' + ' '.join(cmd))
-        # run dbbk
+        # run catal
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
         result2 = output[1].decode('utf-8')
@@ -306,10 +307,72 @@ class delilaPipe( object ):
         logger.info(result1)
         logger.info(result2)
 
+    def getInstructions(self):
+        '''
+        Open instruction.list file and load the instructions files.
+        For use with runDELILA function.
+        '''
+        with open('instructions.list', 'r') as f:
+            for line in f:
+                inst = line.rstrip()
+                self.instructions.append(inst)
+        f.close()
+
     def runDELILA(self):
         '''
+        Extract fragments of sequences from a library of sequences and create a
+        subset, a book. This is the core of the Delila system.
+        
+        Delila is a data base manager for nucleic acid sequences.  It takes a set
+        of instructions, written in the language delila (DEoxyribonucleic acid
+        LIbrary LAnguage) and a large set of sequences called a library.  The
+        output is a listing of the actions taken (or errors) corresponding to the
+        instructions, and a "book" containing the sequences desired.
+
+        instructions.list  -- holds the names of delila instruction files for 
+        the chromosomes in project genome.
+
+        delila -b book.txt -i instructions.txt -l listing.txt
+
+        -b book: the set of sequences pulled out of the library.
+
+        -i inst: instructions written in the language delila that tell the
+                 program delila what sequences to pull out of the library.
+
+        -l listing: the instructions are listed along with errors found or
+                    actions taken.
+
+        delila also expects the following files to be present:
+        
+        lib1: the first library from which to obtain sequences
+        cat1: the first catalogue, corresponding to lib1
+        lib2: the second library
+        cat2: the second catalogue, corresponding to lib2
+        lib3: the third library
+        cat3: the third catalogue, corresponding to lib3
         '''
-        pass
+        book    = 'BOOK.tmp'
+        listing = 'LISTING.tmp' 
+        # READ IN INSTRUCTIONS FROM FILE
+        self.getInstructions()
+        for inst in self.instructions:
+            program = pdir + 'delila'
+            cmd = [program , '-b', book, '-i', inst, '-l' , listing ]
+            logger.info("Running delila ")
+            logger.info(program + ' ' + ' '.join(cmd))
+            # run delila
+            output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+            result1 = output[0].decode('utf-8')
+            result2 = output[1].decode('utf-8')
+            # log stdout and stderr 
+            logger.info(result1)
+            logger.info(result2)
+
+            # rename temporary output files 
+            chrom = re.sub('_TSS.inst', '', inst)
+            os.rename(book, self.prefix + '_' + chrom + '_' + 'book.txt' )
+            os.rename(listing, self.prefix + '_' + chrom + '_' + 'listing.txt')
+
 
     def runALIST(self):
         '''
@@ -417,6 +480,7 @@ def main():
     pipe.catalParameters()
     pipe.runCATAL()
     pipe.splitTSS()
+    pipe.runDELILA()
 
 if __name__ == "__main__":
     main()
