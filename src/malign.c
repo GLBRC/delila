@@ -2819,10 +2819,112 @@ Static Void optcheckadd()
   }
 }
 
-main(argc, argv)
-int argc;
-Char *argv[];
+/* Print help for user */
+void usage() {
+  printf("\n");
+  printf(" malign: Given a book of aligned sequences, search for the alignment\n");
+  printf("         of the sequences that has the lowest uncertainty.\n\n");
+  printf( "parameters: \n");
+  printf("\n  malign -b Book.txt -i instructions.txt -m malignp\n\n");
+  printf("  -b book output name: the set of sequences pulled out of the library.\n");
+  printf("  -i Instruction file: instructions written in the language delila that tell the\n");
+  printf("     program delila what sequences to pull out of the library.\n");
+  printf("  -m parameter file with the following parameters:\n\n");
+  printf("      winleft, winright: left and right ends of window for calculating\n");
+  printf("      uncertainty, relative to aligned base \n");
+  printf("      shiftmin, shiftmax: minimum and maximum shift of aligned base \n");
+  printf("      iseed: integer random seed \n");
+  printf("      nranseq: number of random sequences, or 0 to use sequences in book \n");
+  printf("      nshuffle: number of times to redo alignment after random shuffle \n");
+  printf("      ifpaired: 1 to treat each pair of sequences as complementary strands,0 not to \n");
+  printf("      standout: output run #, pass # and H to standard output every pass \n");
+  printf("                if 1, every run if 0, or not at all if -1\n");
+  printf("      npassout: output H and alignment every npassout passes to file newalign, \n");
+  printf("                or only at end of runs if zero, or not at all if -1\n");
+  printf("      nshiftout: output L and H(L) every nshiftout sequence shifts (to file \n");
+  printf("                 uncert), or only at end of passes if zero, or not at all if -1 \n");
+  printf("      tolerance: tolerance in change of H\n");
+  printf("      ntolpass: maximum number of passes with change below tolerance\n\n");
+  printf("     new parameter allowed but not required (default is i): \n\n");
+  printf("     alignmenttype: char; 'f' means alignment by First internal coordinate\n");
+  printf("                    base, 'b' means alignment by Book, 'i' means alignment by \n\n");
+  printf("     Normally one will align by delila instructions.\n\n");
+  printf("     uncert: uncertainty as function of position, for the last run, at the \n");
+  printf("             end of each pass or after selected number of sequence shifts\n");
+  printf("             Controlled by variable nshiftout.\n");
+  printf("     newalign: values of H and the relative alignments; starting, final, and\n");
+  printf("               intermediate if selected.\n");
+  printf("     optalign: user-readable listing of unique optimal relative alignments \n");
+  printf("               and number of times each was achieved\n");
+  printf("     optinst: list of unique optimal alignments in absolute coordinates,\n");
+  printf("              to be used to make inst file for selected alignment\n");
+  printf("     malignxyin: a list of the number of occurrences of alignments and their\n");
+  printf("                 H values in bits.  This may be plotted with xyplo\n");
+  printf("\n");
+  printf("  version %4.2f\n", version);
+  exit(EXIT_SUCCESS);
+}
+
+
+int main(int argc,Char **argv)
 {
+  extern char *optarg;
+	extern int optind;
+	int c, err = 0; 
+  /* flags marking arguments passed */
+  int bflag=0;       /* book output file name  */
+	int iflag=0;       /* instruction file flag */
+  int mflag=0;       /* malignp file name */
+	char *bookName     = "book.txt";
+  char *instructions = "instructions.txt";
+  char *malignparam  = "malignp.txt";
+
+/* Process command line arguments  */
+while ((c = getopt(argc, argv, "b:i:m:")) != -1)
+		switch (c) {
+		case 'b':
+      bflag = 1;
+			bookName = optarg;
+			break;
+		case 'i':
+      iflag = 1;
+			instructions = optarg;
+			break;
+		case 'm':
+      mflag = 1;
+			malignparam = optarg;
+			break;
+		case '?':
+			err = 1;
+			break;
+		}
+
+  /* Is the book file name present */  
+	if (bflag == 0) {	/* -b bookname was mandatory */ 
+		fprintf(stderr, "%s: missing -b bookname\n", argv[0]);
+		usage();
+		exit(1);
+	} 
+
+  /* Instruction file ? */
+  if (iflag == 0) { /* -i was mandatory */        
+		fprintf(stderr, "%s: missing -i instruction file\n", argv[0]);
+		usage();
+		exit(1);
+  } 
+
+  /* malignp file name  */  
+  if (mflag == 0) { 
+    fprintf(stderr, "%s: missing -m malignp file name \n", argv[0]);
+		usage();
+		exit(1);
+    } 
+
+  if (err) {
+		usage();
+		exit(1);
+	}
+
   PASCAL_MAIN(argc, argv);
   if (setjmp(_JL1))
     goto _L1;
@@ -2837,11 +2939,11 @@ Char *argv[];
   uncert.f = NULL;
   strcpy(uncert.name, "uncert");
   malignp.f = NULL;
-  strcpy(malignp.name, "malignp");
+  strcpy(malignp.name, malignparam);
   book.f = NULL;
-  strcpy(book.name, "book");
+  strcpy(book.name, bookName);
   inst.f = NULL;
-  strcpy(inst.name, "inst");
+  strcpy(inst.name, instructions);
   printf("malign%5.2f\n", version);
   if (*uncert.name != '\0')
     uncert.f = fopen(uncert.name, "w");
@@ -2907,5 +3009,7 @@ _L1:
   if (malignxyin.f != NULL)
     fclose(malignxyin.f);
   exit(EXIT_SUCCESS);
+
+return 0;
 }
 /* End. */
