@@ -306,9 +306,11 @@ technical notes
 
    The constant maxnseq is the maximum number of sequences.
 
-
-
+To Compile:
 gcc  malign.c -o malign  -I/home/mplace/bin/p2c/src -L /home/mplace/bin/p2c/src -lm -lp2c
+
+To Run:
+malign -b NC_007493.2_book -i NC_007493.2_delila_instructions.inst -m NC_007493.2_malign.malignp
 */
 
 
@@ -2864,7 +2866,6 @@ void usage() {
   printf("  version %4.2f\n", version);
   exit(EXIT_SUCCESS);
 }
-
 
 int main(int argc,Char **argv)
 {
