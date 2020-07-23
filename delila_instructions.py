@@ -20,6 +20,21 @@ Parameters
 f : str
     A text file with each line representing a TSS site.
 
+h : str
+    show help message and exit
+
+d : int
+    Downstream base position
+
+o : str
+    Organism
+
+p : int
+    Position of the TSS site, generally upstream of gene start.
+
+u : int
+    Upstream base position
+
 example input file:
 
     NC_007488.2     RSP_4039_1700   forward 1700
@@ -32,7 +47,7 @@ Example
 -------
     usage:
 
-        delila_instructions.py -f input.txt
+        delila_instructions.py -f input.txt -d 10  -o rhodo -p 10 -u 10
 
 Output
 ------
@@ -57,10 +72,16 @@ import sys
 def main():
     
     cmdparser = argparse.ArgumentParser(description="Split TSS file by chromosome.",
-                                        usage='%(prog)s -f <TSS_site_file.txt>' ,prog='splitTSS.py'  )
-    cmdparser.add_argument('-f', '--file',     action='store', dest='FILE',
+                                        usage='%(prog)s -f <TSS_site_file.txt> -u <int> -d <int>'  ,prog='splitTSS.py'  )
+    cmdparser.add_argument('-d', '--down',  action='store', dest='DOWN',
+                            help='Downstream base position', metavar='')
+    cmdparser.add_argument('-f', '--file',  action='store', dest='FILE',
                             help='Text file, containing TSS sites', metavar='')
     cmdparser.add_argument('-o', '--organism', action='store', dest='ORGANISM',help='Organism', metavar='')
+    cmdparser.add_argument('-p', '--position', action='store', dest='POS',
+                            help='Position of the TSS site, generally upstream of gene start.')
+    cmdparser.add_argument('-u', '--upstream', action='store', dest='UP',
+                            help='Upstream base position', metavar='')    
     cmdResults = vars(cmdparser.parse_args())
         
     # if no args print help
@@ -68,13 +89,33 @@ def main():
         print("")
         cmdparser.print_help()
         sys.exit(1)
-        
+
+    # get the downstream base position
+    if cmdResults['DOWN']:
+        downPos = cmdResults['DOWN']
+    else:
+        downPos = 10
+
     # get the input tss site file
     if cmdResults['FILE'] is not None:
         inFile = cmdResults['FILE']     
+    
     # get the orgamism name
     if cmdResults['ORGANISM'] is not None:
-        organism = cmdResults['ORGANISM']      
+        organism = cmdResults['ORGANISM']    
+
+    # get the TSS position
+    if cmdResults['POS']:
+        tssPos = int(cmdResults['POS'])
+    else:
+        tssPos = 10
+    
+    # get the upstream base position
+    if cmdResults['UP']:
+        upPos = cmdResults['UP']
+    else:
+        upPos = 10    
+    
     # today's date for a time stamp
     currDate = date.today().strftime("%Y/%m/%d")
     # dictionary to hold input data, as a dict of dicts
@@ -114,12 +155,12 @@ def main():
                 # handle the strandedness and write request to instruction file
                 if dat[2] == 'forward':
                     direction = '+'
-                    pos = str(int(dat[3]) - 10)
-                    out.write('get from {} -8 to {} +5 direction {};\n'.format(pos, pos, direction )) 
+                    pos = str(int(dat[3]) - tssPos)   
+                    out.write('get from {} -{} to {} +{} direction {};\n'.format(pos, str(upPos), pos, str(downPos),direction )) 
                 else:
                     direction = '-'
-                    pos = str(int(dat[3]) + 10) 
-                    out.write('get from {} +8 to {} -5 direction {};\n'.format(pos, pos, direction )) 
+                    pos = str(int(dat[3]) + tssPos) 
+                    out.write('get from {} +{} to {} -{} direction {};\n'.format(pos, str(downPos), pos, str(upPos) ,direction)) 
                 
         out.close()
 
