@@ -1,155 +1,122 @@
 /* Output from p2c 2.00.Oct.15, the Pascal-to-C translator */
 /* From input file "malin.p" */
+/* malin: make delila instructions from nth alignment of malign
 
+  Dr. Thomas D. Schneider
+  toms@alum.mit.edu
+  permanent email: toms@alum.mit.edu (use only if first address fails)
+  https://alum.mit.edu/www/toms/
 
- #include "/root/src/p2c-2.01/home/src/p2c.h"
+name
+   malin: make delila instructions from nth alignment of malign
 
+synopsis
+   malin(optinst: in, optalign: in, inst: in, malinp: in,
+         cinst: out, distribution: out, output: out)
 
-/*
+files
+   optinst: output of malign program containing absolute alignments
 
+   optalign: output of malign program containing relative alignments
 
+   inst: Delila instructions
+      Allowed forms:
 
+       get from 5 -5 to 5 +5;
+       get from 5 -5 to same +5;
+       get from 5 -5 to piece end -5;
 
+   malinp: parameters to control the program
+      first line: The version number of the program.  This allows the user to
+         be warned if an old parameter file is used.
 
+      second line:  one integer that defines which alignment to use
+         to create the cinst.
+
+      third line:  one integer that defines how much to add to
+         move the location of the zero base in the new instructions.
+
+   cinst: Delila instructions of inst converted to the alignment
+      of optinst chosen in malinp
+
+   distribution: The distribution of the realignment.  Lines that begin with
+      "*" are comments.  Otherwise, one integer per line, which is the
+      separation in bases between the initial and final alignments.
+
+   output: output program without private text
+
+description
+   This program allows one to select one of the alignments created by malign
+   and to make the corresponding Delila instructions.  Because it copies the
+   inst file it keeps the organism and chromosome information (along with all
+   comments) so it is better than the "bestinst" file created by malign!
+
+examples
+
+documentation
+
+see also
+
+   {example parameter file:} malinp
+   {related programs:} malign.p, malopt.p
+
+author
+   Thomas Dana Schneider
+
+bugs
+   WARNING:  This program does not use a book and so the coordinate
+   shift of the third parameter will not work on coordinates that jump.
+
+technical notes
+
+   NOTE: THIS PROGRAM WILL NOT HANDLE COMMENTS WITHIN THE DELILA
+   INSTRUCTION!  It must be of the form:
+      get from 193 -20 to 193 +21;
+   comments are allowed outside these statements.
+
+To Compile:
+  gcc malin.c -o malin -I/home/mplace/bin/p2c/home -L/home/mplace/bin/p2c/home/ -lm -lp2
+
+To Run:
+  
 
 */
-
-
+#include <stdio.h>    /* printf */
+#include <getopt.h>   /* getopt API */ 
+#include <stdlib.h> 
+#include </home/mplace/bin/p2c/src/p2c.h>
 
 #define version         1.14
-/*
-
-
-
-
-
-
-
-
-*/
 #define updateversion   1.07
-
-
-
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-
-
 #define maxstring       1500
-
-
 #define fillermax       10
 
-
 typedef struct stringDelila {
-  Char letters[maxstring];
-  long length, current;
+  Char letters[maxstring]; /* the letters in the string */
+  long length;             /* the number of characters in the string */
+  long current;            /* the letter we are working on */
 } stringDelila;
 
-
-
-/*
-
-
-*/
+/* the following is an array used to fill a string.
+   it is convenient to have it much shorter than the maxstring, so that
+   it is easy to fill the string using procedure fillstring.
+   the user must declare the value of constant fillermax. */
 typedef Char filler[fillermax];
 
-
-
 typedef struct trigger {
-  stringDelila seek;
-  long state;
-  boolean skip, found;
+  stringDelila seek;    /* the characters looked for */
+  long state;           /* how close to triggering we are */
+  boolean skip;         /* trigger not found- skip the line */ 
+  boolean found;        /* the trigger was found */
 } trigger;
 
-
 Static _TEXT optinst, optalign, inst, malinp, cinst, distribution;
-
-
 Static jmp_buf _JL1;
-
-
 Static Void halt()
 {
-  /*
-
-
-
-
-
-*/
   printf(" program halt.\n");
   longjmp(_JL1, 1);
 }
-
 
 
 Static Void clearstring(ribbon)
@@ -162,8 +129,6 @@ stringDelila *ribbon;
   ribbon->length = 0;
   ribbon->current = 0;
 }
-
-
 
 Static Void getstring(afile, buffer, gotten)
 _TEXT *afile;
@@ -199,8 +164,6 @@ boolean *gotten;
   *gotten = true;
 }
 
-
-
 Static Void writestring(tofile, s)
 _TEXT *tofile;
 stringDelila *s;
@@ -212,20 +175,10 @@ stringDelila *s;
     putc(s->letters[i], tofile->f);
 }
 
-
-
 Static Void fillstring(s, a)
 stringDelila *s;
 Char *a;
 {
-  /*
-*/
-
-
-  /*
-
-
-*/
   long length = fillermax;
   long index;
 
@@ -243,23 +196,12 @@ Char *a;
   s->current = 1;
 }
 
-
-
 Static Void filltrigger(t, a)
 trigger *t;
 Char *a;
 {
   fillstring(&t->seek, a);
 }
-
-
-
-/*
-
-
-
-
-*/
 
 Static Void resettrigger(t)
 trigger *t;
@@ -274,18 +216,8 @@ Static Void testfortrigger(ch, t)
 Char ch;
 trigger *t;
 {
-  /*
-
-
-
-
-*/
   t->state++;
-  /*
 
-
-
-*/
   if (t->seek.letters[t->state - 1] == ch) {
     t->skip = false;
     if (t->state == t->seek.length)
@@ -300,14 +232,12 @@ trigger *t;
 }
 
 
-
 Static Void skipblanks(thefile)
 _TEXT *thefile;
 {
   while ((P_peek(thefile->f) == ' ') & (!P_eoln(thefile->f)))
     getc(thefile->f);
 }
-
 
 Static Void skipnonblanks(thefile)
 _TEXT *thefile;
@@ -316,14 +246,12 @@ _TEXT *thefile;
     getc(thefile->f);
 }
 
-
 Static Void skipcolumn(thefile)
 _TEXT *thefile;
 {
   skipblanks(thefile);
   skipnonblanks(thefile);
 }
-
 
 Local Char sign(i)
 long i;
@@ -333,8 +261,6 @@ long i;
   else
     return '-';
 }
-
-
 
 Static Void themain(optinst, optalign, inst, malinp, cinst, distribution)
 _TEXT *optinst, *optalign, *inst, *malinp, *cinst, *distribution;
@@ -354,44 +280,10 @@ _TEXT *optinst, *optalign, *inst, *malinp, *cinst, *distribution;
   double parameterversion;
   long s, sequences, shift;
   long state = 0;
-  /*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-
   boolean shutup = false;
 
   trigger t0a, t0b, t1a, t2a, t3a, t0c, t0d, t0e, t5a;
   long tovalue, torange;
-  /*
-*/
   long theclass, zerobase;
 
   printf("malin%5.2f\n", version);
@@ -547,24 +439,6 @@ _TEXT *optinst, *optalign, *inst, *malinp, *cinst, *distribution;
     }
   }
 
-  /*
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-
-
   while (!BUFEOF(inst->f)) {
     if (!P_eoln(inst->f)) {
       resettrigger(&t0a);
@@ -617,23 +491,14 @@ _TEXT *optinst, *optalign, *inst, *malinp, *cinst, *distribution;
 	    state = 7;
 	  }
 	  break;
-
 	case 1:
 	  if (t1a.found)
 	    state = 0;
 	  break;
-
 	case 2:
 	  if (t2a.found) {
 	    fscanf(inst->f, "%ld%ld", &fromvalue, &fromrange);
-
-
 	    fscanf(optinst->f, "%ld", &fromvalue);
-	    /*
-
-*/
-
-
 	    fromvalue += zerobase;
 
 	    fprintf(cinst->f, " %ld %c%ld",
@@ -642,12 +507,10 @@ _TEXT *optinst, *optalign, *inst, *malinp, *cinst, *distribution;
 	    state = 3;
 	  }
 	  break;
-
 	case 3:
 	  if (t3a.found)
 	    state = 4;
 	  break;
-
 	case 4:
 	  skipblanks(inst);
 	  if (P_peek(inst->f) == 's') {
@@ -662,9 +525,6 @@ _TEXT *optinst, *optalign, *inst, *malinp, *cinst, *distribution;
 
 	    tovalue = fromvalue;
 	    skipnonblanks(inst);
-	    /*
-
-*/
 	    torange = 100;
 	    shutup = true;
 
@@ -678,26 +538,19 @@ _TEXT *optinst, *optalign, *inst, *malinp, *cinst, *distribution;
 	  }
 	  state = 0;
 	  break;
-
-
 	case 5:
 	  if (t5a.found)
 	    state = 0;
 	  break;
-
-
 	case 6:
 	  if (t0d.found)
 	    state = 0;
 	  break;
-
 	case 7:
 	  if (t0e.found)
 	    state = 0;
 	  break;
-
 	}
-
       }
       continue;
     }
@@ -718,14 +571,9 @@ _TEXT *optinst, *optalign, *inst, *malinp, *cinst, *distribution;
 	  analignment, occurences, H);
   printf("alignment: %ld, occurences: %ld, H: %10.5f bits\n",
 	 analignment, occurences, H);
-
 }
 
-
-
-main(argc, argv)
-int argc;
-Char *argv[];
+int main(int argc, Char **argv)
 {
   PASCAL_MAIN(argc, argv);
   if (setjmp(_JL1))
@@ -758,7 +606,4 @@ _L1:
     fclose(distribution.f);
   exit(EXIT_SUCCESS);
 }
-
-
-
 /* End. */
