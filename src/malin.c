@@ -661,6 +661,75 @@ void usage() {
 
 int main(int argc, Char **argv)
 {
+ extern char *optarg;
+	extern int optind;
+	int c, err = 0; 
+  /* flags marking arguments passed */
+  int aflag=0;       /* optalign file flag */
+	int iflag=0;       /* instruction file flag */
+  int oflag=0;       /* optinst file */ 
+  int pflag=0;       /* malinp file name */
+	char *optalignFile  = "optalign";
+  char *instructions  = "instructions.txt";
+  char *malinparam    = "malinp.txt";
+  char *optinstFile = "optinst";
+
+/* Process command line arguments  */
+while ((c = getopt(argc, argv, "a:i:o:p:")) != -1)
+		switch (c) {
+		case 'a':
+      aflag = 1;
+			optalignFile = optarg;
+			break;
+		case 'i':
+      iflag = 1;
+			instructions = optarg;
+			break;
+    case 'o':
+      oflag = 1;
+      optinstFile = optarg;      
+		case 'p':
+      pflag = 1;
+			malinparam = optarg;
+			break;
+		case '?':
+			err = 1;
+			break;
+		}
+
+  /* Is the optalign file name present */  
+	if (aflag == 0) {	/* -a optalign file */ 
+		fprintf(stderr, "%s: missing -a optalign file\n", argv[0]);
+		usage();
+		exit(1);
+	} 
+
+  /* Instruction file */
+  if (iflag == 0) { /* -i was mandatory */        
+		fprintf(stderr, "%s: missing -i instruction file\n", argv[0]);
+		usage();
+		exit(1);
+  } 
+
+  /*  */
+  if (oflag == 0) { 
+    fprintf(stderr, "%s: missing -o  optinst file\n", argv[0]);
+		usage();
+		exit(1);
+    } 
+
+  /* malinp file name  */  
+  if (pflag == 0) { 
+    fprintf(stderr, "%s: missing -p malinp file name\n", argv[0]);
+		usage();
+		exit(1);
+    } 
+
+  if (err) {
+		usage();
+		exit(1);
+	}
+
   PASCAL_MAIN(argc, argv);
   if (setjmp(_JL1))
     goto _L1;
