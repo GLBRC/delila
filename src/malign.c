@@ -2848,6 +2848,7 @@ void usage() {
   printf("      tolerance: tolerance in change of H\n");
   printf("      ntolpass: maximum number of passes with change below tolerance\n\n");
   printf("     new parameter allowed but not required (default is i): \n\n");
+  printf("  ouputs: \n");
   printf("     alignmenttype: char; 'f' means alignment by First internal coordinate\n");
   printf("                    base, 'b' means alignment by Book, 'i' means alignment by \n\n");
   printf("     Normally one will align by delila instructions.\n\n");
