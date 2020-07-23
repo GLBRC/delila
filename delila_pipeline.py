@@ -373,16 +373,61 @@ class delilaPipe( object ):
             os.rename(book, self.prefix + '_' + chrom + '_' + 'book.txt' )
             os.rename(listing, self.prefix + '_' + chrom + '_' + 'listing.txt')
 
+    def createMalignp(self):
+        '''
+        Create the malign parameter file.
+        Output a text file called malignp, used as input to malign.
+        '''
+        with open('malignp', 'w') as out:
+            out.write('-5 +5\n') # winleft, winright: left and right ends of window
+            out.write('-5 +5\n') # shiftmin, shiftmax: minimum and maximum shift of aligned base
+            out.write('54321\n')   # iseed: integer random seed
+            out.write('0\n')       # nranseq: number of random sequences, or 0 to use sequences in book
+            out.write('2000\n')    # nshuffle: number of times to redo alignment after random shuffle
+            out.write('0\n')       # ifpaired: 1 for pairs of complementary sequences for symmetric site
+            out.write('-1\n')      # standout: -1 no, 0 limited, 1 full standard output
+            out.write('-1\n')      # npassout: output H and alignment every npassout passes
+            out.write('-1\n')      # nshiftout: output H(L) every nshiftout shifts, every pass if 0, -1 no
+            out.write('0.0001\n')  # tolerance: tolerance in change of H
+            out.write('50')      # ntolpass: maximum number of passes with change less than tolerance
 
-    def runALIST(self):
-        '''
-        '''
-        pass
+        out.close()
 
-    def runMALIGN(self):
+    def runMALIGN(self, book, inst):
         '''
+        From Delila documentation:
+
+        Given a book of aligned sequences, this program searches for the alignment
+        of the sequences that has the lowest uncertainty, i.e. the highest value of
+        Rsequence.  The user specifies the "window" of bases within which
+        uncertainty is calculated, and the maximum number of bases that each
+        sequence is allowed to shift from the original alignment.  The program
+        considers each sequence in turn, shifting it to an alignment with minimum
+        uncertainty while holding the other sequences fixed.  A "pass" is complete
+        when all sequences have been considered.  A "run" is complete when no
+        alignments have changed in the preceding pass, and the alignment is then
+        considered "optimal".  The first run starts with the original alignment;
+        every run after that starts with a "shuffled" alignment obtained by shifting
+        each sequence independently by a random amount between the allowed limits.
+        The program maintains a list of all of the unique optimal alignments
+        achieved from these starting alignments, and it outputs them in order of
+        increasing uncertainty.
+
+        malign -b NC_007493.2_book -i NC_007493.2_delila_instructions.inst -m malignp
+
         '''
-        pass
+        # set up malign
+        program = pdir + 'malign'
+        cmd = [ program , '-b', book, '-i', inst, '-m', 'malignp' ]
+        logger.info("Running malign ")
+        logger.info(program + ' ' + ' '.join(cmd))
+        # run malign
+        output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        result1 = output[0].decode('utf-8')
+        result2 = output[1].decode('utf-8')
+        # log stdout and stderr 
+        logger.info(result1)
+        logger.info(result2)
 
     def runECODE(self):
         '''
@@ -481,6 +526,8 @@ def main():
     pipe.runCATAL()
     pipe.splitTSS()
     pipe.runDELILA()
+    pipe.createMalignp()
+    pipe.runMALIGN('NC_007493.2_book', 'NC_007493.2_delila_instructions.inst')
 
 if __name__ == "__main__":
     main()
