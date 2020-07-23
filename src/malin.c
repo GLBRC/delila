@@ -78,7 +78,7 @@ To Compile:
   gcc malin.c -o malin -I/home/mplace/bin/p2c/home -L/home/mplace/bin/p2c/home/ -lm -lp2
 
 To Run:
-  
+
 
 */
 #include <stdio.h>    /* printf */
@@ -130,20 +130,21 @@ stringDelila *ribbon;
   ribbon->current = 0;
 }
 
+/* get a string from a file not using string calls.  this lets one
+obtain lines from a file without interactive prompts */
 Static Void getstring(afile, buffer, gotten)
 _TEXT *afile;
 stringDelila *buffer;
 boolean *gotten;
 {
-  /*
-*/
   long index = 0;
-
   clearstring(buffer);
+
   if (BUFEOF(afile->f)) {
     *gotten = false;
     return;
   }
+
   while (!P_eoln(afile->f) && index < maxstring) {
     index++;
     buffer->letters[index-1] = getc(afile->f);
@@ -164,25 +165,34 @@ boolean *gotten;
   *gotten = true;
 }
 
+/* write the string s to file tofile, no writeln */
 Static Void writestring(tofile, s)
 _TEXT *tofile;
 stringDelila *s;
 {
   long i, FORLIM;
-
   FORLIM = s->length;
+
   for (i = 0; i < FORLIM; i++)
     putc(s->letters[i], tofile->f);
 }
 
+/* this procedure makes it reasonably easy to fill the string s with
+characters.  one calls the procedure as: *)
+(*                           1         2         3         4         5 *)
+(*                  12345678901234567890123456789012345678901234567890 *)
+(*   fillstring(s, 'this-is-the-string                                ');
+the two comments make it easy to line the characters up. also, for this
+example, it was assumed that the length of filler as defined by the
+constant fillermax was 50. */
 Static Void fillstring(s, a)
 stringDelila *s;
 Char *a;
 {
   long length = fillermax;
   long index;
-
   clearstring(s);
+
   while (length > 1 && a[length-1] == ' ')
     length--;
   if (length == 1 && a[length-1] == ' ') {
@@ -203,6 +213,12 @@ Char *a;
   fillstring(&t->seek, a);
 }
 
+/* this module allows one to scan a series of characters, as from
+an array or a file, and to "trigger" or detect a simple string
+in the series.  the advantage of the trigger is that several triggers
+can "observe" a stream of characters at once, each looking for a
+different thing.
+some other modules required: interact.const, interact.type */
 Static Void resettrigger(t)
 trigger *t;
 {
@@ -211,7 +227,12 @@ trigger *t;
   t->found = false;
 }
 
-
+/* look at the character ch.
+   if it is part of the trigger (at the current trigger state),
+       then the trigger state goes higher.
+   if it is not part of the trigger then the trigger state is reset,
+      skip is true and one should skip onward to find the trigger.
+   if the trigger is found, found is true. */
 Static Void testfortrigger(ch, t)
 Char ch;
 trigger *t;
@@ -267,24 +288,46 @@ _TEXT *optinst, *optalign, *inst, *malinp, *cinst, *distribution;
 {
   /*
 */
-  long a = 1;
-  long alignments, analignment;
-  Char c;
-  long class_;
-  boolean debugging = false;
-  long fromvalue, fromrange;
-  /*
-*/
-  double H;
-  long occurences;
-  double parameterversion;
-  long s, sequences, shift;
-  long state = 0;
-  boolean shutup = false;
+  long a = 1;               /* index for reading through alignments */
+  long alignments;          /* number of alignments in optinst */
+  long analignment;         /* an alignment to use from optinst */
+  Char c;                   /* a character from the inst */
+  long class_;              /* index to the classes of alignments */
+  boolean debugging = false;  /* set to true if debugging */
+  long fromvalue, fromrange; /* the from coordinate and the range from the from */
+  double H;                  /* uncertainty, bits */
+  long occurences;           /* number of times an alignment appeared */
+  double parameterversion;   /* parameter version number */
+  long s;                    /* index for reading through alignment sequence numbers */
+  long sequences;            /* number of sequences */
+  long shift;                /* how much a sequence is shifted */
+  long state = 0;            //
+  boolean shutup = false;    /* state of the program.
+      state = 0; scan and copy, outside comments
+                when     '(@' is found, move to state 1             t0a
+                when    'get' is found, move to state 2             t0b
+                when      '{' is found, move to state 5             t0c
+                when      '"' is found, move to state 6             t0d
+                when      "'" is found, move to state 7             t0e
+      state = 1; scan and copy, copy program comments
+                when     '@)' is found, move to state 0             t1a
+      state = 2; scan and copy, find from
+                when   'from' is found, move to state 3             t2a
+      state = 3; read from value, relative from value, scan for 'to'
+                when     'to' is found, move to state 4             t3a
+      state = 4; read to values, relative to value
+                move to state 0
+      state = 5; scan and copy {} comment
+                when '}' is found, move to state 0                  t5a
+      state = 6; scan and copy " string
+                when '"' is found, move to state 0
+      state = 7; scan and copy ' string
+                when "'" is found, move to state 0  */
 
-  trigger t0a, t0b, t1a, t2a, t3a, t0c, t0d, t0e, t5a;
-  long tovalue, torange;
-  long theclass, zerobase;
+  trigger t0a, t0b, t1a, t2a, t3a, t0c, t0d, t0e, t5a;  /* triggers for each state */
+  long tovalue, torange;  /* the to coordinate and the range from the to */
+  long theclass;          /* the current class according to optinst */
+  long zerobase;          /* the new zero coordinate */  
 
   printf("malin%5.2f\n", version);
 
@@ -573,6 +616,49 @@ _TEXT *optinst, *optalign, *inst, *malinp, *cinst, *distribution;
 	 analignment, occurences, H);
 }
 
+
+/* Print help for user */
+void usage() {
+  printf("\n");
+  printf(" malin: make delila instructions from nth alignment of malign\n");
+  printf(" Parameters:\n");
+  printf("\n  malin -a optalign -i instructions -o optinst -p malinp \n");
+  printf("  -a optalign file, output of malign program containing relative alignments \n");
+  printf("  -i delila instruction file, same file used to run delila \n");
+  
+  printf("\tinst: Delila instructions\n");
+  printf("\t\tAllowed forms:\n\n");
+  printf("\t\tget from 5 -5 to 5 +5\n");
+  printf("\t\tget from 5 -5 to same +5\n");
+  printf("\t\tget from 5 -5 to piece end -5\n\n");
+
+  printf("  -o optinst file, output of malign program containing absolute alignments \n");
+  
+  printf("  -p malinp parameter file to control the program\n");
+  printf("     first line: The version number of the program.  This allows the\n");
+  printf("                 the user to be warned if an old parameter file is used.\n");
+  printf("     second line: one integer that defines which alignment to use\n");
+  printf("                  to create the cinst(output). \n");
+  printf("     third line:  one integer that defines how much to add to move the\n");
+  printf("                  location of the zero base in the new instructions.");
+    
+  printf("  outputs:\n");
+  printf("  cinst: Delila instructions of inst converted to the alignment of optinst\n");
+  printf("         chosen in malinp \n");
+  printf("  distribution: The distribution of the realignment.  Lines that begin with\n");
+  printf("               \"*\" are comments.  Otherwise, one integer per line, which is the\n");
+  printf("               separation in bases between the initial and final alignments.\n");
+  printf(" \n");
+  printf("  description: \n");
+  printf("\tThis program allows one to select one of the alignments created by malign\n");
+  printf("\tand to make the corresponding Delila instructions.  Because it copies the\n");
+  printf("\tinst file it keeps the organism and chromosome information (along with all\n");
+  printf("\tcomments) so it is better than the \"bestinst\" file created by malign!\n");
+  printf(" \n");
+  printf("  version %4.2f\n", version);
+  exit(EXIT_SUCCESS);
+}
+
 int main(int argc, Char **argv)
 {
   PASCAL_MAIN(argc, argv);
@@ -605,5 +691,7 @@ _L1:
   if (distribution.f != NULL)
     fclose(distribution.f);
   exit(EXIT_SUCCESS);
+
+  return 0;
 }
 /* End. */
