@@ -379,8 +379,8 @@ class delilaPipe( object ):
         Output a text file called malignp, used as input to malign.
         '''
         with open('malignp', 'w') as out:
-            out.write('-5 +5\n') # winleft, winright: left and right ends of window
-            out.write('-5 +5\n') # shiftmin, shiftmax: minimum and maximum shift of aligned base
+            out.write('-5 +5\n')   # winleft, winright: left and right ends of window
+            out.write('-5 +5\n')   # shiftmin, shiftmax: minimum and maximum shift of aligned base
             out.write('54321\n')   # iseed: integer random seed
             out.write('0\n')       # nranseq: number of random sequences, or 0 to use sequences in book
             out.write('2000\n')    # nshuffle: number of times to redo alignment after random shuffle
@@ -389,7 +389,7 @@ class delilaPipe( object ):
             out.write('-1\n')      # npassout: output H and alignment every npassout passes
             out.write('-1\n')      # nshiftout: output H(L) every nshiftout shifts, every pass if 0, -1 no
             out.write('0.0001\n')  # tolerance: tolerance in change of H
-            out.write('50')      # ntolpass: maximum number of passes with change less than tolerance
+            out.write('50')        # ntolpass: maximum number of passes with change less than tolerance
 
         out.close()
 
@@ -527,7 +527,7 @@ def main():
     pipe.splitTSS()
     pipe.runDELILA()
     pipe.createMalignp()
-    pipe.runMALIGN('NC_007493.2_book', 'NC_007493.2_delila_instructions.inst')
+    pipe.runMALIGN('R.sphaeroides-2.4.1_NC_007493.2_book.txt', 'NC_007493.2_TSS.inst')
 
 if __name__ == "__main__":
     main()
