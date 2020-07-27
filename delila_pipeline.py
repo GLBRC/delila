@@ -318,7 +318,7 @@ class delilaPipe( object ):
                 self.instructions.append(inst)
         f.close()
 
-    def runDELILA(self):
+    def runDELILA(self, inst):
         '''
         Extract fragments of sequences from a library of sequences and create a
         subset, a book. This is the core of the Delila system.
@@ -353,25 +353,23 @@ class delilaPipe( object ):
         '''
         book    = 'BOOK.tmp'
         listing = 'LISTING.tmp' 
-        # READ IN INSTRUCTIONS FROM FILE
-        self.getInstructions()
-        for inst in self.instructions:
-            program = pdir + 'delila'
-            cmd = [program , '-b', book, '-i', inst, '-l' , listing ]
-            logger.info("Running delila ")
-            logger.info(program + ' ' + ' '.join(cmd))
-            # run delila
-            output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-            result1 = output[0].decode('utf-8')
-            result2 = output[1].decode('utf-8')
-            # log stdout and stderr 
-            logger.info(result1)
-            logger.info(result2)
 
-            # rename temporary output files 
-            chrom = re.sub('_TSS.inst', '', inst)
-            os.rename(book, self.prefix + '_' + chrom + '_' + 'book.txt' )
-            os.rename(listing, self.prefix + '_' + chrom + '_' + 'listing.txt')
+        program = pdir + 'delila'
+        cmd = [program , '-b', book, '-i', inst, '-l' , listing ]
+        logger.info("Running delila ")
+        logger.info(program + ' ' + ' '.join(cmd))
+        # run delila
+        output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        result1 = output[0].decode('utf-8')
+        result2 = output[1].decode('utf-8')
+        # log stdout and stderr 
+        logger.info(result1)
+        logger.info(result2)
+
+        # rename temporary output files 
+        chrom = re.sub('_TSS.inst', '', inst)
+        os.rename(book, self.prefix + '_' + chrom + '_' + 'book.txt' )
+        os.rename(listing, self.prefix + '_' + chrom + '_' + 'listing.txt')
 
     def createMalignp(self):
         '''
@@ -560,7 +558,11 @@ def main():
     pipe.catalParameters()
     pipe.runCATAL()
     pipe.splitTSS()
-    pipe.runDELILA()
+    # Read instructions from file
+    pipe.getInstructions()
+    # Create delila instruction sets1
+    for inst in pipe.instructions:
+        pipe.runDELILA(inst)
     pipe.createMalignp()
     pipe.runMALIGN('R.sphaeroides-2.4.1_NC_007493.2_book.txt', 'NC_007493.2_TSS.inst')
     pipe.createMalinp()
