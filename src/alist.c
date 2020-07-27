@@ -1,499 +1,49 @@
 /* Output from p2c 2.00.Oct.15, the Pascal-to-C translator */
 /* From input file "alist.p" */
-
-
- #include "/root/src/p2c-2.01/home/src/p2c.h"
-
-
 /*
 
 
 
 
 
+To Compile:
+gcc  alist.c -o alist  -I/home/mplace/bin/p2c/src -L /home/mplace/bin/p2c/src -lm -lp2c
 */
 
 
+
+
+#include <getopt.h>  /* getopt API */ 
+#include <stdio.h>   /* printf */
+#include <stdlib.h> 
+#include </home/mplace/bin/p2c/src/p2c.h>
 
 #define version         6.64
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
 #define updateversion   6.20
-
-
-
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-
-
-
 #define pagelength      59
 #define headerlines     10
 #define headerclines    5
 #define maxnumberwidth  7
 #define columnmax       20
-
-
-
-
 #define defaultllx      7.10999
 #define defaultlly      7.01995
 #define defaulturx      588.15
 #define defaultury      784.98
-
-/*
-
-
-
-
-
-*/
-
-/*
-
-
-
-
-
-*/
-
-
 #define deffontsize     15
-
 #define defcolorlistcontrol  'C'
-
 #define defcharacterratio  0.60
-/*
-
-*/
-
 #define topofpage       27.0
 #define defdeltaXcm     1.0
 #define defdeltaYcm     (-1.0)
 #define defscaleimage   1.0
-
-
-
-
-
-
 #define dnamax          300
 #define namelength      100
 #define linelength      80
-
-
-
-
 #define pwid            8
 #define pdec            5
 #define pdecolor        4
-/*
-*/
-
-
-
 #define maxstring       2000
-
-
-
-
 #define fillermax       50
-
-
-
 
 typedef struct stringDelila {
   Char letters[maxstring];
@@ -501,16 +51,9 @@ typedef struct stringDelila {
   struct stringDelila *next;
 } stringDelila;
 
-
-
-
 /*
-
-
 */
 typedef Char filler[fillermax];
-
-
 
 typedef struct trigger {
   stringDelila seek;
@@ -518,19 +61,8 @@ typedef struct trigger {
   boolean skip, found;
 } trigger;
 
-
-
-
-
 typedef long chset[5];
-
-
-
-
 typedef Char alpha[namelength];
-
-/*
-*/
 
 typedef struct name {
   alpha letters;
@@ -558,13 +90,9 @@ typedef struct header {
   line *fulnam, *note;
 } header;
 
-
-
 typedef enum {
   a, c, g, t
 } base;
-
-
 
 typedef short dnarange;
 
@@ -577,7 +105,6 @@ typedef struct dnastring {
   dnarange length;
   struct dnastring *next;
 } dnastring;
-
 
 typedef struct orgkey {
   header hea;
@@ -636,16 +163,9 @@ typedef struct marker {
   dnastring *dna;
 } marker;
 
-
-
-
-Static _TEXT inst, book, alistp, namebook, namelist, avalues, list, clist,
-	     colors;
-
-
+Static _TEXT inst, book, alistp, namebook, namelist, avalues, list, clist, colors;
 Static piece *apiece;
 Static long length_, alignedbase, fromparam, toparam;
-
 Static long fromdo, todo;
 Static boolean userrange;
 Static Char displaylevel;
@@ -4389,8 +3909,6 @@ Static Void upgradeto598()
     fclose(internal.f);
 }
 
-
-
 Static Void upgradeto620()
 {
   /*
@@ -4478,8 +3996,6 @@ Static Void upgradeto620()
   if (internal.f != NULL)
     fclose(internal.f);
 }
-
-
 
 Static Void upgradeparameters(alistp)
 _TEXT *alistp;
@@ -4700,14 +4216,7 @@ Static Void readparameters()
     headercontrol = ' ';
 }
 
-
-
-
-
-
-main(argc, argv)
-int argc;
-Char *argv[];
+int main(int argc, Char **argv)
 {
   line *WITH;
   long FORLIM;
@@ -4935,38 +4444,10 @@ Char *argv[];
     noheader(&clist);
     clinenumber++;
 
-    /*
-*/
-    /*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
 
   }
 
-  /*
 
-
-
-
-
-*/
 
   if (headercontrol == 'h' || headercontrol != '0') {
     showalignment();
@@ -4975,11 +4456,9 @@ Char *argv[];
 
   while (!BUFEOF(book.f)) {
     switch (alignmenttype) {
-
     case 'i':
       align(&inst, &book, &theline, &apiece, &length_, &alignedbase);
       break;
-
     case 'b':
     case 'f':
       getpiece(&book, &theline, &apiece);
@@ -4991,15 +4470,12 @@ Char *argv[];
       break;
 
     switch (alignmenttype) {
-
     case 'f':
       alignedbase = 1;
       break;
-
     case 'i':
       /* blank case */
       break;
-
     case 'b':
       alignedbase = pietoint(0L, apiece);
       break;
@@ -5032,7 +4508,6 @@ Char *argv[];
       }
 
       /*
-
 */
 
       fprintf(list.f, " %*ld",
@@ -5051,11 +4526,6 @@ Char *argv[];
       fprintf(clist.f, ") s ");
     }
     /*
-
-
-
-
-
 */
 
     else if (!emptyfile(&namebook))
@@ -5101,13 +4571,11 @@ Char *argv[];
     /*
 
 */
-
     if (numbered && shownumbers != '-')
       fprintf(clist.f, "( %*ld ) s\n", (int)numberwidth, number);
     /*
 
 */
-
     column = 0;
     FORLIM = todo;
     for (index_ = fromdo; index_ <= FORLIM; index_++) {
@@ -5174,8 +4642,6 @@ Char *argv[];
   if (clinenumber > 2)
     showpage(&clist);
   removeit(&clist);
-
-
   fprintf(clist.f, "%%%%Trailer\n");
 
 _L1:
@@ -5198,6 +4664,8 @@ _L1:
   if (colors.f != NULL)
     fclose(colors.f);
   exit(EXIT_SUCCESS);
+
+  return 0;
 }
 
 
