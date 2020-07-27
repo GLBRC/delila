@@ -79,6 +79,7 @@ To Compile:
 
 To Run:
 
+malin -a optalign -i NC_007493.2_TSS.inst -o optinst -p malinp 
 
 */
 #include <stdio.h>    /* printf */
