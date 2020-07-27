@@ -620,14 +620,14 @@ _TEXT *optinst, *optalign, *inst, *malinp, *cinst, *distribution;
 /* Print help for user */
 void usage() {
   printf("\n");
-  printf(" malin: make delila instructions from nth alignment of malign\n");
+  printf(" malin: make delila instructions from nth alignment of malign\n\n");
   printf(" Parameters:\n");
   printf("\n  malin -a optalign -i instructions -o optinst -p malinp \n");
   printf("  -a optalign file, output of malign program containing relative alignments \n");
   printf("  -i delila instruction file, same file used to run delila \n");
   
-  printf("\tinst: Delila instructions\n");
-  printf("\t\tAllowed forms:\n\n");
+  printf("\tinst: Delila instructions\n\n");
+  printf("\t\tAllowed forms:\n");
   printf("\t\tget from 5 -5 to 5 +5\n");
   printf("\t\tget from 5 -5 to same +5\n");
   printf("\t\tget from 5 -5 to piece end -5\n\n");
@@ -640,14 +640,14 @@ void usage() {
   printf("     second line: one integer that defines which alignment to use\n");
   printf("                  to create the cinst(output). \n");
   printf("     third line:  one integer that defines how much to add to move the\n");
-  printf("                  location of the zero base in the new instructions.");
+  printf("                  location of the zero base in the new instructions.\n");
     
-  printf("  outputs:\n");
-  printf("  cinst: Delila instructions of inst converted to the alignment of optinst\n");
-  printf("         chosen in malinp \n");
+  printf("  outputs:\n\n");
+  printf("  cinst: Delila instructions converted to use the alignment of optinst\n");
+  printf("         chosen in malinp \n\n");
   printf("  distribution: The distribution of the realignment.  Lines that begin with\n");
-  printf("               \"*\" are comments.  Otherwise, one integer per line, which is the\n");
-  printf("               separation in bases between the initial and final alignments.\n");
+  printf("                \"*\" are comments.  Otherwise, one integer per line, which is the\n");
+  printf("                separation in bases between the initial and final alignments.\n");
   printf(" \n");
   printf("  description: \n");
   printf("\tThis program allows one to select one of the alignments created by malign\n");
@@ -672,7 +672,7 @@ int main(int argc, Char **argv)
 	char *optalignFile  = "optalign";
   char *instructions  = "instructions.txt";
   char *malinparam    = "malinp.txt";
-  char *optinstFile = "optinst";
+  char *optinstFile   = "optinst";
 
 /* Process command line arguments  */
 while ((c = getopt(argc, argv, "a:i:o:p:")) != -1)
@@ -738,13 +738,13 @@ while ((c = getopt(argc, argv, "a:i:o:p:")) != -1)
   cinst.f = NULL;
   strcpy(cinst.name, "cinst");
   malinp.f = NULL;
-  strcpy(malinp.name, "malinp");
+  strcpy(malinp.name, malinparam);
   inst.f = NULL;
-  strcpy(inst.name, "inst");
+  strcpy(inst.name, instructions);
   optalign.f = NULL;
-  strcpy(optalign.name, "optalign");
+  strcpy(optalign.name, optalignFile);
   optinst.f = NULL;
-  strcpy(optinst.name, "optinst");
+  strcpy(optinst.name, optinstFile);
   themain(&optinst, &optalign, &inst, &malinp, &cinst, &distribution);
 _L1:
   if (optinst.f != NULL)
