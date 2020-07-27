@@ -429,6 +429,41 @@ class delilaPipe( object ):
         logger.info(result1)
         logger.info(result2)
 
+    def createMalinp(self):
+        '''
+        Create the malin parameter file. (NOT FOR MALIGN)
+        Output a text file called malignp, used as input to malign.
+        '''
+        with open('malinp', 'w') as out:
+            out.write('1.14\n') # Program version number, warn user if too old
+            out.write('1\n')    # integer, defines which alignment to use to create cinst
+            out.write('0\n')    # integer, defines how much to add to move the location of the zero base in the new instructions
+        out.close()        
+
+    def runMALIN(self, inst):
+        '''
+        From Delila documentation:
+
+        This program allows one to select one of the alignments created by malign
+        and to make the corresponding Delila instructions.  Because it copies the
+        inst file it keeps the organism and chromosome information (along with all
+        comments) so it is better than the "bestinst" file created by malign!
+
+        malin -a optalign -i NC_007493.2_TSS.inst -o optinst -p malinp 
+        '''
+        # set up malin
+        program = pdir + 'malin'
+        cmd = [ program , '-a', 'optalign', '-i', inst, '-o', 'optinst' ,'-p','malinp' ]
+        logger.info("Running malin ")
+        logger.info(program + ' ' + ' '.join(cmd))
+        # run malign
+        output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        result1 = output[0].decode('utf-8')
+        result2 = output[1].decode('utf-8')
+        # log stdout and stderr 
+        logger.info(result1)
+        logger.info(result2)
+
     def runECODE(self):
         '''
         '''
@@ -528,6 +563,8 @@ def main():
     pipe.runDELILA()
     pipe.createMalignp()
     pipe.runMALIGN('R.sphaeroides-2.4.1_NC_007493.2_book.txt', 'NC_007493.2_TSS.inst')
+    pipe.createMalinp()
+    pipe.runMALIN('NC_007493.2_TSS.inst')
 
 if __name__ == "__main__":
     main()
