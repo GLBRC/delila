@@ -463,7 +463,6 @@ typedef struct piekey {
   long piebeg, pieend;
 } piekey;
 
-
 typedef struct piece {
   piekey key;
   dnastring *dna;
@@ -505,122 +504,58 @@ Static long length_, alignedbase, fromparam, toparam;
 Static long fromdo, todo;
 Static boolean userrange;
 Static Char displaylevel;
-/*
-*/
 Static Char shownumbers;
-/*
-*/
-
 Static Char usefullname;
-/*
-*/
 Static long fullnamewidth;
 Static Char paging;
-
 Static long index_, indexfill;
-
 Static long cpagelength;
-/*
-
-*/
-
 Static long linenumber, clinenumber;
-/*
-
-
-*/
-
 Static long headerclinenumber;
-
 Static long pagenumber, cpagenumber;
-
-
 Static orgkey org;
 Static boolean orgchange, orgopen;
 Static chrkey chr;
 Static boolean chrchange, chropen;
 Static piece *pie;
 Static boolean piechange, pieopen;
-
 Static Char nametype;
-/*
-*/
 Static long namewidth, namelistwidth;
 Static boolean namelistuse;
-/*
-*/
 Static long numberwidth, positionwidth, sequences;
-
 Static Char b;
 Static long column;
-/*
-*/
-
 Static Char alignmenttype;
-/*
-
-*/
-
 Static Char cnamelist;
 Static name programname;
 Static Char thedirection;
-
 Static boolean readvalues;
 Static Char columnname[columnmax];
 Static long columnlength, columntoread, columnwid, columndec;
 Static double columnvalue;
-
 Static long theline;
 Static double parameterversion;
-
-
 Static double llx, lly, urx, ury;
 Static Char edgecontrol;
 Static double edgeleft, edgeright, edgelow, edgehigh;
 Static long blanks, displaywidth;
-
 Static double cmfactor;
-
-/*
-
-*/
 Static long fontsize;
-
 Static Char colorlistcontrol;
 Static boolean mapcontrol;
 Static double deltaXcm, deltaYcm, scaleimage;
-/*
-*/
-
 Static Char headercontrol;
-
-
-
-
-
-
 Static line *freeline;
 Static dnastring *freedna;
-
 Static boolean readnumber;
-/*
-*/
 Static long number;
 Static boolean numbered, skipunnum;
 
-
-/*
-*/
-
-
-
-
-
 Static Void crash()
 {
-  /*
-
-*/
+/* Crash the program by trying to open a nonexistant file.  This allows
+tracing by the dbx program.  To use:  insert call into the halt program
+or whereever a traceable stop is desired. */
   _TEXT bogus;
 
   bogus.f = NULL;
@@ -636,25 +571,20 @@ Static Void crash()
   fclose(bogus.f);
 }
 
-
 Static jmp_buf _JL1;
-
-
 
 Static Void halt()
 {
-  /*
-
-
-
-
-
-*/
+/* stop the program.  the procedure performs a goto to the end of the
+   program.  you must have a label:
+      label 1;
+   declared, and also the end of the program must have this label:
+      1: end.
+   examples are in the module libraries.
+   this is the only goto in the delila system.*/
   printf(" program halt.\n");
   longjmp(_JL1, 1);
 }
-
-
 
 Static Void copyaline(fin, fout)
 _TEXT *fin, *fout;
@@ -668,13 +598,9 @@ _TEXT *fin, *fout;
   putc('\n', fout->f);
 }
 
-
-
 Static Void copynoreturn(fin, fout)
 _TEXT *fin, *fout;
 {
-  /*
-*/
   while (!P_eoln(fin->f)) {
     putc(P_peek(fin->f), fout->f);
     getc(fin->f);
@@ -684,13 +610,9 @@ _TEXT *fin, *fout;
   getc(fin->f);
 }
 
-
-
 Static Void copytocomma(fin, fout)
 _TEXT *fin, *fout;
 {
-  /*
-*/
   boolean done = false;
 
   while (!done) {
@@ -707,15 +629,9 @@ _TEXT *fin, *fout;
   }
 }
 
-
-
 Static Void splitbooktitle(book, list)
 _TEXT *book, *list;
 {
-  /*
-
-
-*/
   if (*book->name != '\0') {
     if (book->f != NULL)
       book->f = freopen(book->name, "r", book->f);
@@ -732,23 +648,12 @@ _TEXT *book, *list;
   copyaline(book, list);
 }
 
-
-
-
-
-
-
-
-
-
-
-
 Static Void emptystring(ribbon)
 stringDelila *ribbon;
 {
-  /*
-
-*/
+/* empty the contents of the string but do NOT
+remove the pointer.  This is useful for clearing
+one string within a linked list of them. */
   long index;
 
   for (index = 0; index < maxstring; index++)
@@ -757,7 +662,6 @@ stringDelila *ribbon;
   ribbon->current = 0;
 }
 
-
 Static Void clearstring(ribbon)
 stringDelila *ribbon;
 {
@@ -765,23 +669,20 @@ stringDelila *ribbon;
   ribbon->next = NULL;
 }
 
-
 Static Void initializestring(ribbon)
 stringDelila *ribbon;
 {
-  /*
-
-
-
-*/
+/* start the string with a nil pointer.   This routine
+should be called before doing linked list work.  This allows
+the standard string routines to clear the string without
+killing the pointer.  This is now deprecated, do not use it
+since clearstring still clears the next pointer. */
   printf("remove initializestring routine!\n");
   printf("replace it with clearstring routine!\n");
   halt();
   clearstring(ribbon);
   ribbon->next = NULL;
 }
-
-
 
 Static Void writestring(tofile, s)
 _TEXT *tofile;
@@ -794,20 +695,10 @@ stringDelila *s;
     putc(s->letters[i], tofile->f);
 }
 
-
-
 Static Void fillstring(s, a_)
 stringDelila *s;
 Char *a_;
 {
-  /*
-*/
-
-
-  /*
-
-
-*/
   long length = fillermax;
   long index;
 
@@ -825,23 +716,12 @@ Char *a_;
   s->current = 1;
 }
 
-
-
 Static Void filltrigger(t_, a_)
 trigger *t_;
 Char *a_;
 {
   fillstring(&t_->seek, a_);
 }
-
-
-
-/*
-
-
-
-
-*/
 
 Static Void resettrigger(t_)
 trigger *t_;
@@ -851,28 +731,23 @@ trigger *t_;
   t_->found = false;
 }
 
-
 Static Void testfortrigger(ch, t_)
 Char ch;
 trigger *t_;
 {
-  /*
-
-
-
-
-
-
-
-
-
-*/
+/** look at the character ch.
+   if it is part of the trigger (at the current trigger state),
+       then the trigger state goes higher.
+   if it is not part of the trigger then the trigger state is reset,
+      skip is true and one should skip onward to find the trigger.
+   if the trigger is found, found is true.
+1996 Sep 12: Bug found!  In the case of a trigger "ab", the program
+used to miss it for situations like "aab".  This was because at the
+first a it would step up.  Then it would see the second a and recognize
+that was not part of ab.  It would fail to realize that it could be
+the start of a new one.  The code now accounts for that possibility. */
   t_->state++;
-  /*
-
-
-
-*/
+  
   if (t_->seek.letters[t_->state - 1] == ch) {
     t_->skip = false;
     if (t_->state == t_->seek.length)
@@ -894,22 +769,14 @@ trigger *t_;
   t_->found = false;
 }
 
-
 #define tab             9
-
-
-
-
-
 
 Static boolean isblankDelila(c_)
 Char c_;
 {
   return (c_ == ' ' || c_ == tab);
 }
-
 #undef tab
-
 
 Static Void skipblanks(thefile)
 _TEXT *thefile;
@@ -918,7 +785,6 @@ _TEXT *thefile;
     getc(thefile->f);
 }
 
-
 Static Void skipnonblanks(thefile)
 _TEXT *thefile;
 {
@@ -926,32 +792,12 @@ _TEXT *thefile;
     getc(thefile->f);
 }
 
-
 Static Void skipcolumn(thefile)
 _TEXT *thefile;
 {
   skipblanks(thefile);
   skipnonblanks(thefile);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 Static Void getlineDelila(l)
 line **l;
@@ -965,7 +811,6 @@ line **l;
   (*l)->next = NULL;
 }
 
-
 Static Void getdna(l)
 dnastring **l;
 {
@@ -977,10 +822,6 @@ dnastring **l;
   (*l)->length = 0;
   (*l)->next = NULL;
 }
-
-
-/*
-*/
 
 Static Void clearline(l)
 line **l;
@@ -995,14 +836,11 @@ line **l;
   freeline = lptr;
 }
 
-
 Static Void writeline(afile, l, carriagereturn)
 _TEXT *afile;
 line *l;
 boolean carriagereturn;
 {
-  /*
-*/
   long index, FORLIM;
 
   FORLIM = l->length;
@@ -1011,7 +849,6 @@ boolean carriagereturn;
   if (carriagereturn)
     putc('\n', afile->f);
 }
-
 
 Static Void showfreedna()
 {
@@ -1023,16 +860,9 @@ Static Void showfreedna()
     counter++;
     printf("%ld", counter);
     printf(", length = %d\n", l->length);
-    /*
-
-
-
-
-*/
     l = l->next;
   }
 }
-
 
 Static Void cleardna(l)
 dnastring **l;
@@ -1047,7 +877,6 @@ dnastring **l;
   freedna = lptr;
 }
 
-
 Static Void clearheader(h)
 header *h;
 {
@@ -1055,7 +884,6 @@ header *h;
   while (h->note != NULL)
     clearline(&h->note);
 }
-
 
 Static Void clearpiece(p)
 piece **p;
@@ -1065,26 +893,21 @@ piece **p;
   clearheader(&(*p)->key.hea);
 }
 
-
 Static base chartobase(ch)
 Char ch;
 {
   base Result;
 
   switch (ch) {
-
   case 'a':
     Result = a;
     break;
-
   case 'c':
     Result = c;
     break;
-
   case 'g':
     Result = g;
     break;
-
   case 't':
     Result = t;
     break;
@@ -1099,19 +922,15 @@ base ba;
   Char Result;
 
   switch (ba) {
-
   case a:
     Result = 'a';
     break;
-
   case c:
     Result = 'c';
     break;
-
   case g:
     Result = 'g';
     break;
-
   case t:
     Result = 't';
     break;
@@ -1126,19 +945,15 @@ base ba;
   base Result;
 
   switch (ba) {
-
   case a:
     Result = t;
     break;
-
   case c:
     Result = g;
     break;
-
   case g:
     Result = c;
     break;
-
   case t:
     Result = a;
     break;
@@ -1146,24 +961,16 @@ base ba;
   return Result;
 }
 
-
 Static Char chomplement(b)
 Char b;
 {
   return (basetochar(complement(chartobase(b))));
 }
 
-
 Static long pietoint(p, pie)
 long p;
 piece *pie;
 {
-  /*
-
-
-*/
-  /*
-*/
   long i;
   piekey *WITH;
 
@@ -1189,19 +996,10 @@ piece *pie;
   return i;
 }
 
-
 Static long inttopie(i, pie)
 long i;
 piece *pie;
 {
-  /*
-
-
-
-
-*/
-  /*
-*/
   long p;
   piekey *WITH;
 
@@ -1229,28 +1027,17 @@ piece *pie;
   return p;
 }
 
-
 Static long piecelength(pie)
 piece *pie;
 {
   return (pietoint(pie->key.pieend, pie));
 }
 
-
-
-
 Static Char getto(thefile, theline, ch)
 _TEXT *thefile;
 long *theline;
 long *ch;
 {
-  /*
-
-
-
-
-
-*/
   Char achar = ' ';
   boolean done = false;
 
@@ -1272,19 +1059,9 @@ long *ch;
     return achar;
   else {
     return ' ';
-    /*
-
-
-
-
-
-
-
-*/
+  
   }
 }
-
-
 
 Static Void skipstar(thefile)
 _TEXT *thefile;
@@ -1310,8 +1087,6 @@ _TEXT *thefile;
   getc(thefile->f);
 }
 
-
-
 Static Void brreanum(thefile, theline, reanum)
 _TEXT *thefile;
 long *theline;
@@ -1323,8 +1098,6 @@ double *reanum;
   (*theline)++;
 }
 
-
-
 Static Void brnumber(thefile, theline, num)
 _TEXT *thefile;
 long *theline, *num;
@@ -1334,8 +1107,6 @@ long *theline, *num;
   getc(thefile->f);
   (*theline)++;
 }
-
-
 
 Static Void brname(thefile, theline, nam)
 _TEXT *thefile;
@@ -1365,8 +1136,6 @@ name *nam;
   getc(thefile->f);
   (*theline)++;
 }
-
-
 
 Static Void brline(thefile, theline, l)
 _TEXT *thefile;
@@ -1400,8 +1169,6 @@ line **l;
   (*theline)++;
 }
 
-
-
 Static Void brdirect(thefile, theline, direct)
 _TEXT *thefile;
 long *theline;
@@ -1420,8 +1187,6 @@ direction *direct;
   else
     *direct = minus;
 }
-
-
 
 Static Void brconfig(thefile, theline, config)
 _TEXT *thefile;
@@ -1442,21 +1207,14 @@ configuration *config;
     *config = circular;
 }
 
-
-
 Static Void brnotenumber(thefile, theline, note)
 _TEXT *thefile;
 long *theline;
 line **note;
 {
-  /*
-
-*/
   *note = NULL;
   numbered = false;
   number = 0;
-  /*
-*/
 
   if (P_peek(thefile->f) != 'n')
     return;
@@ -1486,8 +1244,6 @@ line **note;
   getc(thefile->f);
   (*theline)++;
 }
-
-
 
 Static Void brnote(thefile, theline, note)
 _TEXT *thefile;
@@ -1525,8 +1281,6 @@ line **note;
   (*theline)++;
 }
 
-
-
 Static Void brheader(thefile, theline, hea)
 _TEXT *thefile;
 long *theline;
@@ -1535,14 +1289,9 @@ header *hea;
   fscanf(thefile->f, "%*[^\n]");
   getc(thefile->f);
   (*theline)++;
-
-
   brname(thefile, theline, &hea->keynam);
-
-
   getlineDelila(&hea->fulnam);
   brline(thefile, theline, &hea->fulnam);
-
 
   if (readnumber)
     brnotenumber(thefile, theline, &hea->note);
@@ -1550,20 +1299,14 @@ header *hea;
     brnote(thefile, theline, &hea->note);
 }
 
-
-
 Static Void copyheader(fromhea, tohea)
 header fromhea, *tohea;
 {
-  /*
-*/
   memcpy(tohea->keynam.letters, fromhea.keynam.letters, sizeof(alpha));
   tohea->keynam.length = fromhea.keynam.length;
   tohea->note = fromhea.note;
   tohea->fulnam = fromhea.fulnam;
 }
-
-
 
 Static Void brpiekey(thefile, theline, pie)
 _TEXT *thefile;
@@ -1582,18 +1325,11 @@ piekey *pie;
   brnumber(thefile, theline, &pie->pieend);
 }
 
-
-
 Static Void brdna(thefile, theline, dna)
 _TEXT *thefile;
 long *theline;
 dnastring **dna;
 {
-
-  /*
-
-
-*/
   Char ch;
   dnastring *workdna;
   long SET[5];
@@ -1639,17 +1375,11 @@ dnastring **dna;
   (*theline)++;
 }
 
-
-
 Static Void brpiece(thefile, theline, pie)
 _TEXT *thefile;
 long *theline;
 piece **pie;
 {
-  /*
-
-
-*/
   brpiekey(thefile, theline, &(*pie)->key);
   if (numbered || !skipunnum)
     brdna(thefile, theline, &(*pie)->dna);
@@ -1658,16 +1388,10 @@ piece **pie;
   (*theline)++;
 }
 
-
-
 Static Void brinit(book, theline)
 _TEXT *book;
 long *theline;
 {
-  /*
-*/
-  /*
-*/
   if (*book->name != '\0') {
     if (book->f != NULL)
       book->f = freopen(book->name, "r", book->f);
@@ -1700,21 +1424,14 @@ long *theline;
     halt();
   }
 
-
   freeline = NULL;
   freedna = NULL;
-
   readnumber = true;
   number = 0;
   numbered = false;
   skipunnum = false;
   *theline = 1;
 }
-
-
-
-
-
 
 Static Void getpiece(thefile, theline, pie)
 _TEXT *thefile;
@@ -1727,23 +1444,10 @@ piece **pie;
   ch = getto(thefile, theline, P_addset(P_expset(SET, 0L), 'p'));
   if (ch != ' ') {
     brpiece(thefile, theline, pie);
-    /*
-
-
-*/
-    /*
-
-
-
-*/
+    
   } else
     clearpiece(pie);
 }
-
-
-
-
-
 
 Static Void findblank(afile)
 _TEXT *afile;
@@ -1756,8 +1460,6 @@ _TEXT *afile;
       ch = ' ';
   } while (ch != ' ');
 }
-
-
 
 Static Void findnonblank(afile, ch)
 _TEXT *afile;
@@ -1775,15 +1477,8 @@ Char *ch;
   }
 }
 
-
 #define maximumrange    10000
-/*
-
-
-*/
-
 #define semicolon       ';'
-
 
 /* Local variables for align: */
 struct LOC_align {
@@ -1791,28 +1486,6 @@ struct LOC_align {
   Char ch;
   trigger endcomment, endcurly;
 } ;
-
-/*
-*/
-
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
 
 Local Void skipcomment(f, LINK)
 _TEXT *f;
@@ -1838,9 +1511,7 @@ struct LOC_align *LINK;
     testfortrigger(LINK->ch, &LINK->endcomment);
     if (LINK->endcomment.found) {
       comment = false;
-      /*
-
-*/
+ 
     }
   }
 }
@@ -1869,9 +1540,7 @@ struct LOC_align *LINK;
     testfortrigger(LINK->ch, &LINK->endcurly);
     if (LINK->endcurly.found) {
       comment = false;
-      /*
-
-*/
+     
     }
   }
 }
@@ -1881,7 +1550,6 @@ trigger quote;
 struct LOC_align *LINK;
 {
   Char kind;
-
   kind = quote.seek.letters[0];
 
   do {
@@ -1893,34 +1561,20 @@ struct LOC_align *LINK;
   }
 }
 
-
-
 Static Void align(inst_, book, theline, pie, length, alignedbase)
 _TEXT *inst_, *book;
 long *theline;
 piece **pie;
 long *length, *alignedbase;
 {
-  /*
-
-
-
-
-*/
   struct LOC_align V;
   long p, p1;
   boolean done = false;
   long thebase;
   boolean indefault = false;
-  /*
-*/
-
   trigger gettrigger, defaulttrigger, nametrigger, piecetrigger, settrigger;
-
   trigger begincomment, begincurly;
-
   trigger quote1trigger, quote2trigger;
-
   boolean dotteddone;
   name *WITH;
 
@@ -1953,12 +1607,10 @@ long *length, *alignedbase;
   resettrigger(&nametrigger);
   resettrigger(&piecetrigger);
   resettrigger(&settrigger);
-
   resettrigger(&begincomment);
   resettrigger(&begincurly);
   resettrigger(&quote1trigger);
   resettrigger(&quote2trigger);
-
 
   if (BUFEOF(book->f))
     return;
@@ -1966,7 +1618,6 @@ long *length, *alignedbase;
   if (BUFEOF(book->f))
     return;
   *length = pietoint((*pie)->key.pieend, *pie);
-
 
   while (!done) {
     if (BUFEOF(V.inst->f)) {
@@ -2040,12 +1691,6 @@ long *length, *alignedbase;
       continue;
     skipblanks(V.inst);
     WITH = &(*pie)->key.hea.keynam;
-    /*
-
-*/
-    /*
-
-*/
     p = 1;
     dotteddone = false;
     while (!dotteddone) {
@@ -2057,17 +1702,11 @@ long *length, *alignedbase;
 
       if (V.ch == '\n')
 	V.ch = ' ';
-      /*
 
-*/
       if (V.ch == '.')
 	dotteddone = true;
       if (WITH->letters[p-1] == '.')
 	dotteddone = true;
-      /*
-
-
-*/
 
       if (WITH->letters[p-1] != V.ch && !dotteddone && V.ch != ';') {
 	printf("The piece name in the book: \n");
@@ -2095,8 +1734,7 @@ long *length, *alignedbase;
 	    putchar(V.ch);
 	}
 	putchar('\n');
-	/*
-*/
+
 	for (p1 = 1; p1 < p; p1++)
 	  putchar(' ');
 	printf("^\n");
@@ -2109,7 +1747,6 @@ long *length, *alignedbase;
       }
     }
   }
-
 
   if (*alignedbase > -maximumrange && *alignedbase <= *length + maximumrange)
     return;
@@ -2129,14 +1766,7 @@ long *length, *alignedbase;
 
 #undef maximumrange
 #undef semicolon
-
-
 #define maximumrange    10000
-
-
-
-
-
 
 Static Void maxminalignment(inst, book, theline, fromparam, toparam,
 			    alignmenttype)
@@ -2144,15 +1774,6 @@ _TEXT *inst, *book;
 long *theline, *fromparam, *toparam;
 Char alignmenttype;
 {
-  /*
-
-
-
-
-
-*/
-  /*
-*/
   long distance;
   piece *pie;
   long length, alignedbase;
@@ -2241,14 +1862,8 @@ Char alignmenttype;
     printf(" this exceeds the maximum range allowed (%ld)\n",
 	   (long)maximumrange);
     printf(" see notes in the procedure. \n");
-    /*
-
-
-
-*/
     halt();
   }
-
 
   if (*book->name != '\0') {
     if (book->f != NULL)
@@ -2275,39 +1890,22 @@ Char alignmenttype;
 
 #undef maximumrange
 
-
-
 Static boolean withinalignment(alignedposition, alignedbase, length)
 long alignedposition, alignedbase, length;
 {
-  /*
-*/
-  long p;
 
+  long p;
   p = alignedposition + alignedbase;
   return (p > 0 && p <= length);
 }
-
 
 
 Static base getbase(position, pie)
 long position;
 piece *pie;
 {
-  /*
-
-
-
-
-
-*/
   dnastring *workdna;
   long p, spot, thelength;
-
-  /*
-
-*/
-
   thelength = piecelength(pie);
   while (position < 1)
     position += thelength;
@@ -2317,9 +1915,6 @@ piece *pie;
   workdna = pie->dna;
   p = workdna->length;
   while (position > p) {
-    /*
-
-*/
     workdna = workdna->next;
     if (workdna == NULL) {
       printf("error in function getbase!\n");
@@ -2327,15 +1922,10 @@ piece *pie;
     }
     p += workdna->length;
   }
-  /*
 
-*/
   if (true) {
     spot = workdna->length - p + position;
-    /*
 
-
-*/
     if (spot <= 0) {
       printf("error in getbase, spot (= %ld) must be positive\n", spot);
       halt();
@@ -2345,15 +1935,12 @@ piece *pie;
 	     spot, workdna->length);
       halt();
     }
-    /*
 
-*/
     return ((base)P_getbits_UB(workdna->part, spot - 1, 1, 3));
   }
   printf("error in getbase: request off end of piece\n");
   halt();
 }
-
 
 /* Local variables for numberdigit: */
 struct LOC_numberdigit {
@@ -2373,43 +1960,33 @@ struct LOC_numberdigit *LINK;
   else
     d = z / LINK->place;
   switch (d) {
-
   case 0:
     LINK->acharacter = '0';
     break;
-
   case 1:
     LINK->acharacter = '1';
     break;
-
   case 2:
     LINK->acharacter = '2';
     break;
-
   case 3:
     LINK->acharacter = '3';
     break;
-
   case 4:
     LINK->acharacter = '4';
     break;
-
   case 5:
     LINK->acharacter = '5';
     break;
-
   case 6:
     LINK->acharacter = '6';
     break;
-
   case 7:
     LINK->acharacter = '7';
     break;
-
   case 8:
     LINK->acharacter = '8';
     break;
-
   case 9:
     LINK->acharacter = '9';
     break;
@@ -2425,21 +2002,9 @@ struct LOC_numberdigit *LINK;
     LINK->acharacter = '+';
 }
 
-
-
-
-
 Static Char numberdigit(number_, logplace)
 long number_, logplace;
 {
-  /*
-
-
-
-
-
-
-*/
   struct LOC_numberdigit V;
   long count;
 
@@ -2467,11 +2032,8 @@ long number_, logplace;
   return V.acharacter;
 }
 
-
 #define ln10            2.30259
 #define epsilon         0.00001
-
-
 
 Static long numbersize(n)
 long n;
@@ -2483,10 +2045,6 @@ long n;
   else {
     size = (long)(log((double)labs(n)) / ln10 + epsilon) + 1;
 
-    /*
-
-
-*/
     if (n < 0)
       size++;
     return size;
@@ -2496,15 +2054,10 @@ long n;
 #undef ln10
 #undef epsilon
 
-
-
 Static long firstlastmax(firstnumber, lastnumber)
 long firstnumber, lastnumber;
 {
-  /*
-*/
   long firstlines, lastlines;
-
   firstlines = numbersize(firstnumber);
   if (firstnumber > 0)
     firstlines++;
@@ -2522,27 +2075,9 @@ Static Void numberbar(afile, spaces, firstnumber, lastnumber, linesused)
 _TEXT *afile;
 long spaces, firstnumber, lastnumber, *linesused;
 {
-  /*
-*/
   long logplace, number, spacecount;
-
-  /*
-
-
-
-
-
-
-*/
   *linesused = firstlastmax(firstnumber, lastnumber);
-  /*
-
-
-
-
-
-
-*/
+ 
   for (logplace = *linesused - 1; logplace >= 0; logplace--) {
     for (spacecount = 1; spacecount <= spaces; spacecount++)
       putc(' ', afile->f);
@@ -2552,23 +2087,12 @@ long spaces, firstnumber, lastnumber, *linesused;
   }
 }
 
-
-
-
-
 Static Void getpositions(inst, book, positionwidth, numberwidth, count,
 			 alignmenttype)
 _TEXT *inst, *book;
 long *positionwidth, *numberwidth, *count;
 Char alignmenttype;
 {
-  /*
-
-
-
-
-
-*/
   long abmin = 0, abmax = 0;
   long coordinate;
   long maxnumber = 0;
@@ -2586,13 +2110,6 @@ Char alignmenttype;
     rewind(inst->f);
   if (inst->f == NULL) {
 
-
-    /*
-
-
-
-*/
-
     _EscIO2(FileNotFound, inst->name);
   }
   RESETBUF(inst->f, Char);
@@ -2601,11 +2118,9 @@ Char alignmenttype;
 /* p2c: alist.p: Note: Eliminated unused assignment statement [338] */
   while (!BUFEOF(book->f)) {
     switch (alignmenttype) {
-
     case 'i':
       align(inst, book, &theline, &pie, &length, &alignedbase);
       break;
-
     case 'b':
     case 'f':
       getpiece(book, &theline, &pie);
@@ -2621,11 +2136,9 @@ Char alignmenttype;
 /* p2c: alist.p: Note: Eliminated unused assignment statement [338] */
 /* p2c: alist.p: Note: Eliminated unused assignment statement [338] */
     switch (alignmenttype) {
-
     case 'f':
       coordinate = inttopie(1L, pie);
       break;
-
     case 'b':
     case 'i':
       coordinate = inttopie(alignedbase, pie);
@@ -2638,7 +2151,6 @@ Char alignmenttype;
 
     clearpiece(&pie);
   }
-
 
   if (*book->name != '\0') {
     if (book->f != NULL)
@@ -2662,16 +2174,8 @@ Char alignmenttype;
   RESETBUF(inst->f, Char);
   Free(pie);
 
-  /*
-
-
-*/
   *numberwidth = numbersize(maxnumber);
 
-  /*
-
-
-*/
   if (abmin == 0 && abmax == 0) {
     *positionwidth = 1;
     return;
@@ -2682,13 +2186,11 @@ Char alignmenttype;
     *positionwidth = numbersize(abmin);
 }
 
-
 Static Void noheader(a_)
 _TEXT *a_;
 {
   fprintf(a_->f, " %% NOHEADER FOR PACKAGING INTO ANOTHER FIGURE\n");
 }
-
 
 Static Void removeit(a_)
 _TEXT *a_;
@@ -2696,17 +2198,10 @@ _TEXT *a_;
   fprintf(a_->f, " %% REMOVE FOR PACKAGING INTO ANOTHER FIGURE\n");
 }
 
-
 Static Void pnumberbar(afile, spaces, firstnumber, lastnumber, linesused)
 _TEXT *afile;
 long spaces, firstnumber, lastnumber, *linesused;
 {
-  /*
-
-
-
-
-*/
   _TEXT internal;
 
   internal.f = NULL;
@@ -2750,8 +2245,6 @@ long spaces, firstnumber, lastnumber, *linesused;
     fclose(internal.f);
 }
 
-
-
 Static Void clearname(n)
 name *n;
 {
@@ -2761,7 +2254,6 @@ name *n;
   for (i = 0; i < namelength; i++)
     n->letters[i] = ' ';
 }
-
 
 Static Void writename(f, n)
 _TEXT *f;
@@ -2773,7 +2265,6 @@ name n;
     putc(n.letters[i], f->f);
 }
 
-
 Static Void copyname(a_, b)
 name a_, *b;
 {
@@ -2783,7 +2274,6 @@ name a_, *b;
     b->letters[i] = a_.letters[i];
   b->length = a_.length;
 }
-
 
 Static boolean equalname(a_, b)
 name a_, b;
@@ -2801,8 +2291,6 @@ name a_, b;
   return same;
 }
 
-
-
 Static Void brorgkey(thefile, theline, org)
 _TEXT *thefile;
 long *theline;
@@ -2813,8 +2301,6 @@ orgkey *org;
   brline(thefile, theline, &org->mapunit);
 }
 
-
-
 Static Void brchrkey(thefile, theline, chr)
 _TEXT *thefile;
 long *theline;
@@ -2824,8 +2310,6 @@ chrkey *chr;
   brreanum(thefile, theline, &chr->mapbeg);
   brreanum(thefile, theline, &chr->mapend);
 }
-
-
 
 Static Void getocp(thefile, theline, org, orgchange, orgopen, chr, chrchange,
 		   chropen, pie, piechange, pieopen)
@@ -2838,36 +2322,6 @@ boolean *chrchange, *chropen;
 piece **pie;
 boolean *piechange, *pieopen;
 {
-  /*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
   Char ch = 'a';
   chrkey newchr;
   orgkey neworg;
@@ -2888,8 +2342,7 @@ boolean *piechange, *pieopen;
       if (*orgopen) {
 	fscanf(thefile->f, "%*[^\n]");
 	getc(thefile->f);
-	/*
-*/
+
 	*orgopen = false;
       } else {
 	brorgkey(thefile, theline, &neworg);
@@ -2902,16 +2355,7 @@ boolean *piechange, *pieopen;
 	  org->mapunit = neworg.mapunit;
 	  clearline(&neworg.mapunit);
 
-	}
-	/*
-
-
-
-
-
-*/
-
-	else
+	}	else
 	  *orgchange = false;
 	*orgopen = true;
       }
@@ -2921,21 +2365,13 @@ boolean *piechange, *pieopen;
       if (*chropen) {
 	fscanf(thefile->f, "%*[^\n]");
 	getc(thefile->f);
-	/*
-*/
 	*chropen = false;
       } else {
 	brchrkey(thefile, theline, &newchr);
 	if (strncmp(newchr.hea.keynam.letters, chr->hea.keynam.letters,
 		    sizeof(alpha)) &&
 	    newchr.hea.keynam.length != chr->hea.keynam.length) {
-	  /*
 
-
-
-
-
-*/
 	  *chrchange = true;
 	  copyheader(newchr.hea, &chr->hea);
 
@@ -2946,7 +2382,6 @@ boolean *piechange, *pieopen;
 	*chropen = true;
       }
       break;
-
     case 'p':
       if (*pieopen) {
 	*pieopen = false;
@@ -2965,12 +2400,7 @@ boolean *piechange, *pieopen;
 	    *piechange = false;
 	}
 	*pieopen = true;
-	/*
 
-
-
-
-*/
 	if (*pie != NULL) {
 	  clearpiece(pie);
 	  Free(*pie);
@@ -2982,38 +2412,13 @@ boolean *piechange, *pieopen;
   }
 }
 
-
 #define debugging       false
-
 #define boundary        2
-
-
-
 
 Static boolean emptyfile(afile)
 _TEXT *afile;
 {
-  /*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
   boolean Result;
-  /*
-*/
   long lines = 0, chars = 0;
   Char ch;
 
@@ -3071,8 +2476,6 @@ _TEXT *afile;
 #undef debugging
 #undef boundary
 
-
-
 Static Void getname(namebook, theline, nametype, typefound, aname, org,
 		    orgchange, orgopen, chr, chrchange, chropen, pie,
 		    piechange, pieopen)
@@ -3087,26 +2490,10 @@ boolean *chrchange, *chropen;
 piece **pie;
 boolean *piechange, *pieopen;
 {
-  /*
-
-
-*/
-  /*
-
-*/
-  /*
-
-*/
-
+ 
   if (BUFEOF(namebook->f)) {
     *typefound = ' ';
-    /*
-
-
-
-
-
-*/
+  
     return;
   }
   *typefound = '.';
@@ -3127,8 +2514,6 @@ boolean *piechange, *pieopen;
   } while (*typefound != nametype && *typefound != 'o' && *typefound != ' ');
 }
 
-
-
 Static Void maxname(namebook, theline, nametype, namewidth, tofile,
 		    linenumber, org, orgchange, orgopen, chr, chrchange,
 		    chropen, pie, piechange, pieopen)
@@ -3145,9 +2530,6 @@ boolean *chrchange, *chropen;
 piece **pie;
 boolean *piechange, *pieopen;
 {
-  /*
-
-*/
   name aname;
   Char typefound = '.';
 
@@ -3173,15 +2555,12 @@ boolean *piechange, *pieopen;
   *pieopen = false;
   if (headercontrol == 'h') {
     switch (nametype) {
-
     case 'g':
       fprintf(tofile->f, "gene");
       break;
-
     case 't':
       fprintf(tofile->f, "transcript");
       break;
-
     case 'p':
       fprintf(tofile->f, "piece");
       break;
@@ -3204,14 +2583,10 @@ boolean *piechange, *pieopen;
   }
 }
 
-
-
 Static Void maxfullnamewidth(book, theline, fullnamewidth)
 _TEXT *book;
 long theline, *fullnamewidth;
 {
-  /*
-*/
   line *fullname;
   Char typefound;
   long SET[5];
@@ -3228,7 +2603,6 @@ long theline, *fullnamewidth;
   RESETBUF(book->f, Char);
   *fullnamewidth = 0;
 
-
   while (!BUFEOF(book->f)) {
     typefound = getto(book, &theline, P_addset(P_expset(SET, 0L), 'p'));
     if (typefound != 'p')
@@ -3239,20 +2613,11 @@ long theline, *fullnamewidth;
     getc(book->f);
     getlineDelila(&fullname);
     brline(book, &theline, &fullname);
-    /*
-
-
-
-
-*/
 
     if (fullname->length > *fullnamewidth)
       *fullnamewidth = fullname->length;
-    /*
 
-*/
     clearline(&fullname);
-
 
     typefound = getto(book, &theline, P_addset(P_expset(SET, 0L), 'p'));
     if (typefound != 'p') {
@@ -3264,18 +2629,7 @@ long theline, *fullnamewidth;
     theline++;
   }
 
-  /*
-
-*/
-
-
-  /*
-
-*/
-
 }
-
-
 
 Static Void printname(namebook, theline, nametype, namewidth, tofile, ctofile,
 		      org, orgchange, orgopen, chr, chrchange, chropen, pie,
@@ -3293,10 +2647,6 @@ piece **pie;
 boolean *piechange, *pieopen;
 long *linenumber, *clinenumber;
 {
-  /*
-
-
-*/
   name aname;
   Char typefound;
   long index;
@@ -3329,8 +2679,6 @@ long *linenumber, *clinenumber;
   } while (typefound != nametype && typefound != ' ');
 }
 
-
-
 Static Void maxnamelist(namelist, namelistwidth)
 _TEXT *namelist;
 long *namelistwidth;
@@ -3338,9 +2686,6 @@ long *namelistwidth;
   Char c_;
   long currentmax = 1, count = 0;
 
-  /*
-
-*/
   if (*namelist->name != '\0') {
     if (namelist->f != NULL)
       namelist->f = freopen(namelist->name, "r", namelist->f);
@@ -3353,10 +2698,7 @@ long *namelistwidth;
   RESETBUF(namelist->f, Char);
   if (emptyfile(namelist)) {
     *namelistwidth = 0;
-    /*
 
-
-*/
     return;
   }
   while (!BUFEOF(namelist->f)) {
@@ -3376,19 +2718,10 @@ long *namelistwidth;
   }
 }
 
-
-
 Static Void protectcharacter(c_, protectioncharacter, needed)
 Char c_, *protectioncharacter;
 boolean *needed;
 {
-  /*
-
-
-
-
-
-*/
   if (c_ == '\\' || c_ == '%' || c_ == ')' || c_ == '(') {
     *protectioncharacter = '\\';
     *needed = true;
@@ -3398,18 +2731,10 @@ boolean *needed;
   }
 }
 
-
-
 Static Void protectpostscript(afile, c_)
 _TEXT *afile;
 Char c_;
 {
-  /*
-
-
-
-
-*/
   boolean needed;
   Char protectionchar;
 
@@ -3418,7 +2743,6 @@ Char c_;
     putc(protectionchar, afile->f);
 }
 
-
 Static Void figureblanks(blanks)
 long *blanks;
 {
@@ -3426,12 +2750,6 @@ long *blanks;
 
   if (!emptyfile(&namebook))
     *blanks += namewidth + 1;
-
-  /*
-
-
-*/
-
 
   if (displaylevel == 'p')
     *blanks += namewidth + positionwidth + 3;
@@ -3443,12 +2761,9 @@ long *blanks;
 
   if (usefullname == 'l')
     *blanks += fullnamewidth + 1;
-
 }
 
-
 #define debugging       false
-
 
 Static Void startpostscript(a_, colors, programname, deltaXcm, deltaYcm,
   scaleimage, defaultllx_, defaultlly_, defaulturx_, defaultury_, fromdo,
@@ -3461,34 +2776,15 @@ long fromdo, todo, sequences;
 double cmfactor;
 long headerclinenumber;
 {
-  /*
-*/
-  /*
-
-
-
-
-
-
-
-*/
   long i;
   double red, green, blue;
   Char symbol;
 
   double currentdisplay, requireddisplay, pointcorrection;
   long lines;
-  /*
-*/
-
   long numbarlines, actuallines;
-
-
   cpagelength = (long)((defaultury_ - defaultlly_) / fontsize);
-
-
   actuallines = sequences;
-
 
   if (headercontrol != '0') {
     numbarlines = firstlastmax(fromdo, todo);
@@ -3496,29 +2792,13 @@ long headerclinenumber;
     actuallines += numbarlines + 1;
   }
 
-
   if (headercontrol == 'h')
     actuallines += headerclinenumber;
-
-  /*
-
-
-
-
-*/
-  /*
-
-
-
-
-
-*/
 
   if (actuallines < cpagelength)
     lines = actuallines;
   else
     lines = cpagelength;
-
 
   if (debugging) {
     printf("-------------------\n");
@@ -3542,35 +2822,13 @@ long headerclinenumber;
     printf("-------------------\n\n");
   }
 
-
   if (edgecontrol != 'p') {
     figureblanks(&blanks);
-    /*
-
-
-
-
-
-
-
-*/
-    /*
-
-
-*/
     displaywidth = blanks + todo - fromdo + 4;
     if (columnlength > columnwid)
       displaywidth += columnlength;
     else
       displaywidth += columnwid;
-    /*
-
-
-*/
-    /*
-
-
-*/
 
     if (colorlistcontrol != 'R') {
       llx = defaultllx_;
@@ -3579,63 +2837,29 @@ long headerclinenumber;
       ury = defaultury_;
 
       currentdisplay = urx - llx;
-
-
       requireddisplay = fontsize * defcharacterratio * displaywidth;
-
       pointcorrection = requireddisplay - currentdisplay;
-
-      /*
-
-
-
-
-*/
-
       urx += pointcorrection;
-
       llx -= edgeleft * cmfactor;
       lly -= edgelow * cmfactor;
       urx += edgeright * cmfactor;
       ury += edgehigh * cmfactor;
-
-
       lly += (cpagelength - lines) * fontsize;
-      /*
-
-
-*/
-    }
-
-    else {
+    }    else {
       llx = defaultlly_;
       lly = defaultllx_;
       urx = defaultury_;
       ury = defaulturx_;
-
       currentdisplay = ury - lly;
-
-
       requireddisplay = fontsize * defcharacterratio * displaywidth;
       pointcorrection = requireddisplay - currentdisplay;
-      /*
-
-
-
-*/
-
       ury += pointcorrection;
-
       llx -= edgehigh * cmfactor;
       lly -= edgeleft * cmfactor;
       urx += edgelow * cmfactor;
       ury += edgeright * cmfactor;
-
-
       urx += (lines - cpagelength) * fontsize;
     }
-
-
 
     llx += deltaXcm * cmfactor;
     lly += deltaYcm * cmfactor;
@@ -3643,7 +2867,6 @@ long headerclinenumber;
     ury += deltaYcm * cmfactor;
 
   }
-
 
 
   fprintf(a_->f, "%%!PS-Adobe-2.0 EPSF-2.0\n");
@@ -3659,7 +2882,6 @@ long headerclinenumber;
   fprintf(a_->f, "%%%%DocumentFonts:\n");
   fprintf(a_->f, "%%%%EndComments\n");
   fprintf(a_->f, "%%%%EndProlog\n");
-
 
   fprintf(a_->f,
 	  "/cmfactor 72 2.54 div def %% defines points -> centimeters\n");
@@ -3691,12 +2913,6 @@ long headerclinenumber;
   fprintf(a_->f, "/lineseparation fontsize def\n");
   fprintf(a_->f, "/thefont /Courier-Bold def\n\n");
   fprintf(a_->f, "%% set the font\n");
-  /*
-
-
-
-*/
-
 
   fprintf(a_->f, "/f {findfont fontsize scalefont setfont} def\n");
   fprintf(a_->f, "thefont f\n\n");
@@ -3722,7 +2938,6 @@ long headerclinenumber;
   fprintf(a_->f, "  /topofpage %*.*f cm def\n", pwid, pdec, topofpage);
   fprintf(a_->f, "  /startpage{\n");
 
-
   fprintf(a_->f, "  deltaXcm fontsize add deltaYcm translate\n");
   fprintf(a_->f, "  scaleimage dup scale\n");
   fprintf(a_->f, "  0 topofpage moveto\n");
@@ -3734,7 +2949,6 @@ long headerclinenumber;
   fprintf(a_->f, "{ %% page rotation to landscape mode\n");
   fprintf(a_->f, "  /topofpage %*.*f cm def\n", pwid, pdec, 0.0);
   fprintf(a_->f, "  /startpage{\n");
-
 
   fprintf(a_->f, "  deltaXcm fontsize 1.5 mul add\n");
   fprintf(a_->f, "  deltaYcm fontsize defcharacterratio 2 mul mul add\n");
@@ -3753,8 +2967,6 @@ long headerclinenumber;
     else
       colors->f = fopen(colors->name, "r");
   } else {
-
-
     rewind(colors->f);
   }
   if (colors->f == NULL)
@@ -3807,7 +3019,6 @@ long headerclinenumber;
 
 #undef debugging
 
-
 Static Void readcolumnname(f)
 _TEXT *f;
 {
@@ -3843,8 +3054,6 @@ _TEXT *f;
     }
   }
 
-  /*
-*/
   if (!readvalues)
     return;
 
@@ -3862,17 +3071,14 @@ _TEXT *f;
   }
 }
 
-
 Static Void writecolumnname(f)
 _TEXT *f;
 {
   long i, FORLIM;
-
   FORLIM = columnlength;
   for (i = 0; i < FORLIM; i++)
     putc(columnname[i], f->f);
 }
-
 
 Static Void getcolumnvalue(f, column, cvalue)
 _TEXT *f;
@@ -3905,14 +3111,11 @@ double *cvalue;
   halt();
 }
 
-
 Static Void showalignment()
 {
   long lines, blanks, index, FORLIM;
-
   figureblanks(&blanks);
   numberbar(&list, blanks, fromdo, todo, &lines);
-
 
   for (index = 1; index <= blanks; index++)
     putc(' ', list.f);
@@ -3926,29 +3129,14 @@ Static Void showalignment()
   }
 
   putc('\n', list.f);
-
   linenumber += lines + 1;
 }
 
-
 Static Void cshowalignment()
 {
-  /*
-*/
   long lines, blanks, index, FORLIM;
-
   figureblanks(&blanks);
-
-  /*
-
-
-
-
-*/
-
   pnumberbar(&clist, blanks, fromdo, todo, &lines);
-
-
   putc('(', clist.f);
   for (index = 1; index <= blanks; index++)
     putc(' ', clist.f);
@@ -3970,7 +3158,6 @@ Static Void cshowalignment()
   clinenumber += lines + 1;
 }
 
-
 Static Void showpage(a_)
 _TEXT *a_;
 {
@@ -3978,7 +3165,6 @@ _TEXT *a_;
   fprintf(a_->f, "showpage");
   removeit(a_);
 }
-
 
 /* Local variables for checknumber: */
 struct LOC_checknumber {
@@ -3998,14 +3184,10 @@ struct LOC_checknumber *LINK;
   LINK->ok = false;
 }
 
-
 Static boolean checknumber(afile_)
 _TEXT *afile_;
 {
-  /*
-*/
   struct LOC_checknumber V;
-
   V.afile = afile_;
   V.ok = true;
   if (BUFEOF(V.afile->f)) {
@@ -4034,8 +3216,6 @@ _TEXT *afile_;
   return V.ok;
 }
 
-
-
 Static Void copyfile(fin, fout)
 _TEXT *fin, *fout;
 {
@@ -4043,16 +3223,9 @@ _TEXT *fin, *fout;
     copyaline(fin, fout);
 }
 
-
-
 Static Void almostcopyfile(fin, fout)
 _TEXT *fin, *fout;
 {
-  /*
-
-
-
-*/
   while (!BUFEOF(fin->f)) {
     if (P_peek(fin->f) != 'a')
       copyaline(fin, fout);
@@ -4063,12 +3236,8 @@ _TEXT *fin, *fout;
   }
 }
 
-
-
 Static Void upgradeto596()
 {
-  /*
-*/
   _TEXT internal;
 
   internal.f = NULL;
@@ -4132,8 +3301,6 @@ Static Void upgradeto596()
   RESETBUF(internal.f, Char);
   copyfile(&internal, &alistp);
 
-
-
   fprintf(alistp.f,
     "n 0 0 0 0   edgecontrol (p=page), edgeleft, edgeright, edgelow, edgehigh in cm\n");
 
@@ -4151,19 +3318,14 @@ Static Void upgradeto596()
     fclose(internal.f);
 }
 
-
-
 Static Void upgradeto598()
 {
-  /*
-*/
   _TEXT internal;
 
   internal.f = NULL;
   *internal.name = '\0';
   parameterversion = 5.98;
   printf("upgrading to version %4.2f ...\n", parameterversion);
-
 
   if (*alistp.name != '\0') {
     if (alistp.f != NULL)
@@ -4247,15 +3409,12 @@ Static Void upgradeto598()
 
 Static Void upgradeto620()
 {
-  /*
-*/
   _TEXT internal;
 
   internal.f = NULL;
   *internal.name = '\0';
   parameterversion = 6.20;
   printf("upgrading to version %4.2f ...\n", parameterversion);
-
 
   if (*alistp.name != '\0') {
     if (alistp.f != NULL)
@@ -4400,7 +3559,6 @@ _TEXT *alistp;
   printf("https://alum.mit.edu/www/toms/delila/alist.html\n");
 }
 
-
 /* Local variables for readparameters: */
 struct LOC_readparameters {
   boolean checkout;
@@ -4414,14 +3572,9 @@ struct LOC_readparameters *LINK;
     halt();
 }
 
-
-
 Static Void readparameters()
 {
   struct LOC_readparameters V;
-
-  /*
-*/
   fromdo = fromparam;
   todo = toparam;
   userrange = false;
@@ -4441,7 +3594,6 @@ Static Void readparameters()
   colorlistcontrol = ' ';
   mapcontrol = false;
   headercontrol = 'h';
-
 
   if (*alistp.name != '\0') {
     if (alistp.f != NULL)
@@ -4552,10 +3704,124 @@ Static Void readparameters()
     headercontrol = ' ';
 }
 
+/* Print help for user */
+void usage() {
+  printf("\n");
+  printf(" alist: creates an aligned listing of a sets of sequences.\n");
+  printf("parameters: \n");
+  printf("\n  alist -b book -i instructions -l namelist -n namebook -p alistp -v avalues\n\n");
+  printf("  -b the book generated by delila using inst\n");
+  printf("  -i delila instructions of the form 'get from 56 -5 to 56 +10;' \n");
+  printf("  -l if this file is not empty, then it should contain a simple list\n");
+  printf("     of names to give to each sequence listed.\n");
+  printf("  -n names of genes or transcripts from this book appear in the list. \n");
+  printf("  -p alistp parameters to control the program.\n");
+  printf("  -v Aligned list values.  File contains values to list for each sequence.\n\n");
+  printf("Outputs:\n");
+  printf("  list: the aligned listing\n");
+  printf("  clist:the aligned listing, in PostScript color.  Paging is ALWAYS done\n");
+  printf("        to this file, using the page parameter. \n");
+  printf("  output: messages to user\n");
+  printf("\n");
+  printf("  version %4.2f\n", version);
+  exit(EXIT_SUCCESS);
+}
+
 int main(int argc, Char **argv)
 {
   line *WITH;
   long FORLIM;
+  extern char *optarg;
+	extern int optind;
+	int c, err = 0; 
+  /* flags marking arguments passed */
+  int bflag=0;       /* book output file name  */
+	int iflag=0;       /* instruction file flag */
+  int lflag=0;       /* namelist file */
+  int nflag=0;       /* namebook */
+  int pflag=0;       /* alistp file */
+  int vflag=0;       /* avalues */
+	char *bookName     = "book.txt";
+  char *instructions = "instructions.txt";
+  char *namelistFile = "nameList.txt";
+  char *nameBookFile = "nameBook.txt";
+  char *parameters   = "alistp.txt";
+  char *valuesFile   = 'avalues.txt';
+
+/* Process command line arguments  */
+while ((c = getopt(argc, argv, "b:i:l:n:p:v:")) != -1)
+		switch (c) {
+		case 'b':
+      bflag = 1;
+			bookName = optarg;
+			break;
+		case 'i':
+      iflag = 1;
+			instructions = optarg;
+			break;
+		case 'l':
+      lflag = 1;
+			namelistFile = optarg;
+			break;
+    case 'n':
+      nflag = 1;
+      nameBookFile = optarg;
+      break;
+    case 'p':
+      pflag = 1;
+      parameters  = optarg;
+    case 'v':
+      vflag = 1;
+      valuesFile = optarg;
+		case '?':
+			err = 1;
+			break;
+		}
+
+  /* Is the book file name present */  
+	if (bflag == 0) {	/* -b bookname was mandatory */ 
+		fprintf(stderr, "%s: missing -b bookname\n", argv[0]);
+		usage();
+		exit(1);
+	} 
+
+  /* Instruction file ? */
+  if (iflag == 0) { /* -i was mandatory */        
+		fprintf(stderr, "%s: missing -i instruction file\n", argv[0]);
+		usage();
+		exit(1);
+  } 
+
+  /* namelist file  */  
+  if (lflag == 0) { 
+    fprintf(stderr, "%s: missing -l namelist file \n", argv[0]);
+		usage();
+		exit(1);
+    } 
+  /* namebook file  */  
+  if (nflag == 0) { 
+    fprintf(stderr, "%s: missing -n namebook file \n", argv[0]);
+		usage();
+		exit(1);
+    } 
+
+  /* parameters file  */  
+  if (pflag == 0) { 
+    fprintf(stderr, "%s: missing -p alistp file \n", argv[0]);
+		usage();
+		exit(1);
+    }  
+  /* values file  */  
+  if (vflag == 0) { 
+    fprintf(stderr, "%s: missing -v avalues file \n", argv[0]);
+		usage();
+		exit(1);
+    } 
+
+  if (err) {
+		usage();
+		exit(1);
+	}
 
   PASCAL_MAIN(argc, argv);
   if (setjmp(_JL1))
@@ -4567,21 +3833,19 @@ int main(int argc, Char **argv)
   list.f = NULL;
   strcpy(list.name, "list");
   avalues.f = NULL;
-  strcpy(avalues.name, "avalues");
+  strcpy(avalues.name,  valuesFile);
   namelist.f = NULL;
-  strcpy(namelist.name, "namelist");
+  strcpy(namelist.name, namelistFile);
   namebook.f = NULL;
-  strcpy(namebook.name, "namebook");
+  strcpy(namebook.name, nameBookFile);
   alistp.f = NULL;
-  strcpy(alistp.name, "alistp");
+  strcpy(alistp.name, parameters);
   book.f = NULL;
-  strcpy(book.name, "book");
+  strcpy(book.name, bookName);
   inst.f = NULL;
-  strcpy(inst.name, "inst");
+  strcpy(inst.name, instructions);
   printf("alist %4.2f\n", version);
   readparameters();
-
-
   cmfactor = 72 / 2.54;
 
   if (*list.name != '\0') {
@@ -4621,7 +3885,6 @@ int main(int argc, Char **argv)
     linenumber += 2;
   }
 
-
   clinenumber = 0;
   if (headercontrol == 'h' || headercontrol != '0')
     headerclinenumber = headerclines;
@@ -4630,10 +3893,7 @@ int main(int argc, Char **argv)
 
   pagenumber = 1;
   cpagenumber = 1;
-
-
   readcolumnname(&avalues);
-
 
   if (*inst.name != '\0') {
     if (inst.f != NULL)
@@ -4651,7 +3911,6 @@ int main(int argc, Char **argv)
       alignmenttype = 'b';
     }
   }
-
 
   apiece = (piece *)Malloc(sizeof(piece));
   brinit(&book, &theline);
@@ -4718,38 +3977,31 @@ int main(int argc, Char **argv)
     fprintf(clist.f, "(alist %4.2f, aligned listing of book: ) sn", version);
     noheader(&clist);
     clinenumber++;
-
-
     putc('(', clist.f);
     copytocomma(&book, &clist);
     copytocomma(&book, &clist);
     fprintf(clist.f, ") sn");
     noheader(&clist);
     clinenumber++;
-
     putc('(', clist.f);
     putc(' ', clist.f);
     copynoreturn(&book, &clist);
     fprintf(clist.f, ") sn");
     noheader(&clist);
     clinenumber++;
-
     noheader(&clist);
 
     printf("alignment by ");
     fprintf(list.f, "The alignment is by ");
     switch (alignmenttype) {
-
     case 'f':
       printf("first base\n");
       fprintf(list.f, "first base\n");
       break;
-
     case 'i':
       printf("delila instructions\n");
       fprintf(list.f, "delila instructions\n");
       break;
-
     case 'b':
       printf("book coordinates\n");
       fprintf(list.f, "book coordinates\n");
@@ -4757,12 +4009,6 @@ int main(int argc, Char **argv)
     }
     linenumber += 2;
 
-    /*
-
-
-
-
-*/
     fprintf(list.f, "The book is from:       %ld to %ld\n",
 	    fromparam, toparam);
     linenumber++;
@@ -4770,20 +4016,13 @@ int main(int argc, Char **argv)
 	    fromparam, toparam);
     noheader(&clist);
     clinenumber++;
-    /*
-
-*/
 
     fprintf(list.f, "This alignment is from: %ld to %ld\n\n", fromdo, todo);
     linenumber += 2;
     fprintf(clist.f, "(This alignment is from: %ld to %ld) sn", fromdo, todo);
     noheader(&clist);
     clinenumber++;
-
-
   }
-
-
 
   if (headercontrol == 'h' || headercontrol != '0') {
     showalignment();
@@ -4843,11 +4082,7 @@ int main(int argc, Char **argv)
 	  putc(apiece->key.hea.keynam.letters[index_-1], list.f);
       }
 
-      /*
-*/
-
-      fprintf(list.f, " %*ld",
-	      (int)positionwidth, inttopie(alignedbase, apiece));
+     fprintf(list.f, " %*ld", (int)positionwidth, inttopie(alignedbase, apiece));
 
       putc('(', clist.f);
       if (displaylevel == 'p') {
@@ -4860,11 +4095,7 @@ int main(int argc, Char **argv)
 	      (int)positionwidth, inttopie(alignedbase, apiece));
 
       fprintf(clist.f, ") s ");
-    }
-    /*
-*/
-
-    else if (!emptyfile(&namebook))
+    } else if (!emptyfile(&namebook))
       printname(&namebook, theline, nametype, namewidth, &list, &clist, &org,
 		&orgchange, &orgopen, &chr, &chrchange, &chropen, &pie,
 		&piechange, &pieopen, &linenumber, &clinenumber);
@@ -4901,17 +4132,12 @@ int main(int argc, Char **argv)
       fprintf(clist.f, "( %c) s\n", thedirection);
     }
 
-
     if (numbered && shownumbers != '-')
       fprintf(list.f, " %*ld ", (int)numberwidth, number);
-    /*
-
-*/
+  
     if (numbered && shownumbers != '-')
       fprintf(clist.f, "( %*ld ) s\n", (int)numberwidth, number);
-    /*
-
-*/
+ 
     column = 0;
     FORLIM = todo;
     for (index_ = fromdo; index_ <= FORLIM; index_++) {
@@ -4924,14 +4150,12 @@ int main(int argc, Char **argv)
 	fprintf(clist.f, " e");
       }
       column += 2;
-      /*
-*/
+  
       if (column % 76 == 0) {
 	putc('\n', clist.f);
 	column = 0;
       }
     }
-
 
     if (readvalues) {
       getcolumnvalue(&avalues, columntoread, &columnvalue);
@@ -4954,13 +4178,8 @@ int main(int argc, Char **argv)
 	showalignment();
       }
 
-      /*
-*/
-
       if (clinenumber >= cpagelength) {
 	cpagenumber++;
-	/*
-*/
 	showpage(&clist);
 	fprintf(clist.f, "startpage");
 	removeit(&clist);
@@ -5003,7 +4222,5 @@ _L1:
 
   return 0;
 }
-
-
 
 /* End. */
