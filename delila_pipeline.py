@@ -454,7 +454,53 @@ class delilaPipe( object ):
         cmd = [ program , '-a', 'optalign', '-i', inst, '-o', 'optinst' ,'-p','malinp' ]
         logger.info("Running malin ")
         logger.info(program + ' ' + ' '.join(cmd))
-        # run malign
+        # run malin
+        output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        result1 = output[0].decode('utf-8')
+        result2 = output[1].decode('utf-8')
+        # log stdout and stderr 
+        logger.info(result1)
+        logger.info(result2)
+
+    def runALIST(self, book, cinst, alistp):
+        '''
+        from Delila documentation:    
+      
+        Alist creates an aligned listing of a sets of sequences.  The pieces in
+        the book are aligned according to the instructions in file inst, and
+        listed in the list file.  Each piece is identified, and a bar of numbers
+        (called a 'numbar') that are read vertically defines the locations of
+        bases around the aligning point.
+        
+        Requires the creation of empty files for program to run.
+        files created are avalues, colors, namebook, namelist
+
+        alist  -b book.txt -i cinst -p alistp
+
+        '''
+        # create the required empty files   
+        with open('avalues', 'w') as f:
+            pass
+        f.close()
+
+        with open('colors', 'w') as f:
+            pass
+        f.close()
+
+        with open("namebook", 'w') as f:
+            pass
+        f.close()
+
+        with open("namelist", 'w') as f:
+            pass
+        f.close()
+
+        # set up alist
+        program = pdir + 'alist'
+        cmd = [ program , '-b', book, '-i', cinst, '-p', alistp ]
+        logger.info("Running alist ")
+        logger.info(program + ' ' + ' '.join(cmd))
+        # run alist
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
         result2 = output[1].decode('utf-8')
@@ -567,6 +613,10 @@ def main():
     pipe.runMALIGN('R.sphaeroides-2.4.1_NC_007493.2_book.txt', 'NC_007493.2_TSS.inst')
     pipe.createMalinp()
     pipe.runMALIN('NC_007493.2_TSS.inst')
+    pipe.runDELILA('cinst')
+    pipe.runALIST( 'R.sphaeroides-2.4.1_cinst_book.txt', 'cinst', 'avalues' )
+
+
 
 if __name__ == "__main__":
     main()
