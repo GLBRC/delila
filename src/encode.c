@@ -1,180 +1,115 @@
 /* Output from p2c 2.00.Oct.15, the Pascal-to-C translator */
 /* From input file "encode.p" */
-
-
- #include "/root/src/p2c-2.01/home/src/p2c.h"
-
-
 /*
+encode a book of sequences into strings of integers.
+  by Gary Stormo.
+
+modified by:
+
+  Dr. Thomas D. Schneider
+  toms@alum.mit.edu
+  permanent email: toms@alum.mit.edu (use only if first address fails)
+  https://alum.mit.edu/www/toms/
+
+modules needed: delmods, delman, matmods *
+
+name
+   encode: encodes a book of sequences into strings of integers
+
+synopsis
+   encode(inst: in, book: in, encseq: out, encodep: in, output: out)
+
+files
+   inst: the instructions generating the book; for aligning the sequences
+       If the inst file is empty, then the sequences are aligned by
+       the zero coordinate of the book (this allows the use of the
+       "default coordinate zero" option of Delila) or by the first
+       base of the piece, as defined by the first parameter.
+
+   book: the sequences to be encoded
+
+   encseq: the encoded sequences
+
+   encodep: parameter file for describing how the sequences are to be
+         encoded.
+
+   The first parameter, the first character on the first line, defines how
+   to align the pieces.  See the alist program for the detailed logic.
+   There are three choices, as in alist:
+
+      'f' (for 'first') then the sequences are always aligned by their
+      first base.
+
+      'i' then the sequences are aligned by the delila instructions.  If
+      the inst file is empty, alignment is forced to the 'b' mode.
+
+      'b' (for 'internal') then the alignment is on the internal zero of
+      the book's sequence.  This option is to be used when "default
+      coordinate zero" is used in the Delila instructions.
+
+   The remaining parameters are stored as a list of parameter records, of
+   which there may be any number.  Each parameter record has five lines of
+   information which it must include (all i's and j's are integers):
 
 
+1.  i j specify the nucleotides, relative to the aligned base,
+           over which this parameter record is to operate; these may
+           be any integers, but i <= j is required;
+   2.  i   is the size of the windows to be encoded; within the window
+           the number of each oligonucleotide of length 'coding' are
+           determined and printed as part of the total sequence vector;
+   3.  i   is the shift to the next window to be encoded;
+   4.  i : j1 j2 j3 ...  is the 'coding'-level and arrangement; the
+           'coding'-level, i, is the number of nucleotides in the oligos we
+           are counting, i.e., 1 means monos, 2 means dis, ...;  if i > 1
+           then we can also skip bases between the ones we are encoding;
+           if the i is followed next by a colon, there must be i-1 integers
+           (j1..j(i-1)) which specify the number of bases to be skipped
+           between the ones which are encoded; for example, if we have the
+           sequence xyz and we are interested in the di-nucleotides we can
+           get the xy by the parameter '2 : 0', or we could get the xz by
+           parameter '2 : 1'; if there is no colon all the skips are
+           assumed to be zero;
+   5.  i   is the shift to the next coding site within the window;
+           this allows us to encode only some of the oligos within a window,
+           such as only those that are in-frame;
+   multiple parameter records can be concatenated in the encodep file
+   and then each sequence in the book will be encoded according to each
+   parameter record into a single vector of integers.
 
+   output: for messages to the user
 
+description
 
+   This program is used to encode a book of sequences into a string of
+   integers.  Each sequence in the book is encoded into a single string of
+   integers (ended by an 'end of sequence' symbol) according to the user
+   specified parameters, which are in the file 'encodep'.
 
+To Compile:
 
+gcc encode.c -o encode -I/home/mplace/bin/p2c/src -L /home/mplace/bin/p2c/src -lm -lp2c
+
+To Run:
 
 
 */
 
-
+#include <getopt.h>  /* getopt API */ 
+#include <stdio.h>   /* printf */
+#include <stdlib.h> 
+#include </home/mplace/bin/p2c/src/p2c.h>
 
 #define version         1.42
-/*
-
-
-
-
-
-
-*/
-
-
-
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-
-
-
 #define dnamax          1024
 #define namelength      100
 #define linelength      200
-
-
-
 #define maxvecpart      64
 #define vpagewidth      64
-/*
-*/
-
-
 #define pagewidth       32
 #define codingmax       6
-
-
-
 #define maxstring       2000
-
-
-
-
 #define fillermax       50
-
-
-
 
 typedef struct stringDelila {
   Char letters[maxstring];
@@ -182,16 +117,7 @@ typedef struct stringDelila {
   struct stringDelila *next;
 } stringDelila;
 
-
-
-
-/*
-
-
-*/
 typedef Char filler[fillermax];
-
-
 
 typedef struct trigger {
   stringDelila seek;
@@ -199,19 +125,8 @@ typedef struct trigger {
   boolean skip, found;
 } trigger;
 
-
-
-
-
 typedef long chset[5];
-
-
-
-
 typedef Char alpha[namelength];
-
-/*
-*/
 
 typedef struct name {
   alpha letters;
@@ -239,13 +154,9 @@ typedef struct header {
   line *fulnam, *note;
 } header;
 
-
-
 typedef enum {
   a, c, g, t
 } base;
-
-
 
 typedef short dnarange;
 
@@ -258,7 +169,6 @@ typedef struct dnastring {
   dnarange length;
   struct dnastring *next;
 } dnastring;
-
 
 typedef struct orgkey {
   header hea;
@@ -280,7 +190,6 @@ typedef struct piekey {
   direction piedir;
   long piebeg, pieend;
 } piekey;
-
 
 typedef struct piece {
   piekey key;
@@ -317,62 +226,24 @@ typedef struct marker {
   dnastring *dna;
 } marker;
 
-
-
-
-/*
-*/
-/*
-
-*/
-
 typedef struct spacelist {
   long skips;
   struct spacelist *next;
 } spacelist;
 
-/*
-
-*/
 typedef enum {
   start, stop
 } endpoints;
 
 typedef struct parameter {
   long range[2];
-  /*
-*/
   long window, wshift, coding;
-  /*
-*/
   spacelist *spaces;
   long cshift;
-
-
   long wvlength;
-  /*
-*/
   long pvlength;
-  /*
-*/
-  /*
-*/
-
   struct parameter *next;
 } parameter;
-
-
-
-
-/*
-
-
-
-
-
-
-
-*/
 
 typedef struct vectorpart {
   double numbers[maxvecpart];
@@ -384,13 +255,8 @@ typedef struct vector {
   vectorpart *part;
 } vector;
 
-
 Static _TEXT inst;
-/*
-*/
 Static _TEXT book, encseq, encodep;
-/*
-*/
 Static long regions, length_, alignedbase;
 Static piece *apiece;
 Static parameter *firstparam;
@@ -398,52 +264,19 @@ Static long fourpowers[codingmax + 1];
 Static vector seqvector;
 Static boolean noinst;
 Static long theline;
-
 Static Char alignmenttype;
-/*
-*/
-
-
-
-
-
-
 Static line *freeline;
 Static dnastring *freedna;
-
 Static boolean readnumber;
-/*
-*/
 Static long number;
 Static boolean numbered, skipunnum;
-
-
 Static jmp_buf _JL1;
-
-
-/*
-*/
-
-
-
-
-
-
 
 Static Void halt()
 {
-  /*
-
-
-
-
-
-*/
   printf(" program halt.\n");
   longjmp(_JL1, 1);
 }
-
-
 
 Static Void copyaline(fin, fout)
 _TEXT *fin, *fout;
@@ -457,14 +290,10 @@ _TEXT *fin, *fout;
   putc('\n', fout->f);
 }
 
-
-
 Static long copylines(fin, fout, n)
 _TEXT *fin, *fout;
 long n;
 {
-  /*
-*/
   long index = 0;
 
   while (!BUFEOF(fin->f) && index < n) {
@@ -474,17 +303,6 @@ long n;
 
   return index;
 }
-
-
-
-
-
-
-
-
-
-
-
 
 Static double vget(v, pos)
 vector v;
@@ -499,14 +317,11 @@ long pos;
     halt();
   }
 
-
   for (i = 1; i <= (pos - 1) / maxvecpart; i++)
     v.part = v.part->next;
 
-
   return (v.part->numbers[(pos - 1) & (maxvecpart - 1)]);
 }
-
 
 Static Void vput(v, pos, number)
 vector *v;
@@ -523,23 +338,18 @@ double number;
     halt();
   }
 
-
   firstpart = v->part;
   for (i = 1; i <= (pos - 1) / maxvecpart; i++)
     v->part = v->part->next;
-
 
   v->part->numbers[(pos - 1) & (maxvecpart - 1)] = number;
   v->part = firstpart;
 }
 
-
 Static Void makevector(v, l)
 vector *v;
 long l;
 {
-  /*
-*/
   long numparts, i;
   vectorpart *firstpart, *newpart;
 
@@ -561,18 +371,10 @@ long l;
   v->part = firstpart;
 }
 
-
-
 Static Void readvector(thefile, v)
 _TEXT *thefile;
 vector *v;
 {
-  /*
-
-
-
-
-*/
   long i, j, numparts, lastpart;
   vectorpart *firstpart;
 
@@ -591,17 +393,11 @@ vector *v;
   v->part = firstpart;
 }
 
-
-
 Static Void writevector(thefile, v, y, z)
 _TEXT *thefile;
 vector v;
 long y, z;
 {
-  /*
-
-
-*/
   long pos = 0;
   long i, j, numparts, lastpart;
   vectorpart *firstpart;
@@ -650,10 +446,6 @@ long y, z;
   v.part = firstpart;
 }
 
-
-
-
-
 Static double dotproduct(vectora, vectorb)
 vector vectora, vectorb;
 {
@@ -669,21 +461,15 @@ vector vectora, vectorb;
   return j;
 }
 
-
-
 Static double magnitude(v)
 vector *v;
 {
   return sqrt(dotproduct(*v, *v));
 }
 
-
-
 Static Void normalize(v)
 vector *v;
 {
-  /*
-*/
   long i;
   double length;
   long FORLIM;
@@ -694,15 +480,9 @@ vector *v;
     vput(v, i, vget(*v, i) / length);
 }
 
-
-
-
-
 Static long vectorsize(param)
 parameter *param;
 {
-  /*
-*/
   long size = 0;
 
   while (param != NULL) {
@@ -711,17 +491,6 @@ parameter *param;
   }
   return size;
 }
-
-
-
-
-
-
-
-
-
-
-
 
 Static Void getlineDelila(l)
 line **l;
@@ -735,7 +504,6 @@ line **l;
   (*l)->next = NULL;
 }
 
-
 Static Void getdna(l)
 dnastring **l;
 {
@@ -747,10 +515,6 @@ dnastring **l;
   (*l)->length = 0;
   (*l)->next = NULL;
 }
-
-
-/*
-*/
 
 Static Void clearline(l)
 line **l;
@@ -765,23 +529,19 @@ line **l;
   freeline = lptr;
 }
 
-
 Static Void writeline(afile, l, carriagereturn)
 _TEXT *afile;
 line *l;
 boolean carriagereturn;
 {
-  /*
-*/
   long index, FORLIM;
-
   FORLIM = l->length;
+
   for (index = 0; index < FORLIM; index++)
     putc(l->letters[index], afile->f);
   if (carriagereturn)
     putc('\n', afile->f);
 }
-
 
 Static Void showfreedna()
 {
@@ -793,16 +553,9 @@ Static Void showfreedna()
     counter++;
     printf("%ld", counter);
     printf(", length = %d\n", l->length);
-    /*
-
-
-
-
-*/
     l = l->next;
   }
 }
-
 
 Static Void cleardna(l)
 dnastring **l;
@@ -817,7 +570,6 @@ dnastring **l;
   freedna = lptr;
 }
 
-
 Static Void clearheader(h)
 header *h;
 {
@@ -825,7 +577,6 @@ header *h;
   while (h->note != NULL)
     clearline(&h->note);
 }
-
 
 Static Void clearpiece(p)
 piece **p;
@@ -835,26 +586,21 @@ piece **p;
   clearheader(&(*p)->key.hea);
 }
 
-
 Static base chartobase(ch)
 Char ch;
 {
   base Result;
 
   switch (ch) {
-
   case 'a':
     Result = a;
     break;
-
   case 'c':
     Result = c;
     break;
-
   case 'g':
     Result = g;
     break;
-
   case 't':
     Result = t;
     break;
@@ -869,19 +615,15 @@ base ba;
   Char Result;
 
   switch (ba) {
-
   case a:
     Result = 'a';
     break;
-
   case c:
     Result = 'c';
     break;
-
   case g:
     Result = 'g';
     break;
-
   case t:
     Result = 't';
     break;
@@ -896,19 +638,15 @@ base ba;
   base Result;
 
   switch (ba) {
-
   case a:
     Result = t;
     break;
-
   case c:
     Result = g;
     break;
-
   case g:
     Result = c;
     break;
-
   case t:
     Result = a;
     break;
@@ -923,17 +661,10 @@ Char b;
   return (basetochar(complement(chartobase(b))));
 }
 
-
 Static long pietoint(p, pie)
 long p;
 piece *pie;
 {
-  /*
-
-
-*/
-  /*
-*/
   long i;
   piekey *WITH;
 
@@ -947,7 +678,6 @@ piece *pie;
     else
       i = p - WITH->coobeg + WITH->cooend - WITH->piebeg + 2;
     break;
-
   case dircomplement:
   case minus:
     if (p <= WITH->piebeg)
@@ -959,19 +689,10 @@ piece *pie;
   return i;
 }
 
-
 Static long inttopie(i, pie)
 long i;
 piece *pie;
 {
-  /*
-
-
-
-
-*/
-  /*
-*/
   long p;
   piekey *WITH;
 
@@ -999,28 +720,17 @@ piece *pie;
   return p;
 }
 
-
 Static long piecelength(pie)
 piece *pie;
 {
   return (pietoint(pie->key.pieend, pie));
 }
 
-
-
-
 Static Char getto(thefile, theline, ch)
 _TEXT *thefile;
 long *theline;
 long *ch;
 {
-  /*
-
-
-
-
-
-*/
   Char achar = ' ';
   boolean done = false;
 
@@ -1042,19 +752,9 @@ long *ch;
     return achar;
   else {
     return ' ';
-    /*
-
-
-
-
-
-
-
-*/
+  
   }
 }
-
-
 
 Static Void skipstar(thefile)
 _TEXT *thefile;
@@ -1080,8 +780,6 @@ _TEXT *thefile;
   getc(thefile->f);
 }
 
-
-
 Static Void brreanum(thefile, theline, reanum)
 _TEXT *thefile;
 long *theline;
@@ -1093,8 +791,6 @@ double *reanum;
   (*theline)++;
 }
 
-
-
 Static Void brnumber(thefile, theline, num)
 _TEXT *thefile;
 long *theline, *num;
@@ -1104,8 +800,6 @@ long *theline, *num;
   getc(thefile->f);
   (*theline)++;
 }
-
-
 
 Static Void brname(thefile, theline, nam)
 _TEXT *thefile;
@@ -1136,8 +830,6 @@ name *nam;
   (*theline)++;
 }
 
-
-
 Static Void brline(thefile, theline, l)
 _TEXT *thefile;
 long *theline;
@@ -1145,7 +837,6 @@ line **l;
 {
   long i = 0;
   Char acharacter;
-
   skipstar(thefile);
 
   while (!P_eoln(thefile->f) && i < linelength) {
@@ -1170,15 +861,12 @@ line **l;
   (*theline)++;
 }
 
-
-
 Static Void brdirect(thefile, theline, direct)
 _TEXT *thefile;
 long *theline;
 direction *direct;
 {
   Char ch;
-
   skipstar(thefile);
   fscanf(thefile->f, "%c%*[^\n]", &ch);
   getc(thefile->f);
@@ -1191,15 +879,12 @@ direction *direct;
     *direct = minus;
 }
 
-
-
 Static Void brconfig(thefile, theline, config)
 _TEXT *thefile;
 long *theline;
 configuration *config;
 {
   Char ch;
-
   skipstar(thefile);
   fscanf(thefile->f, "%c%*[^\n]", &ch);
   getc(thefile->f);
@@ -1212,22 +897,15 @@ configuration *config;
     *config = circular;
 }
 
-
-
 Static Void brnotenumber(thefile, theline, note)
 _TEXT *thefile;
 long *theline;
 line **note;
 {
-  /*
-
-*/
   *note = NULL;
   numbered = false;
   number = 0;
-  /*
-*/
-
+ 
   if (P_peek(thefile->f) != 'n')
     return;
   fscanf(thefile->f, "%*[^\n]");
@@ -1256,8 +934,6 @@ line **note;
   getc(thefile->f);
   (*theline)++;
 }
-
-
 
 Static Void brnote(thefile, theline, note)
 _TEXT *thefile;
@@ -1295,8 +971,6 @@ line **note;
   (*theline)++;
 }
 
-
-
 Static Void brheader(thefile, theline, hea)
 _TEXT *thefile;
 long *theline;
@@ -1305,14 +979,9 @@ header *hea;
   fscanf(thefile->f, "%*[^\n]");
   getc(thefile->f);
   (*theline)++;
-
-
   brname(thefile, theline, &hea->keynam);
-
-
   getlineDelila(&hea->fulnam);
   brline(thefile, theline, &hea->fulnam);
-
 
   if (readnumber)
     brnotenumber(thefile, theline, &hea->note);
@@ -1320,20 +989,14 @@ header *hea;
     brnote(thefile, theline, &hea->note);
 }
 
-
-
 Static Void copyheader(fromhea, tohea)
 header fromhea, *tohea;
 {
-  /*
-*/
   memcpy(tohea->keynam.letters, fromhea.keynam.letters, sizeof(alpha));
   tohea->keynam.length = fromhea.keynam.length;
   tohea->note = fromhea.note;
   tohea->fulnam = fromhea.fulnam;
 }
-
-
 
 Static Void brpiekey(thefile, theline, pie)
 _TEXT *thefile;
@@ -1352,18 +1015,11 @@ piekey *pie;
   brnumber(thefile, theline, &pie->pieend);
 }
 
-
-
 Static Void brdna(thefile, theline, dna)
 _TEXT *thefile;
 long *theline;
 dnastring **dna;
 {
-
-  /*
-
-
-*/
   Char ch;
   dnastring *workdna;
   long SET[5];
@@ -1409,17 +1065,11 @@ dnastring **dna;
   (*theline)++;
 }
 
-
-
 Static Void brpiece(thefile, theline, pie)
 _TEXT *thefile;
 long *theline;
 piece **pie;
 {
-  /*
-
-
-*/
   brpiekey(thefile, theline, &(*pie)->key);
   if (numbered || !skipunnum)
     brdna(thefile, theline, &(*pie)->dna);
@@ -1428,16 +1078,10 @@ piece **pie;
   (*theline)++;
 }
 
-
-
 Static Void brinit(book, theline)
 _TEXT *book;
 long *theline;
 {
-  /*
-*/
-  /*
-*/
   if (*book->name != '\0') {
     if (book->f != NULL)
       book->f = freopen(book->name, "r", book->f);
@@ -1470,21 +1114,14 @@ long *theline;
     halt();
   }
 
-
   freeline = NULL;
   freedna = NULL;
-
   readnumber = true;
   number = 0;
   numbered = false;
   skipunnum = false;
   *theline = 1;
 }
-
-
-
-
-
 
 Static Void getpiece(thefile, theline, pie)
 _TEXT *thefile;
@@ -1497,26 +1134,10 @@ piece **pie;
   ch = getto(thefile, theline, P_addset(P_expset(SET, 0L), 'p'));
   if (ch != ' ') {
     brpiece(thefile, theline, pie);
-    /*
-
-
-*/
-    /*
-
-
-
-*/
+ 
   } else
     clearpiece(pie);
 }
-
-
-
-
-
-
-
-
 
 Static Void clearstring(ribbon)
 stringDelila *ribbon;
@@ -1529,37 +1150,25 @@ stringDelila *ribbon;
   ribbon->current = 0;
 }
 
-
-
 Static Void writestring(tofile, s)
 _TEXT *tofile;
 stringDelila *s;
 {
   long i, FORLIM;
-
   FORLIM = s->length;
+
   for (i = 0; i < FORLIM; i++)
     putc(s->letters[i], tofile->f);
 }
-
-
 
 Static Void fillstring(s, a_)
 stringDelila *s;
 Char *a_;
 {
-  /*
-*/
-
-
-  /*
-
-
-*/
   long length = fillermax;
   long index;
-
   clearstring(s);
+
   while (length > 1 && a_[length-1] == ' ')
     length--;
   if (length == 1 && a_[length-1] == ' ') {
@@ -1573,23 +1182,12 @@ Char *a_;
   s->current = 1;
 }
 
-
-
 Static Void filltrigger(t_, a_)
 trigger *t_;
 Char *a_;
 {
   fillstring(&t_->seek, a_);
 }
-
-
-
-/*
-
-
-
-
-*/
 
 Static Void resettrigger(t_)
 trigger *t_;
@@ -1599,28 +1197,12 @@ trigger *t_;
   t_->found = false;
 }
 
-
 Static Void testfortrigger(ch, t_)
 Char ch;
 trigger *t_;
 {
-  /*
-
-
-
-
-
-
-
-
-
-*/
   t_->state++;
-  /*
 
-
-
-*/
   if (t_->seek.letters[t_->state - 1] == ch) {
     t_->skip = false;
     if (t_->state == t_->seek.length)
@@ -1629,8 +1211,7 @@ trigger *t_;
       t_->found = false;
     return;
   }
-  /*
-*/
+ 
   if (t_->seek.letters[0] == ch) {
     t_->state = 1;
     t_->skip = false;
@@ -1641,8 +1222,6 @@ trigger *t_;
   t_->skip = true;
   t_->found = false;
 }
-
-
 
 Static Void skipblanks(thefile)
 _TEXT *thefile;
@@ -1659,18 +1238,12 @@ _TEXT *thefile;
     getc(thefile->f);
 }
 
-
 Static Void skipcolumn(thefile)
 _TEXT *thefile;
 {
   skipblanks(thefile);
   skipnonblanks(thefile);
 }
-
-
-
-
-
 
 Static Void findblank(afile)
 _TEXT *afile;
@@ -1683,8 +1256,6 @@ _TEXT *afile;
       ch = ' ';
   } while (ch != ' ');
 }
-
-
 
 Static Void findnonblank(afile, ch)
 _TEXT *afile;
@@ -1702,15 +1273,8 @@ Char *ch;
   }
 }
 
-
 #define maximumrange    10000
-/*
-
-
-*/
-
 #define semicolon       ';'
-
 
 /* Local variables for align: */
 struct LOC_align {
@@ -1718,28 +1282,6 @@ struct LOC_align {
   Char ch;
   trigger endcomment, endcurly;
 } ;
-
-/*
-*/
-
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
 
 Local Void skipcomment(f, LINK)
 _TEXT *f;
@@ -1765,10 +1307,7 @@ struct LOC_align *LINK;
     testfortrigger(LINK->ch, &LINK->endcomment);
     if (LINK->endcomment.found) {
       comment = false;
-      /*
-
-*/
-    }
+     }
   }
 }
 
@@ -1796,10 +1335,7 @@ struct LOC_align *LINK;
     testfortrigger(LINK->ch, &LINK->endcurly);
     if (LINK->endcurly.found) {
       comment = false;
-      /*
-
-*/
-    }
+     }
   }
 }
 
@@ -1808,7 +1344,6 @@ trigger quote;
 struct LOC_align *LINK;
 {
   Char kind;
-
   kind = quote.seek.letters[0];
 
   do {
@@ -1828,12 +1363,6 @@ long *theline;
 piece **pie;
 long *length, *alignedbase;
 {
-  /*
-
-
-
-
-*/
   struct LOC_align V;
   long p, p1;
   boolean done = false;
@@ -1843,11 +1372,8 @@ long *length, *alignedbase;
 */
 
   trigger gettrigger, defaulttrigger, nametrigger, piecetrigger, settrigger;
-
   trigger begincomment, begincurly;
-
   trigger quote1trigger, quote2trigger;
-
   boolean dotteddone;
   name *WITH;
 
@@ -1880,12 +1406,10 @@ long *length, *alignedbase;
   resettrigger(&nametrigger);
   resettrigger(&piecetrigger);
   resettrigger(&settrigger);
-
   resettrigger(&begincomment);
   resettrigger(&begincurly);
   resettrigger(&quote1trigger);
   resettrigger(&quote2trigger);
-
 
   if (BUFEOF(book->f))
     return;
@@ -1893,7 +1417,6 @@ long *length, *alignedbase;
   if (BUFEOF(book->f))
     return;
   *length = pietoint((*pie)->key.pieend, *pie);
-
 
   while (!done) {
     if (BUFEOF(V.inst->f)) {
@@ -1928,9 +1451,7 @@ long *length, *alignedbase;
       findnonblank(V.inst, &V.ch);
       findblank(V.inst);
       fscanf(V.inst->f, "%ld", &thebase);
-
       *alignedbase = pietoint(thebase, *pie);
-
       done = true;
     }
 
@@ -1967,12 +1488,6 @@ long *length, *alignedbase;
       continue;
     skipblanks(V.inst);
     WITH = &(*pie)->key.hea.keynam;
-    /*
-
-*/
-    /*
-
-*/
     p = 1;
     dotteddone = false;
     while (!dotteddone) {
@@ -1984,17 +1499,12 @@ long *length, *alignedbase;
 
       if (V.ch == '\n')
 	V.ch = ' ';
-      /*
-
-*/
+   
       if (V.ch == '.')
 	dotteddone = true;
       if (WITH->letters[p-1] == '.')
 	dotteddone = true;
-      /*
-
-
-*/
+   
 
       if (WITH->letters[p-1] != V.ch && !dotteddone && V.ch != ';') {
 	printf("The piece name in the book: \n");
@@ -2063,21 +1573,10 @@ Static base getbase(position, pie)
 long position;
 piece *pie;
 {
-  /*
-
-
-
-
-
-*/
   dnastring *workdna;
   long p, spot, thelength;
-
-  /*
-
-*/
-
   thelength = piecelength(pie);
+ 
   while (position < 1)
     position += thelength;
   while (position > thelength)
@@ -2086,9 +1585,7 @@ piece *pie;
   workdna = pie->dna;
   p = workdna->length;
   while (position > p) {
-    /*
-
-*/
+   
     workdna = workdna->next;
     if (workdna == NULL) {
       printf("error in function getbase!\n");
@@ -2096,15 +1593,10 @@ piece *pie;
     }
     p += workdna->length;
   }
-  /*
-
-*/
+  
   if (true) {
     spot = workdna->length - p + position;
-    /*
-
-
-*/
+  
     if (spot <= 0) {
       printf("error in getbase, spot (= %ld) must be positive\n", spot);
       halt();
@@ -2114,9 +1606,7 @@ piece *pie;
 	     spot, workdna->length);
       halt();
     }
-    /*
-
-*/
+ 
     return ((base)P_getbits_UB(workdna->part, spot - 1, 1, 3));
   }
   printf("error in getbase: request off end of piece\n");
@@ -2168,8 +1658,6 @@ Static Void initialize()
 
 Static Void setparam()
 {
-  /*
-*/
   parameter *newparam, *param;
   spacelist *firstspaces, *newspaces;
   long i;
@@ -2285,7 +1773,6 @@ Static Void setparam()
   } while (!BUFEOF(encodep.f));
 }
 
-
 Static Void encheader()
 {
   parameter *param;
@@ -2332,59 +1819,54 @@ Static Void encheader()
   fprintf(encseq.f, " %ld is the vector length\n\n", vectorsize(firstparam));
 }
 
-
+/* this procedure takes one sequence (which has been aligned) and encodes
+   it into a string of integers according to the parameters the user has
+   specified.  each window of the sequence causes a vector to be printed,
+   the size of which is determined by the coding level specified.  for
+   example, if the coding level is 1 (monos are being counted) then the
+   vector has four elements.  if the coding level is 2 (dis are being
+   counted) then the vector has 16 elements.  the vectors for each window
+   are concatenated to give the vector for each sequence, which is ended
+   with the 'end of sequence' symbol.
+   the procedure takes advantage of the fact that the type 'base' is an
+   ordered set of the nucleotides, with a,c,g,t being assigned internally
+   the values 0,1,2,3.  the total number of elements of a vector is
+   4**coding-level, and these correspond to the number of oligos of each
+   type from all a's to all t's.  this makes it easy to increase the
+   vector element for the oligo which exists at the coding site.  for
+   example, there are 64 tri-nucleotides and the vector which encodes
+   them has elements 0 (for the oligo aaa) through 63 (for the oligo ttt).
+   the number of the oligo cgt would be stored in element 27, as seen from
+       16 * 1   (16 for 4**(coding-level - 1) and 1 for the c)
+     +  4 * 2   ( 4 for 4**(coding-level - 2) and 2 for the g)
+     +  1 * 3   ( 1 for 4**(coding-level - 3) and 3 for the t)
+     ---------
+         27
+   another example is finding the position of the oligo taac in the vector
+   of all the 256 tetramers, from position 0 to 255.
+       64 * 3   (64 = 4**(coding-level - 1) and 3 for the t)
+    +  16 * 0   (16 = 4**(coding-level - 2) and 0 for the a)
+    +   4 * 0   ( 4 = 4**(coding-level - 3) and 0 for the a)
+    +   1 * 1   ( 1 = 4**(coding-level - 4) and 1 for the c)
+    ---------
+        193    ( is the vector element corresponding to the oligo taac )
+*/
 Static Void codeit(apiece, alignedbase, v)
 piece *apiece;
 long alignedbase;
 vector *v;
 {
-  /*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
   parameter *param;
   spacelist *aspace;
   long startsite, firstpos, pos, sitesize;
-  /*
-*/
   long element = 1;
   long welement, length, i, FORLIM;
-
   length = piecelength(apiece);
   param = firstparam;
-
   FORLIM = v->length;
+
   for (i = 1; i <= FORLIM; i++)
     vput(v, i, 0.0);
-
 
   do {
 
@@ -2394,7 +1876,6 @@ vector *v;
       sitesize += aspace->skips;
       aspace = aspace->next;
     }
-
 
     startsite = alignedbase + param->range[(long)start];
     do {
@@ -2435,10 +1916,7 @@ vector *v;
   } while (param != NULL);
 }
 
-
-main(argc, argv)
-int argc;
-Char *argv[];
+int main(int argc, Char **argv)
 {
   PASCAL_MAIN(argc, argv);
   if (setjmp(_JL1))
@@ -2502,8 +1980,8 @@ _L1:
   if (encodep.f != NULL)
     fclose(encodep.f);
   exit(EXIT_SUCCESS);
+  
+  return 0;
 }
-
-
 
 /* End. */
