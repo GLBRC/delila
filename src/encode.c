@@ -92,9 +92,9 @@ gcc encode.c -o encode -I/home/mplace/bin/p2c/src -L /home/mplace/bin/p2c/src -l
 
 To Run:
 
+encode -b R.sphaeroides-2.4.1_cinst_book.txt -i cinst -p encodep
 
 */
-
 #include <getopt.h>  /* getopt API */ 
 #include <stdio.h>   /* printf */
 #include <stdlib.h> 
