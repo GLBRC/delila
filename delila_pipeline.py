@@ -508,10 +508,28 @@ class delilaPipe( object ):
         logger.info(result1)
         logger.info(result2)
 
-    def runECODE(self):
+    def runENCODE(self, book, cinst, encodep):
         '''
+        from Delila documentation: 
+        
+        This program is used to encode a book of sequences into a string of
+        integers.  Each sequence in the book is encoded into a single string of
+        integers (ended by an 'end of sequence' symbol) according to the user
+        specified parameters, which are in the file 'encodep'.
+
         '''
-        pass
+        # set up encode
+        program = pdir + 'encode'
+        cmd = [ program , '-b', book, '-i', cinst, '-p', encodep ]
+        logger.info("Running encode ")
+        logger.info(program + ' ' + ' '.join(cmd))
+        # run encode
+        output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        result1 = output[0].decode('utf-8')
+        result2 = output[1].decode('utf-8')
+        # log stdout and stderr 
+        logger.info(result1)
+        logger.info(result2)
 
     def runRSEQ(self):
         '''
@@ -615,6 +633,7 @@ def main():
     pipe.runMALIN('NC_007493.2_TSS.inst')
     pipe.runDELILA('cinst')
     pipe.runALIST( 'R.sphaeroides-2.4.1_cinst_book.txt', 'cinst', 'avalues' )
+    pipe.runENCODE('R.sphaeroides-2.4.1_cinst_book.txt', 'cinst', 'encodep')
 
 
 
