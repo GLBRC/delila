@@ -531,6 +531,35 @@ class delilaPipe( object ):
         logger.info(result1)
         logger.info(result2)
 
+    def runCOMP(self, book, compp):
+        '''
+        from Delila documentation:
+
+        Comp counts the number of each oligonucleotide (from length 1 to
+        compmax) in the book and prints that to file "cmp".  The output is
+        printed in order of increasing length of oligonucleotide (i.e., first
+        the monos, then the dis, ...).  If there are no occurences of an
+        oligonucleotide, but its one-shorter parent did occur, it will be given
+        a zero.
+
+        '''
+        with open("compp", 'w') as f:
+            pass
+        f.close()
+
+        # set up comp
+        program = pdir + 'comp'
+        cmd = [ program , '-b', book, '-p', compp ]
+        logger.info("Running compp ")
+        logger.info(program + ' ' + ' '.join(cmd))
+        # run alist
+        output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        result1 = output[0].decode('utf-8')
+        result2 = output[1].decode('utf-8')
+        # log stdout and stderr 
+        logger.info(result1)
+        logger.info(result2)
+
     def runRSEQ(self):
         '''
         '''
@@ -634,6 +663,7 @@ def main():
     pipe.runDELILA('cinst')
     pipe.runALIST( 'R.sphaeroides-2.4.1_cinst_book.txt', 'cinst', 'avalues' )
     pipe.runENCODE('R.sphaeroides-2.4.1_cinst_book.txt', 'cinst', 'encodep')
+    pipe.runCOMP('R.sphaeroides-2.4.1_cinst_book.txt', 'compp')
 
 
 
