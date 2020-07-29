@@ -1,132 +1,112 @@
 /* Output from p2c 2.00.Oct.15, the Pascal-to-C translator */
 /* From input file "comp.p" */
-
-
- #include "/root/src/p2c-2.01/home/src/p2c.h"
-
-
 /*
+determine the oligonucleotide composition of a book.
+by Gary Stormo and Tom Schneider
+module libraries required: delman, delmods, auxmods
+
+name
+      comp: determine the composition of a book.
+
+synopsis
+      comp(book: in, cmp: out, compp: in, output: out)
+
+files
+      book: the sequences;
+      cmp: the composition, determined for mononucleotides up to
+            oligonucleotides of length "compmax", see file compp;
+      compp: parameter file used to set the length of the oligonucleotides for
+            which the composition is to be determined ("compmax");  that number
+            must be the first thing in the file; if the file is empty
+            compmax is set by default to the constant "defcompmax";
+      output: for messages to the user.
+
+description
+      Comp counts the number of each oligonucleotide (from length 1 to
+      compmax) in the book and prints that to file "cmp".  The output is
+      printed in order of increasing length of oligonucleotide (i.e., first
+      the monos, then the dis, ...).  If there are no occurences of an
+      oligonucleotide, but its one-shorter parent did occur, it will be given
+      a zero.  None of its descendants will be printed in the composition
+      file.
+
+examples
+
+   As an example of the output format, the composition to depth 3 of E. coli
+   (U00096, 16-OCT-1997) is:
+
+ comp 5.27: composition of 
+ * 1999/05/04 14:41:13, 1999/05/04 14:38:08, dbbk 3.33
+ 3 is the longest oligo counted
+
+ *
+ 0-long oligos (the total number of bases)
+          4639221
+ *
+ 1-long oligos
+      a   1142136      c   1179433      g   1176775      t   1140877
+ *
+ 2-long oligos
+      aa   337835      ac   256658      ag   237851      at   309792
+      ca   325118      cc   271649      cg   346636      ct   236029
+      ga   267234      gc   383865      gg   270083      gt   255593
+      ta   211948      tc   267261      tg   322205      tt   339463
+ *
+ 3-long oligos
+      aaa  108901      aac   82578      aag   63364      aat   82992
+      aca   58633      acc   74899      acg   73263      act   49863
+      aga   56618      agc   80848      agg   50611      agt   49774
+      ata   63692      atc   86476      atg   76229      att   83395
+      caa   76607      cac   66752      cag  104785      cat   76974
+      cca   86442      ccc   47764      ccg   87031      cct   50412
+      cga   70934      cgc  115673      cgg   86870      cgt   73159
+      cta   26762      ctc   42714      ctg  102900      ctt   63653
+      gaa   83490      gac   54737      gag   42460      gat   86547
+      gca   96010      gcc   92961      gcg  114609      gct   80285
+      gga   56199      ggc   92123      ggg   47470      ggt   74291
+      gta   52670      gtc   54225      gtg   66108      gtt   82590
+      taa   68837      tac   52591      tag   27241      tat   63279
+      tca   84033      tcc   56025      tcg   71733      tct   55469
+      tga   83483      tgc   95221      tgg   85132      tgt   58369
+      tta   68824      ttc   83846      ttg   76968      ttt  109825
+
+see also
+      compan.p, histan.p, markov.p
+
+authors
+      Gary Stormo and Tom Schneider
+
+bugs
+      none known
+
+technical note
+      The algorithm is an interesting application of linked lists.  The
+      composition is stored as a tree, and a number of "spiders" climb the
+      tree during its construction.
+
+To Compile:
+
+gcc comp.c -o comp -I/home/mplace/bin/p2c/src -L /home/mplace/bin/p2c/src -lm -lp2c
+
+To Run:
+
+comp -b R.sphaeroides-2.4.1_cinst_book.txt -i cinst -p encodep
+
 
 */
-
-
+#include <getopt.h>  /* getopt API */ 
+#include <stdio.h>   /* printf */
+#include <stdlib.h> 
+#include </home/mplace/bin/p2c/src/p2c.h>
 
 #define version         5.27
-/*
-
-
-*/
-
-
-
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-
-
 #define defcompmax      2
-
-
-
-
-
 #define dnamax          3000
 #define namelength      20
 #define linelength      80
 
-
-
-
-
-
 typedef long chset[5];
-
-
-
-
 typedef Char alpha[namelength];
-
-/*
-*/
 
 typedef struct name {
   alpha letters;
@@ -149,13 +129,10 @@ typedef enum {
   on, off
 } state;
 
-
 typedef struct header {
   name keynam;
   line *fulnam, *note;
 } header;
-
-
 
 typedef enum {
   a, c, g, t
@@ -171,7 +148,6 @@ typedef struct dnastring {
   dnarange length;
   struct dnastring *next;
 } dnastring;
-
 
 typedef struct orgkey {
   header hea;
@@ -193,7 +169,6 @@ typedef struct piekey {
   direction piedir;
   long piebeg, pieend;
 } piekey;
-
 
 typedef struct piece {
   piekey key;
@@ -230,10 +205,6 @@ typedef struct marker {
   dnastring *dna;
 } marker;
 
-
-
-
-
 typedef struct compnode {
   long count;
   struct compnode *son[4];
@@ -241,80 +212,39 @@ typedef struct compnode {
 */
 } compnode;
 
-
 typedef struct spider {
-  /*
-
-
-*/
   long depth;
   compnode *place;
   struct spider *next;
 } spider;
-
-/*
-*/
 
 typedef struct comptotal {
   long count;
   struct comptotal *next;
 } comptotal;
 
-
 typedef struct path {
   base bas;
   struct path *next;
 } path;
 
-
-
 Static _TEXT book, cmp, compp;
 Static long compmax;
-/*
-*/
 Static piece *pie;
 Static compnode *root;
 Static spider *firstspider;
-
-
-
-
-
-
 Static line *freeline;
 Static dnastring *freedna;
-
 Static boolean readnumber;
-/*
-*/
 Static long number;
 Static boolean numbered, skipunnum;
-
-
 Static jmp_buf _JL1;
-
-
-/*
-*/
-
-
-
-
 
 Static Void halt()
 {
-  /*
-
-
-
-
-
-*/
   printf(" program halt.\n");
   longjmp(_JL1, 1);
 }
-
-
 
 Static Void copyaline(fin, fout)
 _TEXT *fin, *fout;
@@ -328,16 +258,6 @@ _TEXT *fin, *fout;
   putc('\n', fout->f);
 }
 
-
-
-
-
-
-
-
-
-
-
 Static Void getlineDelila(l)
 line **l;
 {
@@ -350,7 +270,6 @@ line **l;
   (*l)->next = NULL;
 }
 
-
 Static Void getdna(l)
 dnastring **l;
 {
@@ -362,10 +281,6 @@ dnastring **l;
   (*l)->length = 0;
   (*l)->next = NULL;
 }
-
-
-/*
-*/
 
 Static Void clearline(l)
 line **l;
@@ -380,7 +295,6 @@ line **l;
   freeline = lptr;
 }
 
-
 Static Void cleardna(l)
 dnastring **l;
 {
@@ -394,7 +308,6 @@ dnastring **l;
   freedna = lptr;
 }
 
-
 Static Void clearheader(h)
 header *h;
 {
@@ -402,7 +315,6 @@ header *h;
   while (h->note != NULL)
     clearline(&h->note);
 }
-
 
 Static Void clearpiece(p)
 piece **p;
@@ -412,26 +324,21 @@ piece **p;
   clearheader(&(*p)->key.hea);
 }
 
-
 Static base chartobase(ch)
 Char ch;
 {
   base Result;
 
   switch (ch) {
-
   case 'a':
     Result = a;
     break;
-
   case 'c':
     Result = c;
     break;
-
   case 'g':
     Result = g;
     break;
-
   case 't':
     Result = t;
     break;
@@ -446,19 +353,15 @@ base ba;
   Char Result;
 
   switch (ba) {
-
   case a:
     Result = 'a';
     break;
-
   case c:
     Result = 'c';
     break;
-
   case g:
     Result = 'g';
     break;
-
   case t:
     Result = 't';
     break;
@@ -473,19 +376,15 @@ base ba;
   base Result;
 
   switch (ba) {
-
   case a:
     Result = t;
     break;
-
   case c:
     Result = g;
     break;
-
   case g:
     Result = c;
     break;
-
   case t:
     Result = a;
     break;
@@ -498,10 +397,6 @@ Static long pietoint(p, pie)
 long p;
 piece *pie;
 {
-  /*
-
-
-*/
   long i;
   piekey *WITH;
 
@@ -514,7 +409,6 @@ piece *pie;
     else
       i = p - WITH->coobeg + WITH->cooend - WITH->piebeg + 2;
     break;
-
   case minus:
     if (p <= WITH->piebeg)
       i = WITH->piebeg - p + 1;
@@ -530,12 +424,6 @@ Static long inttopie(i, pie)
 long i;
 piece *pie;
 {
-  /*
-
-
-
-
-*/
   long p;
   piekey *WITH;
 
@@ -549,7 +437,6 @@ piece *pie;
 	p += WITH->coobeg - WITH->cooend - 1;
     }
     break;
-
   case minus:
     p = WITH->piebeg - i + 1;
     if (p < WITH->coobeg) {
@@ -561,22 +448,16 @@ piece *pie;
   return p;
 }
 
-
 Static long piecelength(pie)
 piece *pie;
 {
   return (pietoint(pie->key.pieend, pie));
 }
 
-
-
-
 Static Char getto(thefile, ch)
 _TEXT *thefile;
 long *ch;
 {
-  /*
-*/
   Char achar = ' ';
 
   while ((!P_inset(achar, ch)) & (!BUFEOF(thefile->f))) {
@@ -590,8 +471,6 @@ long *ch;
   else
     return ' ';
 }
-
-
 
 Static Void skipstar(thefile)
 _TEXT *thefile;
@@ -613,8 +492,6 @@ _TEXT *thefile;
   getc(thefile->f);
 }
 
-
-
 Static Void brreanum(thefile, reanum)
 _TEXT *thefile;
 double *reanum;
@@ -624,8 +501,6 @@ double *reanum;
   getc(thefile->f);
 }
 
-
-
 Static Void brnumber(thefile, num)
 _TEXT *thefile;
 long *num;
@@ -634,8 +509,6 @@ long *num;
   fscanf(thefile->f, "%ld%*[^\n]", num);
   getc(thefile->f);
 }
-
-
 
 Static Void brname(thefile, nam)
 _TEXT *thefile;
@@ -663,8 +536,6 @@ name *nam;
   fscanf(thefile->f, "%*[^\n]");
   getc(thefile->f);
 }
-
-
 
 Static Void brline(thefile, l)
 _TEXT *thefile;
@@ -694,14 +565,11 @@ line **l;
   getc(thefile->f);
 }
 
-
-
 Static Void brdirect(thefile, direct)
 _TEXT *thefile;
 direction *direct;
 {
   Char ch;
-
   skipstar(thefile);
   fscanf(thefile->f, "%c%*[^\n]", &ch);
   getc(thefile->f);
@@ -713,17 +581,15 @@ direction *direct;
     *direct = minus;
 }
 
-
-
 Static Void brconfig(thefile, config)
 _TEXT *thefile;
 configuration *config;
 {
   Char ch;
-
   skipstar(thefile);
   fscanf(thefile->f, "%c%*[^\n]", &ch);
   getc(thefile->f);
+
   if (ch == '\n')
     ch = ' ';
   if (ch == 'l')
@@ -732,20 +598,13 @@ configuration *config;
     *config = circular;
 }
 
-
-
 Static Void brnotenumber(thefile, note)
 _TEXT *thefile;
 line **note;
 {
-  /*
-
-*/
   *note = NULL;
   numbered = false;
   number = 0;
-  /*
-*/
 
   if (P_peek(thefile->f) != 'n')
     return;
@@ -772,15 +631,13 @@ line **note;
   getc(thefile->f);
 }
 
-
-
 Static Void brnote(thefile, note)
 _TEXT *thefile;
 line **note;
 {
   line *newnote, *previousnote;
-
   *note = NULL;
+
   if (P_peek(thefile->f) != 'n')
     return;
   fscanf(thefile->f, "%*[^\n]");
@@ -806,26 +663,19 @@ line **note;
   getc(thefile->f);
 }
 
-
-
 Static Void brheader(thefile, hea)
 _TEXT *thefile;
 header *hea;
 {
   brname(thefile, &hea->keynam);
-
-
   getlineDelila(&hea->fulnam);
   brline(thefile, &hea->fulnam);
-
 
   if (readnumber)
     brnotenumber(thefile, &hea->note);
   else
     brnote(thefile, &hea->note);
 }
-
-
 
 Static Void brpiekey(thefile, pie)
 _TEXT *thefile;
@@ -843,26 +693,19 @@ piekey *pie;
   brnumber(thefile, &pie->pieend);
 }
 
-
-
 Static Void brdna(thefile, dna)
 _TEXT *thefile;
 dnastring **dna;
 {
-
-  /*
-
-
-*/
   Char ch;
   dnastring *workdna;
   long SET[5];
   long TEMP;
-
   getdna(dna);
   workdna = *dna;
   ch = getto(thefile, P_addset(P_expset(SET, 0L), 'd'));
   ch = getc(thefile->f);
+
   if (ch == '\n')
     ch = ' ';
   while (ch == '*') {
@@ -894,8 +737,6 @@ dnastring **dna;
   getc(thefile->f);
 }
 
-
-
 Static Void brpiece(thefile, pie)
 _TEXT *thefile;
 piece **pie;
@@ -905,15 +746,9 @@ piece **pie;
     brdna(thefile, &(*pie)->dna);
 }
 
-
-
 Static Void brinit(book)
 _TEXT *book;
 {
-  /*
-*/
-  /*
-*/
   if (*book->name != '\0') {
     if (book->f != NULL)
       book->f = freopen(book->name, "r", book->f);
@@ -946,20 +781,13 @@ _TEXT *book;
     halt();
   }
 
-
   freeline = NULL;
   freedna = NULL;
-
   readnumber = true;
   number = 0;
   numbered = false;
   skipunnum = false;
 }
-
-
-
-
-
 
 Static Void getpiece(thefile, pie)
 _TEXT *thefile;
@@ -967,29 +795,18 @@ piece **pie;
 {
   Char ch;
   long SET[5];
-
   ch = getto(thefile, P_addset(P_expset(SET, 0L), 'p'));
+
   if (ch != ' ') {
     brpiece(thefile, pie);
     ch = getto(thefile, P_addset(P_expset(SET, 0L), 'p'));
   }
 }
 
-
-
-
-
-
 Static base stepbase(startdna, dna, d)
 dnastring *startdna, **dna;
 dnarange *d;
 {
-  /*
-
-
-
-
-*/
   long TEMP;
 
   if (*d != dnamax && *d != (*dna)->length) {
@@ -1005,14 +822,8 @@ dnarange *d;
   return ((base)P_getbits_UB((*dna)->part, TEMP, 1, 3));
 }
 
-
-
-
 Static Void makespiders()
 {
-  /*
-
-*/
   long i;
   spider *aspider;
   long FORLIM;
@@ -1029,13 +840,12 @@ Static Void makespiders()
   }
 }
 
-
 Static Void initialize()
 {
   base ba;
-
   printf("comp %4.2f\n", version);
   brinit(&book);
+
   if (*cmp.name != '\0') {
     if (cmp.f != NULL)
       cmp.f = freopen(cmp.name, "w", cmp.f);
@@ -1091,8 +901,6 @@ Static Void increment(s, ba)
 spider **s;
 base *ba;
 {
-  /*
-*/
   base bai;
   spider *WITH;
   compnode *WITH1;
@@ -1118,14 +926,11 @@ base *ba;
   }
 }
 
-
 Static Void maketree(pie, root, firstspider)
 piece *pie;
 compnode *root;
 spider *firstspider;
 {
-  /*
-*/
   spider *active;
   long i, j, length;
   dnarange pos = 0;
@@ -1203,7 +1008,6 @@ spider *firstspider;
   }
 }
 
-
 /* Local variables for writetree: */
 struct LOC_writetree {
   _TEXT *thefile;
@@ -1217,14 +1021,12 @@ struct LOC_advancetonode {
   long depth;
 } ;
 
-
 Local Void writecomp(point, count, LINK)
 path *point;
 long count;
 struct LOC_advancetonode *LINK;
 {
   long i, FORLIM;
-
   fprintf(LINK->LINK->thefile->f, "%6c", ' ');
 
   fputc(basetochar(point->bas), LINK->LINK->thefile->f);
@@ -1238,20 +1040,14 @@ struct LOC_advancetonode *LINK;
     putc('\n', LINK->LINK->thefile->f);
 }
 
-
 Local Void advancetonode(depth_, thenode, point, LINK)
 long depth_;
 compnode *thenode;
 path *point;
 struct LOC_writetree *LINK;
 {
-  /*
-
-
-*/
   struct LOC_advancetonode V;
   base ba;
-
   V.LINK = LINK;
   V.depth = depth_;
   if (V.depth == LINK->printdepth) {
@@ -1286,20 +1082,13 @@ struct LOC_writetree *LINK;
   }
 }
 
-
-
 Static Void writetree(thefile_, root)
 _TEXT *thefile_;
 compnode *root;
 {
-  /*
-
-*/
   struct LOC_writetree V;
   path *point;
   long i, FORLIM;
-
-
   V.thefile = thefile_;
   V.start = (path *)Malloc(sizeof(path));
   V.start->next = NULL;
@@ -1322,20 +1111,82 @@ compnode *root;
   }
 }
 
+/* Print help for user */
+void usage() {
+  printf("\n");
+  printf(" comp: determine the composition of a book\n");
+  printf("\n  comp -b book -p compp\n\n");
+  printf(" parameters: \n");
+  printf("   -b delila book \n");
+  printf("   -p compp parameters to control the program.\n\n");
+  printf(" Outputs:\n\n");
+  printf("   cmp: the composition, determined for mononucleotides up to \n");
+  printf("        oligonucleotides of length \"compmax\"\n");
+  printf("   output: messages to user\n");
+  printf("\n");
+  printf("  version %4.2f\n", version);
+  exit(EXIT_SUCCESS);
+}
 
-main(argc, argv)
-int argc;
-Char *argv[];
+int main(int argc, Char **argv)
 {
+  line *WITH;
+  long FORLIM;
+  extern char *optarg;
+	extern int optind;
+	int c, err = 0; 
+  /* flags marking arguments passed */
+  int bflag=0;       /* book output file name  */
+  int pflag=0;       /* compp file */
+	char *bookName     = "book.txt";
+  char *parameters   = "comp.txt";
+
+/* Process command line arguments  */
+while ((c = getopt(argc, argv, "b:p:")) != -1)
+		switch (c) {
+		case 'b':
+      bflag = 1;
+			bookName = optarg;
+      printf("bflag %s\n", bookName);
+      break;
+		case 'p':
+      pflag = 1;
+      parameters  = optarg;
+      printf("parameters %s\n", parameters);
+      break;
+    case '?':
+			err = 1;
+			break;
+		}
+
+  /* Is the book file name present */  
+	if (bflag == 0) {	/* -b bookname was mandatory */ 
+		fprintf(stderr, "%s: missing -b bookname\n", argv[0]);
+		usage();
+		exit(1);
+	} 
+
+  /* parameters file  */  
+  if (pflag == 0) { 
+    fprintf(stderr, "%s: missing -p compp file \n", argv[0]);
+		usage();
+		exit(1);
+    }  
+
+  if (err) {
+		usage();
+		exit(1);
+	}
+
   PASCAL_MAIN(argc, argv);
   if (setjmp(_JL1))
     goto _L1;
   compp.f = NULL;
-  strcpy(compp.name, "compp");
+  strcpy(compp.name, parameters);
   cmp.f = NULL;
   strcpy(cmp.name, "cmp");
   book.f = NULL;
-  strcpy(book.name, "book");
+  strcpy(book.name, bookName);
   initialize();
   while (!BUFEOF(book.f)) {
     getpiece(&book, &pie);
@@ -1353,8 +1204,5 @@ _L1:
   if (compp.f != NULL)
     fclose(compp.f);
   exit(EXIT_SUCCESS);
-}
-
-
-
-/* End. */
+  return 0;
+}/* End. */
