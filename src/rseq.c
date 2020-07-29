@@ -1,177 +1,101 @@
 /* Output from p2c 2.00.Oct.15, the Pascal-to-C translator */
 /* From input file "rseq.p" */
 
-
- #include "/root/src/p2c-2.01/home/src/p2c.h"
-
-
+#include <getopt.h>  /* getopt API */ 
+#include <stdio.h>   /* printf */
+#include <stdlib.h> 
+#include </home/mplace/bin/p2c/src/p2c.h>
 /*
+ rseq: rsequence calculated from encoded sequences
 
+  Dr. Thomas D. Schneider
+  toms@alum.mit.edu
+  permanent email: toms@alum.mit.edu (use only if first address fails)
+  https://alum.mit.edu/www/toms/
 
+  module libraries required: delman, matmods, prgmods, auxmods
 
+  name
+      rseq: rsequence calculated from encoded sequences
 
+synopsis
+      rseq(encseq: in, cmp: in, rsdata: out, output: out)
 
+files
+      encseq: the output of the encode program
+      cmp: a composition from the comp program.
+          if cmp is empty, then equal frequencies are assumed.
+      rsdata: a display of the information content of each position
+         of the sequences, with the sampling error variance.
+         This output is ready to be used as input to rsgra or as data
+         for genhis for plotting.
+      output: messages to the user.
 
+description
+      Encoded sequences from encseq are converted to a table of frequencies
+      for each base (b) at each aligned position (l).  rsequence(l)
+      and the variance var(hnb) are calculated and shown along with
+      their running sums.  rsequence and the variance due to sampling
+      error are shown for the whole site, but the running sums let one
+      find rsequence and the variance for any subrange desired.
+         n, the number of example sequences may vary with position, so
+      both n and e(hnb) are shown.
+
+documentation
+      Schneider, T.D., G.D. Stormo, L. Gold and A. Ehrenfeucht (1986)
+      The information content of binding sites on nucleotide sequences.
+      J. Mol. Biol. 188: 415-431.
+
+author
+      Thomas D. Schneider
+
+bugs
+      Does not handle di-nucleotides or longer oligos
+
+technical notes
+      Constants maxsize (procedure calehnb) and kickover (procedure
+      makehnblist) determine the largest n for which e(hnb) is used.  Above
+      this, ae(hnb) is used.  Do not set these below 50 without careful
+      analysis.  Other constants are in module rseq.const.
+
+To Compile:
+
+gcc rseq.c -o rseq -I/home/mplace/bin/p2c/src -L /home/mplace/bin/p2c/src -lm -lp2c
+
+To Run:
+
+rseq  -c cmp -e encseq 
 
 */
-
-
-
 #define version         5.41
-/*
-
-
-
-
-
-
-
-*/
-
-
-
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-
-
 #define negativeinfinity  (-1000000L)
-/*
-*/
-
 #define tolerance       (-20.0)
-/*
-*/
-
 #define posfield        4
 #define infofield       8
 #define infodecim       5
 #define nfield          4
 #define wfield          10
-
-
-
 #define maxvecpart      64
 #define vpagewidth      64
-
-
-/*
-*/
-
-
-
-/*
-*/
-/*
-
-*/
 
 typedef struct spacelist {
   long skips;
   struct spacelist *next;
 } spacelist;
 
-/*
-
-*/
 typedef enum {
   start, stop
 } endpoints;
 
 typedef struct parameter {
   long range[2];
-  /*
-*/
   long window, wshift, coding;
-  /*
-*/
   spacelist *spaces;
   long cshift;
-
-
   long wvlength;
-  /*
-*/
   long pvlength;
-  /*
-*/
-  /*
-*/
-
   struct parameter *next;
 } parameter;
-
-
-
-
-/*
-
-
-
-
-
-
-
-*/
 
 typedef struct vectorpart {
   double numbers[maxvecpart];
@@ -183,52 +107,30 @@ typedef struct vector {
   vectorpart *part;
 } vector;
 
-
-
-
 typedef enum {
   a, c, g, t
 } base;
 
-
-
-
 typedef struct compnode {
   long count;
   struct compnode *son[4];
-  /*
-*/
 } compnode;
 
-
 typedef struct spider {
-  /*
-
-
-*/
   long depth;
   compnode *place;
   struct spider *next;
 } spider;
-
-/*
-*/
 
 typedef struct comptotal {
   long count;
   struct comptotal *next;
 } comptotal;
 
-
 typedef struct path {
   base bas;
   struct path *next;
 } path;
-
-
-
-/*
-*/
 
 typedef struct ehnblist {
   long n;
@@ -237,33 +139,14 @@ typedef struct ehnblist {
   struct ehnblist *next;
 } ehnblist;
 
-
-
-
-
-
-
 Static _TEXT encseq, cmp, rsdata;
-
-
 Static jmp_buf _JL1;
-
-
 
 Static Void halt()
 {
-  /*
-
-
-
-
-
-*/
   printf(" program halt.\n");
   longjmp(_JL1, 1);
 }
-
-
 
 Static Void copyaline(fin, fout)
 _TEXT *fin, *fout;
@@ -277,37 +160,13 @@ _TEXT *fin, *fout;
   putc('\n', fout->f);
 }
 
-
 #define debugging       false
-
 #define boundary        2
-
-
 
 Static boolean emptyfile(afile)
 _TEXT *afile;
 {
-  /*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
   boolean Result;
-  /*
-*/
   long lines = 0, chars = 0;
   Char ch;
 
@@ -365,16 +224,9 @@ _TEXT *afile;
 #undef debugging
 #undef boundary
 
-
-
-
-
-
 Static long vectorsize(param)
 parameter *param;
 {
-  /*
-*/
   long size = 0;
 
   while (param != NULL) {
@@ -384,29 +236,20 @@ parameter *param;
   return size;
 }
 
-
 Static long paramsize(param)
 parameter *param;
 {
   long rangesize, numwindows;
-
-  /*
-*/
   rangesize = param->range[(long)stop] - param->range[(long)start] + 1;
   numwindows = (long)((rangesize - 1.0) / param->wshift + 1);
   return (numwindows * param->wvlength);
 }
-
 
 Static Void readencpar(thefile, param, regions, vectorlength)
 _TEXT *thefile;
 parameter **param;
 long *regions, *vectorlength;
 {
-  /*
-
-
-*/
   parameter *aparam, *newparam;
   spacelist *firstspaces, *newspaces;
   long i, j;
@@ -437,19 +280,13 @@ long *regions, *vectorlength;
     getc(thefile->f);
   }
 
-
   fscanf(thefile->f, "%*[^\n]");
-
-
   getc(thefile->f);
   fscanf(thefile->f, "%ld%*[^\n]", regions);
   getc(thefile->f);
 
   FORLIM = *regions;
   for (i = 1; i <= FORLIM; i++) {
-
-
-
     fscanf(thefile->f, "%ld", aparam->range);
     do {
       ch = getc(thefile->f);
@@ -490,8 +327,6 @@ long *regions, *vectorlength;
     getc(thefile->f);
     fscanf(thefile->f, "%ld%*[^\n]", &aparam->cshift);
     getc(thefile->f);
-
-
     aparam->wvlength = (long)floor(exp(aparam->coding * log(4.0)) + 0.5);
     aparam->pvlength = paramsize(aparam);
 
@@ -502,8 +337,6 @@ long *regions, *vectorlength;
     }
   }
   aparam->next = NULL;
-
-
   fscanf(thefile->f, "%ld%*[^\n]", vectorlength);
   getc(thefile->f);
   if (*vectorlength == vectorsize(*param))
@@ -512,13 +345,6 @@ long *regions, *vectorlength;
   printf(" does not correspond to the parameters\n");
   halt();
 }
-
-
-
-
-
-
-
 
 Static double vget(v, pos)
 vector v;
@@ -537,10 +363,8 @@ long pos;
   for (i = 1; i <= (pos - 1) / maxvecpart; i++)
     v.part = v.part->next;
 
-
   return (v.part->numbers[(pos - 1) & (maxvecpart - 1)]);
 }
-
 
 Static Void vput(v, pos, number)
 vector *v;
@@ -557,7 +381,6 @@ double number;
     halt();
   }
 
-
   firstpart = v->part;
   for (i = 1; i <= (pos - 1) / maxvecpart; i++)
     v->part = v->part->next;
@@ -567,13 +390,10 @@ double number;
   v->part = firstpart;
 }
 
-
 Static Void makevector(v, l)
 vector *v;
 long l;
 {
-  /*
-*/
   long numparts, i;
   vectorpart *firstpart, *newpart;
 
@@ -595,18 +415,10 @@ long l;
   v->part = firstpart;
 }
 
-
-
 Static Void readvector(thefile, v)
 _TEXT *thefile;
 vector *v;
 {
-  /*
-
-
-
-
-*/
   long i, j, numparts, lastpart;
   vectorpart *firstpart;
 
@@ -625,20 +437,16 @@ vector *v;
   v->part = firstpart;
 }
 
-
-
 Static Void vset(thevalue, v)
 double thevalue;
 vector *v;
 {
   long i, FORLIM;
-
   FORLIM = v->length;
+
   for (i = 1; i <= FORLIM; i++)
     vput(v, i, thevalue);
 }
-
-
 
 Static Void vadd(a_, b)
 vector a_, *b;
@@ -654,19 +462,9 @@ vector a_, *b;
     vput(b, i, vget(*b, i) + vget(a_, i));
 }
 
-
-
-
-
-
-
 Static Void skipoligo(thefile)
 _TEXT *thefile;
 {
-  /*
-
-
-*/
   Char ch;
 
   do {
@@ -681,26 +479,16 @@ _TEXT *thefile;
   } while (ch != ' ');
 }
 
-
-/*
-
-
-*/
-
 typedef struct list {
   compnode *item;
   struct list *next;
 } list;
-
 
 /* Local variables for readcomp: */
 struct LOC_readcomp {
   list *freeitem;
 } ;
 
-/*
-
-*/
 Local Void getitem(l, LINK)
 list **l;
 struct LOC_readcomp *LINK;
@@ -712,7 +500,6 @@ struct LOC_readcomp *LINK;
     *l = (list *)Malloc(sizeof(list));
   (*l)->next = NULL;
 }
-
 
 Local Void clearitem(l, LINK)
 list **l;
@@ -728,21 +515,12 @@ struct LOC_readcomp *LINK;
   LINK->freeitem = lptr;
 }
 
-
 Static Void readcomp(comp, compmax, readmax, root, monocomptotal)
 _TEXT *comp;
 long *compmax, readmax;
 compnode **root;
 comptotal **monocomptotal;
 {
-  /*
-
-
-
-
-
-
-*/
   struct LOC_readcomp V;
   list *listitem, *first, *last;
   comptotal *comptot, *newcomptot;
@@ -772,7 +550,6 @@ comptotal **monocomptotal;
   getc(comp->f);
   fscanf(comp->f, "%*[^\n]");
 
-
   getc(comp->f);
   if (readmax < 1) {
     printf("\n warning: 0 or negative oligo length requested\n");
@@ -798,8 +575,6 @@ comptotal **monocomptotal;
   last = first;
   V.freeitem = (list *)Malloc(sizeof(list));
   V.freeitem->next = NULL;
-
-
   fscanf(comp->f, "%*[^\n]");
   getc(comp->f);
   fscanf(comp->f, "%*[^\n]");
@@ -850,9 +625,7 @@ comptotal **monocomptotal;
       getc(comp->f);
     }
   } while (level != *compmax);
-  /*
 
-*/
   do {
     for (ba = a; (long)ba <= (long)t; ba = (base)((long)ba + 1)) {
       skipoligo(comp);
@@ -870,16 +643,10 @@ comptotal **monocomptotal;
   } while (first != NULL);
 }
 
-
 Static long getcount(root, start_)
 compnode *root;
 path *start_;
 {
-  /*
-
-
-
-*/
   compnode *place = root;
   path *point = start_;
 
@@ -893,18 +660,12 @@ path *start_;
     return (place->count);
 }
 
-
-
-
 Static Void getmonocomposition(cmp, gna, gnc, gng, gnt, data, equalmono)
 _TEXT *cmp;
 long *gna, *gnc, *gng, *gnt;
 _TEXT *data;
 boolean *equalmono;
 {
-  /*
-
-*/
   long compmax;
   compnode *root;
   comptotal *monocomptotal;
@@ -946,19 +707,15 @@ boolean *equalmono;
     start_->bas = b1;
     count = getcount(root, start_);
     switch (b1) {
-
     case a:
       *gna = count;
       break;
-
     case c:
       *gnc = count;
       break;
-
     case g:
       *gng = count;
       break;
-
     case t:
       *gnt = count;
       break;
@@ -968,68 +725,29 @@ boolean *equalmono;
   *equalmono = false;
 }
 
-
 #define maxsize         200
 #define accuracy        10000
-
-
-
-
 
 Static Void calehnb(n, gna, gnc, gng, gnt, hg, ehnb, varhnb)
 long n, gna, gnc, gng, gnt;
 double *hg, *ehnb, *varhnb;
 {
-  /*
-
-
-
-
-
-
-
-
-
-*/
-  /*
-*/
-
   double log2Delila = log(2.0);
   double logn, nlog2;
-
   long gn;
   double logpa, logpc, logpg, logpt;
-
-  /*
-*/
   double logfact[maxsize + 1];
-
-  /*
-*/
   double mplog2p[maxsize + 1];
-
   long i;
   double logi;
-
   long na;
   long nc = 0, ng = 0, nt = 0;
   boolean done = false;
-
   double pnb;
-  /*
-*/
   double hnb, pnbhnb;
   double sshnb = 0.0;
-
-
   double total = 0.0;
-  /*
-*/
   long counter = 0;
-
-  /*
-*/
-
 
   if (n > maxsize) {
     printf(" procedure calehnb: n > maxsize (%ld>%ld)\n", n, (long)maxsize);
@@ -1038,22 +756,15 @@ double *hg, *ehnb, *varhnb;
 
   logn = log((double)n);
   nlog2 = n * log2Delila;
-
-
   gn = gna + gnc + gng + gnt;
   logpa = log((double)gna / gn);
   logpc = log((double)gnc / gn);
   logpg = log((double)gng / gn);
   logpt = log((double)gnt / gn);
-
-
   *hg = -((gna * logpa + gnc * logpc + gng * logpg + gnt * logpt) /
 	  (gn * log2Delila));
 
   *ehnb = 0.0;
-
-  /*
-*/
   logfact[0] = 0.0;
   mplog2p[0] = 0.0;
   for (i = 1; i <= n; i++) {
@@ -1062,93 +773,30 @@ double *hg, *ehnb, *varhnb;
     mplog2p[i] = i * (logn - logi) / nlog2;
   }
 
-
   na = n;
 
-  /*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-
   do {
-    /*
-
-
-
-
-
-
-
-
-
-*/
 
     pnb = exp(logfact[n] - logfact[na] - logfact[nc] - logfact[ng] -
 	      logfact[nt] + na * logpa + nc * logpc + ng * logpg + nt * logpt);
-
     hnb = mplog2p[na] + mplog2p[nc] + mplog2p[ng] + mplog2p[nt];
-
     pnbhnb = pnb * hnb;
-
     *ehnb += pnbhnb;
-
     sshnb += pnbhnb * hnb;
-
-    /*
-*/
     counter++;
-    /*
-
-
-
-
-
-
-
-*/
     total += pnb;
 
-    /*
-
-
-
-*/
     if (nt > 0) {
       if (ng > 0) {
 	ng--;
 	nt++;
       } else if (nc > 0) {
-	/*
-*/
+
 	nc--;
 	ng = nt + 1;
 	nt = 0;
       } else if (na > 0) {
-	/*
-*/
+
 	na--;
 	nc = nt + 1;
 	nt = 0;
@@ -1168,26 +816,17 @@ double *hg, *ehnb, *varhnb;
     }
   } while (!done);
 
-
   *varhnb = sshnb - *ehnb * *ehnb;
 
-  /*
-*/
   if (accuracy != (long)floor(accuracy * total + 0.5)) {
     printf(" procedure calehnb: the sum of probabilities is\n");
     printf(" not accurate to one part in %ld\n", (long)accuracy);
     printf(" the sum of the probabilities is %10.8f\n", total);
   }
 
-  /*
-
-*/
   if (counter == (long)floor((n + 1.0) * (n + 2) * (n + 3) / 6 + 0.5))
     return;
-  /*
 
-
-*/
   printf(" procedure calehnb: program error, the number of\n");
   printf(" calculations is in error\n");
   halt();
@@ -1196,49 +835,25 @@ double *hg, *ehnb, *varhnb;
 #undef maxsize
 #undef accuracy
 
-
-
 Static Void calaehnb(n, gna, gnc, gng, gnt, hg, aehnb, avarhnb)
 long n, gna, gnc, gng, gnt;
 double *hg, *aehnb, *avarhnb;
 {
-  /*
-
-
-
-
-
-
-
-
-
-
-
-*/
   double log2Delila = log(2.0);
-
   long gn;
   double pa, pc, pg, pt, e;
-
-
   gn = gna + gnc + gng + gnt;
   pa = (double)gna / gn;
   pc = (double)gnc / gn;
   pg = (double)gng / gn;
   pt = (double)gnt / gn;
-
   *hg = -((pa * log(pa) + pc * log(pc) + pg * log(pg) + pt * log(pt)) / log2Delila);
-
   e = 3 / (2 * log2Delila * n);
-
   *aehnb = *hg - e;
-
   *avarhnb = e * e;
 }
 
-
 #define kickover        50
-
 
 /* Local variables for makehnblist: */
 struct LOC_makehnblist {
@@ -1252,13 +867,7 @@ ehnblist **l;
 struct LOC_makehnblist *LINK;
 {
   if (LINK->num == 0) {
-    /*
-
-
-
-*/
     (*l)->aflag = ' ';
-
     return;
   }
 
@@ -1275,27 +884,16 @@ struct LOC_makehnblist *LINK;
   }
 }
 
-
-
 Static Void makehnblist(n, gna_, gnc_, gng_, gnt_, l, hg_)
 vector n;
 long gna_, gnc_, gng_, gnt_;
 ehnblist **l;
 double *hg_;
 {
-  /*
-
-*/
   struct LOC_makehnblist V;
-  /*
-
-*/
   long nindex = 1;
-  /*
-*/
   ehnblist *lindex, *spare;
   boolean done;
-
   V.gna = gna_;
   V.gnc = gnc_;
   V.gng = gng_;
@@ -1308,16 +906,12 @@ double *hg_;
   for (nindex = 2; nindex <= n.length; nindex++) {
     V.num = (long)floor(vget(n, nindex) + 0.5);
 
-
     if (V.num < (*l)->n) {
       spare = (ehnblist *)Malloc(sizeof(ehnblist));
       spare->next = *l;
       *l = spare;
       fill(l, &V);
-    }
-
-
-    else {
+    }    else {
       lindex = *l;
       done = false;
 
@@ -1337,29 +931,20 @@ double *hg_;
 	  lindex->next = (ehnblist *)Malloc(sizeof(ehnblist));
 	  lindex = lindex->next;
 	  lindex->next = NULL;
-	}
-
-	else {
+	}	else {
 	  spare = (ehnblist *)Malloc(sizeof(ehnblist));
 	  spare->next = lindex->next;
 	  lindex->next = spare;
 	  lindex = spare;
 	}
 
-
 	fill(&lindex, &V);
       }
-
-
-
-
     }
   }
 }
 
 #undef kickover
-
-
 
 Static Void gethnb(l, n, ehnb, varhnb, aflag)
 ehnblist *l;
@@ -1367,11 +952,7 @@ long n;
 double *ehnb, *varhnb;
 Char *aflag;
 {
-  /*
-
-*/
   ehnblist *lindex = l;
-
   while (lindex->n != n && lindex->next != NULL)
     lindex = lindex->next;
 
@@ -1381,21 +962,14 @@ Char *aflag;
     halt();
   }
 
-
   *ehnb = lindex->ehnb;
   *varhnb = lindex->varhnb;
   *aflag = lindex->aflag;
 }
 
-
-
-
-
 Static Void header(data, encseq)
 _TEXT *data, *encseq;
 {
-  /*
-*/
   if (*data->name != '\0') {
     if (data->f != NULL)
       data->f = freopen(data->name, "w", data->f);
@@ -1434,8 +1008,6 @@ _TEXT *data, *encseq;
   fprintf(data->f, "*\n");
 }
 
-
-
 Static Void checkparams(theparameters)
 parameter *theparameters;
 {
@@ -1465,8 +1037,6 @@ parameter *theparameters;
   }
 }
 
-
-
 Static Void sumvectors(encseq, nbl, firstparam)
 _TEXT *encseq;
 vector *nbl;
@@ -1474,10 +1044,8 @@ parameter **firstparam;
 {
   long regions, vsize;
   vector v;
-
   *firstparam = NULL;
   readencpar(encseq, firstparam, &regions, &vsize);
-
   makevector(nbl, vsize);
   makevector(&v, vsize);
   vset(0.0, nbl);
@@ -1488,14 +1056,10 @@ parameter **firstparam;
   }
 }
 
-
-
 Static Void makenl(nbl, nl, firstparam)
 vector nbl, *nl;
 parameter **firstparam;
 {
-  /*
-*/
   parameter *aparam;
   long l;
   long v = 0;
@@ -1507,7 +1071,6 @@ parameter **firstparam;
   vset(0.0, nl);
   aparam = *firstparam;
 
-
   while (aparam != NULL) {
     l = aparam->range[(long)start];
     do {
@@ -1516,7 +1079,6 @@ parameter **firstparam;
       FORLIM = aparam->wvlength;
       for (w = 1; w <= FORLIM; w++)
 	total += vget(nbl, w + v);
-
 
       FORLIM = aparam->wvlength;
       for (w = 1; w <= FORLIM; w++)
@@ -1533,8 +1095,6 @@ parameter **firstparam;
   }
 }
 
-
-
 Static Void compressnl(nl, firstparam, thefrom, theto)
 vector nl;
 parameter *firstparam;
@@ -1544,7 +1104,6 @@ long *thefrom, *theto;
   long l;
   double total;
   long v = 0;
-
   *thefrom = LONG_MAX;
   *theto = -LONG_MAX;
 
@@ -1552,14 +1111,6 @@ long *thefrom, *theto;
     l = aparam->range[(long)start];
 
     do {
-      /*
-
-
-
-
-
-
-*/
 
       total = vget(nl, v + 1);
       if (total > 0)
@@ -1569,38 +1120,24 @@ long *thefrom, *theto;
 	  *thefrom = l;
       }
 
-
       v += aparam->wvlength;
-
       l += aparam->wshift;
     } while (l <= aparam->range[(long)stop]);
-
 
     aparam = aparam->next;
   }
 }
 
-
 #define cmpnmin         1000
-
-
 
 Static Void prepareehnb(cmp, data, nl, ehnb)
 _TEXT *cmp, *data;
 vector nl;
 ehnblist **ehnb;
 {
-  /*
-
-*/
-  /*
-*/
-
   long gmono[4];
   long genomicn;
   boolean equalmono;
-  /*
-*/
   double hg;
 
   fprintf(data->f, "* genomic probabilities from:\n");
@@ -1632,9 +1169,6 @@ ehnblist **ehnb;
 
 #undef cmpnmin
 
-
-
-
 Static Void colinfo(data)
 _TEXT *data;
 {
@@ -1651,8 +1185,6 @@ _TEXT *data;
   fprintf(data->f, "*          e = exact, a = approximation\n");
 }
 
-
-
 Static Void colid(data)
 _TEXT *data;
 {
@@ -1664,8 +1196,6 @@ _TEXT *data;
 	  (int)(posfield + 1), " n(l)", (int)(infofield + 1), " e(hnb)");
 }
 
-
-
 Static Void finalcomments(data, rs, sumvarhnb)
 _TEXT *data;
 double rs, sumvarhnb;
@@ -1674,8 +1204,6 @@ double rs, sumvarhnb;
 	  infofield, infodecim, rs, infofield, infodecim, sqrt(sumvarhnb));
 }
 
-
-
 Static Void makers(data, nbl, nl, ehnblist_, theparameters, thefrom, theto)
 _TEXT *data;
 vector nbl, nl;
@@ -1683,27 +1211,13 @@ ehnblist *ehnblist_;
 parameter *theparameters;
 long thefrom, theto;
 {
-  /*
-*/
-  /*
-
-
-*/
   Char aflag;
-  /*
-*/
   long b;
-  /*
-*/
   long bstart;
-  /*
-*/
   long bstop;
   double ehnb, freq;
   long l;
   double ln2 = log(2.0);
-  /*
-*/
   long rangestart, rangestop;
   double rsl;
   double rs = 0.0, sumvarhnb = 0.0;
@@ -1714,12 +1228,6 @@ long thefrom, theto;
   rangestart = theparameters->range[(long)start];
   rangestop = theparameters->range[(long)stop];
   symbols = theparameters->wvlength;
-  /*
-*/
-  /*
-
-
-*/
   fprintf(data->f, "* %*ld %*ld is the range\n",
 	  posfield, thefrom, posfield, theto);
   fprintf(data->f, "*\n");
@@ -1727,11 +1235,6 @@ long thefrom, theto;
   fprintf(data->f, "*\n");
   colid(data);
 
-
-  /*
-
-
-*/
   for (l = thefrom; l <= theto; l++) {
     fprintf(data->f, " %*ld", posfield, l);
 
@@ -1754,12 +1257,6 @@ long thefrom, theto;
     rs += rsl;
     sumvarhnb += varhnb;
 
-
-    /*
-
-
-*/
-
     fprintf(data->f, " %*.*f %*.*f % .*E % .*E  %*ld %*.*f %c\n",
 	    infofield, infodecim, rsl, infofield, infodecim, rs,
 	    P_max((int)(infofield + 3) - 7, 1), varhnb,
@@ -1768,14 +1265,11 @@ long thefrom, theto;
 	    aflag);
   }
 
-
   TEMP.f = stdout;
   *TEMP.name = '\0';
   finalcomments(&TEMP, rs, sumvarhnb);
   finalcomments(data, rs, sumvarhnb);
 }
-
-
 
 Static Void themain(encseq, cmp, rsdata)
 _TEXT *encseq, *cmp, *rsdata;
@@ -1789,40 +1283,88 @@ _TEXT *encseq, *cmp, *rsdata;
   header(rsdata, encseq);
   sumvectors(encseq, &nbl, &theparameters);
   checkparams(theparameters);
-
-
-  /*
-
-
-*/
-
   makenl(nbl, &nl, &theparameters);
-
   compressnl(nl, theparameters, &thefrom, &theto);
-
-  /*
-
-
-*/
-
   prepareehnb(cmp, rsdata, nl, &ehnb);
   makers(rsdata, nbl, nl, ehnb, theparameters, thefrom, theto);
 }
 
+/* Print help for user */
+void usage() {
+  printf("\n");
+  printf(" rseq: rsequence calculated from encoded sequences\n");
+  printf("\n  rseq -c cmp -e encseq\n\n");
+  printf(" parameters: \n");
+  printf("   -c cmp, a composition file from the comp program \n");
+  printf("   -e the output of the encode program\n\n");
+  printf(" Outputs:\n");
+  printf("   rsdata: a display of the information content of each position  \n");
+  printf("           of the sequences, with the sampling error variance.\n");
+  printf("   output: messages to user\n");
+  printf("\n");
+  printf("  version %4.2f\n", version);
+  exit(EXIT_SUCCESS);
+}
 
-main(argc, argv)
-int argc;
-Char *argv[];
+int main(int argc, Char **argv)
 {
+  list *WITH;
+  long FORLIM;
+  extern char *optarg;
+	extern int optind;
+	int c, err = 0; 
+  /* flags marking arguments passed */
+  int cflag=0;       /* cmp file name  */
+  int eflag=0;       /* encseq file */
+	char *cmpFile     = "cmp.txt";
+  char *encseqFile  = "encseq.txt";
+
+/* Process command line arguments  */
+while ((c = getopt(argc, argv, "c:e:")) != -1)
+		switch (c) {
+		case 'c':
+      cflag = 1;
+			cmpFile = optarg;
+      printf("cflag %s\n", cmpFile);
+      break;
+		case 'e':
+      eflag = 1;
+      encseqFile  = optarg;
+      printf("parameters %s\n", encseqFile);
+      break;
+    case '?':
+			err = 1;
+			break;
+		}
+
+  /* Is the book file name present */  
+	if (cflag == 0) {	/* -c cmp file is mandatory */ 
+		fprintf(stderr, "%s: missing -c cmp file \n", argv[0]);
+		usage();
+		exit(1);
+	} 
+
+  /* parameters file  */  
+  if (eflag == 0) { 
+    fprintf(stderr, "%s: missing -e encseq file \n", argv[0]);
+		usage();
+		exit(1);
+    }  
+
+  if (err) {
+		usage();
+		exit(1);
+	}
+
   PASCAL_MAIN(argc, argv);
   if (setjmp(_JL1))
     goto _L1;
   rsdata.f = NULL;
   strcpy(rsdata.name, "rsdata");
   cmp.f = NULL;
-  strcpy(cmp.name, "cmp");
+  strcpy(cmp.name, cmpFile);
   encseq.f = NULL;
-  strcpy(encseq.name, "encseq");
+  strcpy(encseq.name, encseqFile);
   themain(&encseq, &cmp, &rsdata);
 _L1:
   if (encseq.f != NULL)
@@ -1832,8 +1374,5 @@ _L1:
   if (rsdata.f != NULL)
     fclose(rsdata.f);
   exit(EXIT_SUCCESS);
-}
-
-
-
-/* End. */
+  return 0;
+}/* End. */
