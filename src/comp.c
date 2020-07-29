@@ -90,7 +90,7 @@ gcc comp.c -o comp -I/home/mplace/bin/p2c/src -L /home/mplace/bin/p2c/src -lm -l
 
 To Run:
 
-comp -b R.sphaeroides-2.4.1_cinst_book.txt -i cinst -p encodep
+comp -b R.sphaeroides-2.4.1_cinst_book.txt -p encodep
 
 
 */
@@ -1119,7 +1119,7 @@ void usage() {
   printf(" parameters: \n");
   printf("   -b delila book \n");
   printf("   -p compp parameters to control the program.\n\n");
-  printf(" Outputs:\n\n");
+  printf(" Outputs:\n");
   printf("   cmp: the composition, determined for mononucleotides up to \n");
   printf("        oligonucleotides of length \"compmax\"\n");
   printf("   output: messages to user\n");
