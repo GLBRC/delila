@@ -560,10 +560,33 @@ class delilaPipe( object ):
         logger.info(result1)
         logger.info(result2)
 
-    def runRSEQ(self):
+    def runRSEQ(self, cmp, encseq):
         '''
-        '''
-        pass
+        from Delila documentation:
+
+        Encoded sequences from encseq are converted to a table of frequencies
+        for each base (b) at each aligned position (l).  rsequence(l)
+        and the variance var(hnb) are calculated and shown along with
+        their running sums.  rsequence and the variance due to sampling
+        error are shown for the whole site, but the running sums let one
+        find rsequence and the variance for any subrange desired.
+            n, the number of example sequences may vary with position, so
+        both n and e(hnb) are shown.
+
+        rseq -c cmp -e encseq 
+        ''' 
+        # set up rseq
+        program = pdir + 'rseq'
+        cmd = [ program , '-c', cmp, '-e', encseq ]
+        logger.info("Running rseq ")
+        logger.info(program + ' ' + ' '.join(cmd))
+        # run alist
+        output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        result1 = output[0].decode('utf-8')
+        result2 = output[1].decode('utf-8')
+        # log stdout and stderr 
+        logger.info(result1)
+        logger.info(result2)       
 
     def runDALVEC(self):
         '''
@@ -664,7 +687,7 @@ def main():
     pipe.runALIST( 'R.sphaeroides-2.4.1_cinst_book.txt', 'cinst', 'avalues' )
     pipe.runENCODE('R.sphaeroides-2.4.1_cinst_book.txt', 'cinst', 'encodep')
     pipe.runCOMP('R.sphaeroides-2.4.1_cinst_book.txt', 'compp')
-
+    pipe.runRSEQ('cmp', 'encseq')
 
 
 if __name__ == "__main__":
