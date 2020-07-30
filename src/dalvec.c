@@ -93,11 +93,9 @@ gcc dalvec.c -o dalvec -I/home/mplace/bin/p2c/src -L /home/mplace/bin/p2c/src -l
 
 To Run:
 
-dalvec  -c cmp -e encseq 
+dalvec -r rsdata -p dalvecp 
 
 */
-
-
 #include <getopt.h>  /* getopt API */ 
 #include <stdio.h>   /* printf */
 #include <stdlib.h> 
@@ -486,20 +484,81 @@ _TEXT *rsdata, *dalvecp, *symvec;
     }
   }
 }
-
 #undef bignumber
+
+/* Print help for user */
+void usage() {
+  printf("\n");
+  printf(" dalvec: converts Rseq rsdata file to symvec format\n");
+  printf("\n  dalvec -r rsdata -p dalvecp\n\n");
+  printf(" parameters: \n");
+  printf("   -r data file from rseq program \n");
+  printf("   -p parameters to control dalvec, If empty, then the normal sequence\n");
+  printf("      logo will be produced.\n\n");
+  printf(" Outputs:\n");
+  printf("   symvec: reformating of the rsdata file for input to the makelogo program \n");
+  printf("   output: messages to user\n");
+  printf("\n");
+  printf("  version %4.2f\n", version);
+  exit(EXIT_SUCCESS);
+}
 
 int main(int argc, Char **argv)
 {
+  long FORLIM;
+  extern char *optarg;
+	extern int optind;
+	int c, err = 0; 
+  /* flags marking arguments passed */
+  int rflag=0;       /* rsdata file name  */
+  int pflag=0;       /* dalvecp file */
+	char *rsdataFile  = "rsdata.txt";
+  char *dalvecpFile = "dalvecp.txt";
+
+/* Process command line arguments  */
+while ((c = getopt(argc, argv, "r:p:")) != -1)
+		switch (c) {
+		case 'r':
+      rflag = 1;
+			rsdataFile = optarg;
+      break;
+		case 'p':
+      pflag = 1;
+      dalvecpFile  = optarg;
+      break;
+    case '?':
+			err = 1;
+			break;
+		}
+
+  /* Is the rsdata file name present */  
+	if (rflag == 0) {	/* -r rsdata file is mandatory */ 
+		fprintf(stderr, "%s: missing -r rsdata file \n", argv[0]);
+		usage();
+		exit(1);
+	} 
+
+  /* parameters file  */  
+  if (pflag == 0) { 
+    fprintf(stderr, "%s: missing -p dalvecp file \n", argv[0]);
+		usage();
+		exit(1);
+    }  
+
+  if (err) {
+		usage();
+		exit(1);
+	}
+
   PASCAL_MAIN(argc, argv);
   if (setjmp(_JL1))
     goto _L1;
   symvec.f = NULL;
   strcpy(symvec.name, "symvec");
   dalvecp.f = NULL;
-  strcpy(dalvecp.name, "dalvecp");
+  strcpy(dalvecp.name, dalvecpFile);
   rsdata.f = NULL;
-  strcpy(rsdata.name, "rsdata");
+  strcpy(rsdata.name, rsdataFile);
   themain(&rsdata, &dalvecp, &symvec);
 _L1:
   if (rsdata.f != NULL)
