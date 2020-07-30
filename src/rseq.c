@@ -1308,7 +1308,7 @@ void usage() {
 
 int main(int argc, Char **argv)
 {
-  list *WITH;
+  /*list *WITH;*/
   long FORLIM;
   extern char *optarg;
 	extern int optind;
@@ -1337,7 +1337,7 @@ while ((c = getopt(argc, argv, "c:e:")) != -1)
 			break;
 		}
 
-  /* Is the book file name present */  
+  /* Is the cmp file name present */  
 	if (cflag == 0) {	/* -c cmp file is mandatory */ 
 		fprintf(stderr, "%s: missing -c cmp file \n", argv[0]);
 		usage();
