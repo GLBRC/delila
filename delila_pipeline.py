@@ -552,7 +552,7 @@ class delilaPipe( object ):
         cmd = [ program , '-b', book, '-p', compp ]
         logger.info("Running compp ")
         logger.info(program + ' ' + ' '.join(cmd))
-        # run alist
+        # run comp
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
         result2 = output[1].decode('utf-8')
@@ -580,7 +580,7 @@ class delilaPipe( object ):
         cmd = [ program , '-c', cmp, '-e', encseq ]
         logger.info("Running rseq ")
         logger.info(program + ' ' + ' '.join(cmd))
-        # run alist
+        # run rseq
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
         result2 = output[1].decode('utf-8')
@@ -588,11 +588,29 @@ class delilaPipe( object ):
         logger.info(result1)
         logger.info(result2)       
 
-    def runDALVEC(self):
+    def runDALVEC(self, rsdata, dalvecp):
         '''
-        '''
-        pass
+        from Delila documentation:
 
+        Convert the rsdata file from rseq into a format that the makelogo program
+        can use.  The format is a 'symbol vector'.
+        
+        dalvec -r rsdata -p dalvecp
+        '''
+         # set up dalvec
+        program = pdir + 'dalvec'
+        cmd = [ program , '-r', rsdata, '-p', dalvecp ]
+        logger.info("Running dalvec ")
+        logger.info(program + ' ' + ' '.join(cmd))
+        # run dalvec
+        output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        result1 = output[0].decode('utf-8')
+        result2 = output[1].decode('utf-8')
+        # log stdout and stderr 
+        logger.info(result1)
+        logger.info(result2)     
+
+    
     def makeLOGO(self):
         '''
         '''
@@ -688,6 +706,7 @@ def main():
     pipe.runENCODE('R.sphaeroides-2.4.1_cinst_book.txt', 'cinst', 'encodep')
     pipe.runCOMP('R.sphaeroides-2.4.1_cinst_book.txt', 'compp')
     pipe.runRSEQ('cmp', 'encseq')
+    pipe.runDALVEC('rsdata', 'dalvecp')
 
 
 if __name__ == "__main__":
