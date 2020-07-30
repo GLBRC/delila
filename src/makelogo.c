@@ -754,6 +754,7 @@ makelogo
 #include <getopt.h>  /* getopt API */ 
 #include <stdio.h>   /* printf */
 #include <stdlib.h> 
+#include <sys/stat.h> /* check if file exists */
 #include </home/mplace/bin/p2c/src/p2c.h>
 
 #define version         9.66
@@ -4330,13 +4331,59 @@ void usage() {
   exit(EXIT_SUCCESS);
 }
 
+
+
 int main(int argc, Char **argv)
 {
+  extern char *optarg;
+	extern int optind;
+	int c, err = 0; 
+  /* flags marking arguments passed */
+  int sflag=0;       /* symvec file name  */
+  int oflag=0;       /* output file */
+	char *symvecFile  = "symvec.txt";
+  char *logoFile    = "output.logo";
+
+/* Process command line arguments  */
+while ((c = getopt(argc, argv, "s:o:")) != -1)
+		switch (c) {
+		case 's':
+      sflag = 1;
+			symvecFile = optarg;
+      break;
+		case 'o':
+      oflag = 1;
+      logoFile  = optarg;
+      break;
+    case '?':
+			err = 1;
+			break;
+		}
+
+  /* Is the symvec file name present */  
+	if (sflag == 0) {	/* -s symvec file is mandatory */ 
+		fprintf(stderr, "%s: missing -s symvec file \n", argv[0]);
+		usage();
+		exit(1);
+	} 
+
+  /* logo output file name  */  
+  if (oflag == 0) { 
+    fprintf(stderr, "%s: missing -o logo output file name \n", argv[0]);
+		usage();
+		exit(1);
+    }  
+
+  if (err) {
+		usage();
+		exit(1);
+	}
+
   PASCAL_MAIN(argc, argv);
   if (setjmp(_JL1))
     goto _L1;
   logo.f = NULL;
-  strcpy(logo.name, "logo");
+  strcpy(logo.name, logoFile);
   wave.f = NULL;
   strcpy(wave.name, "wave");
   marks.f = NULL;
@@ -4346,7 +4393,7 @@ int main(int argc, Char **argv)
   makelogop.f = NULL;
   strcpy(makelogop.name, "makelogop");
   symvec.f = NULL;
-  strcpy(symvec.name, "symvec");
+  strcpy(symvec.name, symvecFile);
   themain(&symvec, &makelogop, &colors, &marks, &wave, &logo);
 _L1:
   if (symvec.f != NULL)
