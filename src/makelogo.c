@@ -747,12 +747,12 @@ gcc makelogo.c -o makelogo -I/home/mplace/bin/p2c/src -L /home/mplace/bin/p2c/sr
 
 To Run:
 
-makelogo 
-
+makelogo -s symvec -o test.logo
 
 */
 #include <getopt.h>  /* getopt API */ 
 #include <stdio.h>   /* printf */
+#include <stdbool.h> 
 #include <stdlib.h> 
 #include <sys/stat.h> /* check if file exists */
 #include </home/mplace/bin/p2c/src/p2c.h>
@@ -4330,8 +4330,18 @@ void usage() {
   printf("  version %4.2f\n", version);
   exit(EXIT_SUCCESS);
 }
-
-
+/* Check if file exists */
+bool file_exists (char *filename) {
+  FILE *file;
+  if((file = fopen(filename, "r"))!=NULL)
+  {
+    //file exists
+    fclose(file);
+    return true;
+  }else{
+    return false;
+  }
+}
 
 int main(int argc, Char **argv)
 {
@@ -4378,6 +4388,35 @@ while ((c = getopt(argc, argv, "s:o:")) != -1)
 		usage();
 		exit(1);
 	}
+
+// check that required files exist
+if( file_exists("wave")){
+  }else {
+    printf("\n\t** wave file missing **\n");
+		usage();
+		exit(1);
+}
+
+if( file_exists("marks")){
+  }else {
+    printf("\n\t** marks file missing **\n");
+		usage();
+		exit(1);
+}
+
+if( file_exists("colors")){
+  }else {
+    printf("\n\t** colors file missing **\n");
+		usage();
+		exit(1);
+}
+
+if( file_exists("makelogop")){
+  }else {
+    printf("\n\t** makelogop file missing **\n");
+		usage();
+		exit(1);
+}
 
   PASCAL_MAIN(argc, argv);
   if (setjmp(_JL1))
