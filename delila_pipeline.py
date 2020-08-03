@@ -117,6 +117,7 @@ Example
     usage:
 
         delila_pipeline.py -f rhodo_genome.gbff -p rhodo -t all_rhodo_tss_for_delila.txt
+        delila_pipeline.py -f rhodo_genome.gbff -p R.sphaeroides-2.4.1 -t all_rhodo_tss_for_delila.txt
         
 Requirements
 ------------
@@ -597,7 +598,7 @@ class delilaPipe( object ):
         
         dalvec -r rsdata -p dalvecp
         '''
-         # set up dalvec
+        # set up dalvec
         program = pdir + 'dalvec'
         cmd = [ program , '-r', rsdata, '-p', dalvecp ]
         logger.info("Running dalvec ")
@@ -611,18 +612,53 @@ class delilaPipe( object ):
         logger.info(result2)     
 
     
-    def makeLOGO(self):
+    def runMAKELOGO(self, symvec, output ):
         '''
-        '''
-        pass
+        from Delila documentation:
+        
+        The makelogo program generates a `sequence logo' for a set of aligned
+        sequences.  A full description is in the documentation paper.  The input
+        is an `symvec', or symbol-vector that contains the information at each
+        position and the numbers of each symbol.  The output is in the graphics
+        language PostScript.
 
-    def writeResults(self):
+        The program now indicates the small sample error in the logo by a small
+        'I-beam' overlayed on the top of the logo.  Although the user may turn
+        this off to make pretty logos, I strongly recommend use of it to avoid
+        being fooled by small amounts of data.
         '''
+        # set up makeLOGO
+        program = pdir + 'makelogo'
+        cmd = [ program , '-s', symvec, '-o', output ]
+        logger.info("Running makelogo ")
+        logger.info(program + ' ' + ' '.join(cmd))
+        # run dalvec
+        output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        result1 = output[0].decode('utf-8')
+        result2 = output[1].decode('utf-8')
+        # log stdout and stderr 
+        logger.info(result1)
+        logger.info(result2)     
+
+    def retrievePWM(self):
         '''
-        pass
-
-      
-
+        Extract the position weight matrix from the rsdata file (output from rseq).
+        Write to new file.
+        '''
+        switch = 0
+        # open rsdata file
+        with open('rsdata', 'r') as f, open(self.prefix + '_PWM.txt', 'w') as out:
+            for line in f:
+                # pwm starts here
+                if line.startswith('*   l'):
+                    switch = 1
+                # last line in file, don't print
+                if line.startswith('* rsequence'):
+                    break
+                # write the PWM to file    
+                if switch == 1:
+                    out.write(line)
+        
 def main():
     
     cmdparser = argparse.ArgumentParser(description="Delila pipeline to make sequence logo from Transcription start sites.",
@@ -707,8 +743,8 @@ def main():
     pipe.runCOMP('R.sphaeroides-2.4.1_cinst_book.txt', 'compp')
     pipe.runRSEQ('cmp', 'encseq')
     pipe.runDALVEC('rsdata', 'dalvecp')
-
+    pipe.runMAKELOGO('symvec', pipe.prefix + '.logo')
+    pipe.retrievePWM()
 
 if __name__ == "__main__":
     main()
-
