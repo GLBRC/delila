@@ -6,6 +6,9 @@ Create a sequence logo for Transcription Start sites using the Delila package.
 Notes
 ----- 
 
+The programs used in this pipeline have been converted from Pascal to C, by
+Oliver Giramma.  They were then modified to use command line arguments.
+
 (From the Delila Documentation)
 
 DELILA stands for DEoxyribnucleaic-acid LIbrary LAnguage.
@@ -221,6 +224,15 @@ class delilaPipe( object ):
         with a period and is used for both organsim and chromosome
         names.  Organism and chromosome only change if the name changes
         in db
+        
+        dbbk: missing -o option
+        usage: dbbk -f genome.gnbk -c changes.txt -o output.txt
+
+        -f is a genome genbank file
+        -c output file, reports base changes due to base ambiguity 
+           i.e. bases Not GATC
+        -o output file, delila book 
+
         '''
         program = pdir + 'dbbk'       # location of delila 
         # set up dbbk command parameters
@@ -235,7 +247,7 @@ class delilaPipe( object ):
         # log stdout and stderr 
         logger.info(result1)
         logger.info(result2)
-        # create a symbolic link to l1
+        # create a symbolic link to l1 for running catal
         os.symlink(self.prefix + '_' + 'dbbk.txt', 'l1')
 
     def catalParameters(self):
@@ -267,6 +279,9 @@ class delilaPipe( object ):
         structure.  Duplicated names are removed and a new set of library
         files is created, along with their catalogues for delila.
         
+        catal expects a file named: l1 this is a symbolic link to the dbbk
+        produced earlier in the pipeline.
+
         Need to create 3 empty files for delila catal
         l2, l3, catalp
         '''
@@ -296,9 +311,18 @@ class delilaPipe( object ):
         '''
         Break up the input transcription start site input file into delila 
         instruction files by chromosome. 
+
+        File is provided by the user.  Formatted as follows:
+
+        NC_007488.2	RSP_4039_1700	forward	1700
+        NC_007488.2	RSP_4038_2627	forward	2627
+
+        creates instruction files for running delila by chromosome.
+
+
         '''
         program = '/home/mplace/scripts/delila/delila_instructions.py'
-        cmd = [ program, '-f', self.tss, '-o', 'R.sphaeroides-2.4.1' ]
+        cmd = [ program, '-f', self.tss, '-o', self.prefix ]
         logger.info('Running splitTSS ')
         logger.info( program + ' ' +  ' '.join(cmd))
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
@@ -662,16 +686,16 @@ class delilaPipe( object ):
 def main():
     
     cmdparser = argparse.ArgumentParser(description="Delila pipeline to make sequence logo from Transcription start sites.",
-                                        usage='%(prog)s -f genome.genbank -p prefix -t tss_file.txt ',
+                                        usage='%(prog)s -f genome.genbank -p prefix -t tss_file.txt -w -10 +10 ',
                                         prog='delila_pipeline.py'  )
-    cmdparser.add_argument('-d', '--down', action='store', dest='DOWN',
-                            help='Number of bases downstream from target')
     cmdparser.add_argument('-i', '--info', action='store_true', dest='INFO',
                             help='Print more information to stdout')                            
     cmdparser.add_argument('-f', '--file', action='store', dest='FILE', 
                             help='genome genbank file', metavar='')
-    cmdparser.add_argument('-p', '--prefix', action='store', dest='PREFIX',  help='Prefix names used on output files',
-                            metavar='')
+    cmdparser.add_argument('-p', '--prefix', action='store', dest='PREFIX', 
+                            help='Prefix names used on output files', metavar='')
+    cmdparser.add_argument('-w', '--window', action='store', dest='WINDOW', 
+                            help='Window to search for site, 2 numbers: -10 +10', nargs='+', metavar='' )
     cmdparser.add_argument('-t', '--tss',  action='store', dest='TSS',  
                             help='TSS site information text file.)', metavar='')    
     cmdResults = vars(cmdparser.parse_args())
@@ -695,6 +719,7 @@ def main():
         print("    -f genome genbank file ")
         print("    -p prefix name to use for output files")
         print("    -t transcription start site information file")
+        print("    -w window size to search, takes 2 numbers: -10 +10")
         print("")
         print("    TSS file provides chromosome, name, strand, position information in a tab delimited format.")
         print("")
@@ -718,10 +743,19 @@ def main():
 
     if cmdResults['TSS'] is not None:
         tssFile = cmdResults['TSS']
+    
+    if cmdResults['WINDOW'] is not None:
+        window = cmdResults['WINDOW']
+    else:
+        window = ['-10', '+10']
 
     # log program start
     logger.info("Running delila_pipeline ")
-    logger.info( "Working Directory  " + os.getcwd())
+    logger.info('Working Directory: ' + os.getcwd())
+    logger.info('genbank file: {}'.format(inFile))
+    logger.info('output prefix: {}'.format(prefix))
+    logger.info('Transcription Start Site file: {}'.format(tssFile))
+    logger.info('Search Window: {}'.format( ' '.join(window)))
     # create delila object and get to work
     pipe = delilaPipe(inFile, prefix, tssFile)
     pipe.makeDBBK()
