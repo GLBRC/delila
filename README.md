@@ -34,7 +34,8 @@ REFERENCES for the Delila System
 
  STEPS to run malign:
 
-1) run dbbk, The first step is to create a Delila book containing the genomic or artificial sequence you want to manipulate. 
+1) run dbbk, The first step is to create a Delila book containing the genomic
+   or artificial sequence you want to manipulate. 
 
 src/dbbk -f rhodo_genome.gbff -c rhodo_changes.txt  -o rhodo_dbbk.txt
 
@@ -42,7 +43,8 @@ arguments:
 
 -f takes a genebank file
 
--c  is just a name which will create a text file to write any changes the program had to make to the sequence
+-c output file name, will create a text file to write any changes the program
+   had to make to the sequence, due to base ambiguity.
 
 -o is the output file name, this is also the l1 file used with catal
 
@@ -67,6 +69,7 @@ WARNING: some sequences have been altered,see the changes file.
 
 the OUTPUT is a file called l1 (extracted chromosome sequences) and a file called changes.txt
 
+The primary output is a book, which is the genome sequence in a special format.
 
 2) run catal, to create the Delila library
 
@@ -75,9 +78,34 @@ the OUTPUT is a file called l1 (extracted chromosome sequences) and a file calle
   then create empty files named l2, l3, catalp    ( touch l2 l3 catalp )
 
 
-pascal version  
+pascal version  , l1 is the book from dbbk
 
-run:  src/catal -f sample.csv
+catal 9.63 2020/08/05 14:34:34
+Input file `l1': l1
+Input file `l2': l2
+Input file `l3': l3
+Input file `catalp': catalp
+ library dates advanced
+Output file `cat1': cat1
+Output file `cat2': cat2
+Output file `cat3': cat3
+Output file `humcat': humcat
+Output file `catin': catin
+Output file `lib1': lib1
+
+ library 1 date will be: 2020/08/05 14:34:34
+ NC_007493.2 3188524 bp
+ NC_007494.2 943018 bp
+ NC_009007.1 114045 bp
+ NC_007488.2 114179 bp
+ NC_007489.1 105284 bp
+ NC_007490.2 100827 bp
+ NC_009008.1  37100 bp
+Output file `lib2': lib2
+Output file `lib3': lib3
+
+
+run:  /catal -f catal_parameters.txt 
 you should see output something like this:
 
  catal 9.64 2020/07/10 10:20:57
@@ -96,9 +124,14 @@ you should see output something like this:
 
 This will create some new files  lib1, lib2, lib3, cat1, cat2, cat3, humcat, catin
 
-3) run delila
+3) Parse the Transcription Start site input file and create delila instructions
+   files by chromosomes.
 
-delila -b lib1 -i NC_007490.2_delila_instructions.inst -l outlisting.tx
+   delila_instructions.py -f TSS_file.txt -o output Prefix 
+
+4) run delila
+
+delila -b lib1 -i NC_007490.2_delila_instructions.inst -l outlisting.txt
 
 -b is the lib1 output from catal
 
@@ -130,4 +163,11 @@ No extraction errors found.
 
 30 pieces extracted
 420 bases extracted
+ 
+5)
+
+
+
+
+
 
