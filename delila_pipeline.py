@@ -148,6 +148,7 @@ import os
 import re              # for regex 
 import subprocess      # used to call delila programs 
 import sys
+import chromosomeUtilities
 
 # program home directory
 pdir = '/home/mplace/scripts/delila/src/'
@@ -725,7 +726,19 @@ class delilaPipe( object ):
                 # write the PWM to file    
                 if switch == 1:
                     out.write(line)
-        
+    
+    def updateTssPositions(self):
+        '''
+        Need to update positions for TSS sites, based on merged chromosome positions.
+        '''
+        with open('tss-test.txt', 'r') as tss:
+            for ln in tss:
+                 dat = ln.rstrip().split('\t')
+                 newPos = int(dat[3]) + mySeq.chrInfo[dat[0]]['start']
+                 dat.append(newPos)
+                 print(dat)
+
+
 def main():
     
     cmdparser = argparse.ArgumentParser(description="Delila pipeline to make sequence logo from Transcription start sites.",
@@ -734,7 +747,7 @@ def main():
     cmdparser.add_argument('-i', '--info', action='store_true', dest='INFO',
                             help='Print more information to stdout')                            
     cmdparser.add_argument('-f', '--file', action='store', dest='FILE', 
-                            help='genome genbank file', metavar='')
+                            help='genome fasta file', metavar='')
     cmdparser.add_argument('-p', '--prefix', action='store', dest='PREFIX', 
                             help='Prefix names used on output files', metavar='')
     cmdparser.add_argument('-w', '--window', action='store', dest='WINDOW', 
