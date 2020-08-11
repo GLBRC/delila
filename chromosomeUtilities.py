@@ -35,8 +35,10 @@ import sys
 import argparse    
 
 from Bio import SeqIO
-from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
+from Bio.SeqFeature import SeqFeature, FeatureLocation
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
 
 class chromosomeUtilities(object):
     '''
@@ -47,17 +49,17 @@ class chromosomeUtilities(object):
         '''
         Set up class object
         '''
-        self.fasta   = fasta            #  input fasta sequence
-        self.chrInfo = {}
-        self.mergedSeq = Seq('', IUPAC.unambiguous_dna)
+        self.fasta     = fasta            #  input fasta sequence
+        self.chrInfo   = {}
+        self.mergedSeq = Seq('', alphabet=IUPAC.ambiguous_dna)
 
     def combineSeq(self):
         '''
         Merge all sequences in a fasta file into a single string.
         '''
         # open and merge all sequence in fasta file into a giant "pseudo" chromosome
-        for seqRec in SeqIO.parse(self.fasta, 'fasta'):
-            self.mergedSeq = self.mergedSeq + seqRec.seq
+        for seqRec in SeqIO.parse(self.fasta, 'fasta', alphabet=IUPAC.ambiguous_dna  ):
+            self.mergedSeq = self.mergedSeq + seqRec.seq     
 
     def getPositions(self):
         '''
@@ -95,7 +97,25 @@ class chromosomeUtilities(object):
 
             # record postion information for later use with delila result positions
             if seqRec.id not in self.chrInfo:
-                self.chrInfo[seqRec.id] = { 'start':start, 'end':end }             
+                self.chrInfo[seqRec.id] = { 'start':start, 'end':end }    
+
+    def makeGenBank(self):
+        '''
+        Create a genbank file for the newly created merged chromosome
+        '''
+        outName = re.sub('.fasta|.fna|.fa', '', self.fasta)
+        record = SeqRecord(self.mergedSeq, id=outName, name=outName,
+        description='Merged-Chromosome for delila pipeline')
+
+        # add annotation
+        feature = SeqFeature(FeatureLocation(start=0,end=len(self.mergedSeq)),type='exon')
+        record.features.append(feature)
+        # save as GenBank file
+        outputFile = open(outName + '.gnbk', 'w')
+        SeqIO.write(record, outputFile, 'genbank')
+        outputFile.close()
+
+    
 
 def main():
     
@@ -117,7 +137,11 @@ def main():
     mySeq = chromosomeUtilities(fasta)
     mySeq.getPositions()
     mySeq.combineSeq()
-    print(len(mySeq.combineSeq))
+    mySeq.makeGenBank()
+    # set up to write sequence to fasta file
+    #outSeqRec = SeqRecord(mySeq.mergedSeq, id='mergedChromosome',
+    #description='Merged Chromosome for use with delila pipeline')
+    #SeqIO.write(outSeqRec, "mergedChromosome.fa", 'fasta')
 
 if __name__ == "__main__":
     main()
