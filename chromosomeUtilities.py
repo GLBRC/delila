@@ -55,7 +55,13 @@ class chromosomeUtilities(object):
         '''
         Merge all sequences in a fasta file into a single string.
         '''
-        pass
+        giantChr = Seq('', IUPAC.unambiguous_dna)
+        # open and merge all sequence in fasta file into a giant "pseudo" chromosome
+        for seqRec in SeqIO.parse(self.fasta, 'fasta'):
+            giantChr = giantChr + seqRec.seq
+        
+        print(len(giantChr))
+
 
     def getPositions(self):
         '''
@@ -114,9 +120,8 @@ def main():
     
     mySeq = chromosomeUtilities(fasta)
     mySeq.getPositions()
-    print(mySeq.chrInfo)
-
-         
+    mySeq.combineSeq()
+    
 
 if __name__ == "__main__":
     main()
