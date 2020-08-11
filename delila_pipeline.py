@@ -487,6 +487,50 @@ class delilaPipe( object ):
         logger.info(result1)
         logger.info(result2)
 
+    def colors(self):
+        '''
+        Create the colors parameter file.
+        '''
+        with open('colors', 'w') as cout:
+            cout.write("* Color order is red-green-blue and these are the values\n")
+            cout.write("* that PostScript uses to generate the figures.\n\n")
+            cout.write("* green:\n")
+            cout.write("a 0.182082 1 0.181899\n")
+            cout.write("* blue:")
+            cout.write("c 0 0.9372 1\n")
+            cout.write("* organge\n")
+            cout.write("g 1 0.7 0\n")
+            cout.write("* red:\n")
+            cout.write("t 1 0 0\n")
+            cout.write("u 1 0 0\n")
+            cout.write("* polar are GREEN\n")
+            cout.write("G 0 1 0\n")
+            cout.write("S 0 1 0\n")
+            cout.write("T 0 1 0\n")
+            cout.write("Y 0 1 0\n")
+            cout.write("C 0 1 0\n")
+            cout.write("* neutral are purple\n")
+            cout.write("N 1 0 1\n")
+            cout.write("Q 1 0 1\n")
+            cout.write("* basic BLUE\n")
+            cout.write("K 0 0 1\n")
+            cout.write("R 0 0 1 \n")
+            cout.write("H 0 0 1\n")
+            cout.write("* acidic RED\n")
+            cout.write("D 1 0 0\n")
+            cout.write("E 1 0 0\n")
+            cout.write("* the hydrophobic amino acids remain black\n")
+            cout.write("P 0 0 0\n")
+            cout.write("A 0 0 0\n")
+            cout.write("W 0 0 0\n")
+            cout.write("F 0 0 0\n")
+            cout.write("L 0 0 0\n")
+            cout.write("I 0 0 0\n")
+            cout.write("M 0 0 0\n")
+            cout.write("V 0 0 0\n")
+            cout.write("\n")            
+        cout.close()
+
     def runALIST(self, book, cinst, alistp):
         '''
         from Delila documentation:    
@@ -508,9 +552,8 @@ class delilaPipe( object ):
             pass
         f.close()
 
-        with open('colors', 'w') as f:
-            pass
-        f.close()
+        # create the colors parameter file
+        self.colors()
 
         with open("namebook", 'w') as f:
             pass
