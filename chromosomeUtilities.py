@@ -12,6 +12,8 @@ stop positions to split later.
 
 Method
 ------
+
+Import into delila_pipeline.py to use.
    
 Parameters
 ----------
@@ -131,13 +133,17 @@ def main():
         sys.exit(1)
         
     if cmdResults['FASTA'] is not None:
-        fasta = cmdResults['FASTA']   
+        fasta = cmdResults['FASTA'] 
+    else:
+        print("")
+        cmdparser.print_help()
+        sys.exit(1)  
 
     
-    mySeq = chromosomeUtilities(fasta)
-    mySeq.getPositions()
-    mySeq.combineSeq()
-    mySeq.makeGenBank()
+    #mySeq = chromosomeUtilities(fasta)
+    #mySeq.getPositions()
+    #mySeq.combineSeq()
+    #mySeq.makeGenBank()
     # set up to write sequence to fasta file
     #outSeqRec = SeqRecord(mySeq.mergedSeq, id='mergedChromosome',
     #description='Merged Chromosome for use with delila pipeline')
