@@ -74,26 +74,26 @@ class chromosomeUtilities(object):
         self.chrInfo, key = chromosome name  value = dicionary { 'start': 1000, 'end': 5000  }
 
         '''
-        first = 0
-        end   = 0
-        start = 0
-        previous = 0
+        first = 0               # handle the first sequence in fasta file differently
+        start = 0               # start position of sequence     
+        end   = 0               # end of sequence
+        previous = 0            # keep track of previous sequence length
+        # process each sequence in a fasta file
         for seqRec in SeqIO.parse(self.fasta, 'fasta'):
+            # handle 1st sequence differenlty, as start must equal zero
             if first == 0:
                 start = 0
                 end   = len(seqRec.seq)
                 previous = len(seqRec.seq)
-                first = 1
+                first = 1        # done handling the first sequence
             else:
-                start += previous  + 1
-                end   += len(seqRec.seq) + 1
-                previous = len(seqRec.seq)
+                start += previous  + 1       # new start position is all previous sequence lengths plus 1
+                end   += len(seqRec.seq) + 1 # end position is sum of the previous sequence lengths
+                previous = len(seqRec.seq)   
 
+            # record postion information for later use with delila result positions
             if seqRec.id not in self.chrInfo:
-                self.chrInfo[seqRec.id] = { 'start':start, 'end':end }
-            
-            #print(seqRec.id, len(seqRec.seq), start, end)
-        
+                self.chrInfo[seqRec.id] = { 'start':start, 'end':end }             
 
 def main():
     
