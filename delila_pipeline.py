@@ -148,7 +148,7 @@ import os
 import re              # for regex 
 import subprocess      # used to call delila programs 
 import sys
-import chromosomeUtilities
+import chromosomeUtilities as chrUtil
 
 # program home directory
 pdir = '/home/mplace/scripts/delila/src/'
@@ -488,50 +488,6 @@ class delilaPipe( object ):
         logger.info(result1)
         logger.info(result2)
 
-    def colors(self):
-        '''
-        Create the colors parameter file.
-        '''
-        with open('colors', 'w') as cout:
-            cout.write("* Color order is red-green-blue and these are the values\n")
-            cout.write("* that PostScript uses to generate the figures.\n\n")
-            cout.write("* green:\n")
-            cout.write("a 0.182082 1 0.181899\n")
-            cout.write("* blue:")
-            cout.write("c 0 0.9372 1\n")
-            cout.write("* organge\n")
-            cout.write("g 1 0.7 0\n")
-            cout.write("* red:\n")
-            cout.write("t 1 0 0\n")
-            cout.write("u 1 0 0\n")
-            cout.write("* polar are GREEN\n")
-            cout.write("G 0 1 0\n")
-            cout.write("S 0 1 0\n")
-            cout.write("T 0 1 0\n")
-            cout.write("Y 0 1 0\n")
-            cout.write("C 0 1 0\n")
-            cout.write("* neutral are purple\n")
-            cout.write("N 1 0 1\n")
-            cout.write("Q 1 0 1\n")
-            cout.write("* basic BLUE\n")
-            cout.write("K 0 0 1\n")
-            cout.write("R 0 0 1 \n")
-            cout.write("H 0 0 1\n")
-            cout.write("* acidic RED\n")
-            cout.write("D 1 0 0\n")
-            cout.write("E 1 0 0\n")
-            cout.write("* the hydrophobic amino acids remain black\n")
-            cout.write("P 0 0 0\n")
-            cout.write("A 0 0 0\n")
-            cout.write("W 0 0 0\n")
-            cout.write("F 0 0 0\n")
-            cout.write("L 0 0 0\n")
-            cout.write("I 0 0 0\n")
-            cout.write("M 0 0 0\n")
-            cout.write("V 0 0 0\n")
-            cout.write("\n")            
-        cout.close()
-
     def makeALISTp(self):
         '''
         Create the alist parameter file
@@ -705,7 +661,52 @@ class delilaPipe( object ):
         result2 = output[1].decode('utf-8')
         # log stdout and stderr 
         logger.info(result1)
-        logger.info(result2)     
+        logger.info(result2)  
+
+    def makeColors(self):
+        '''
+        Create the colors parameter file.
+        The color parameters were provided by Tom Schneider
+        '''
+        with open('colors', 'w') as cout:
+            cout.write("* Color order is red-green-blue and these are the values\n")
+            cout.write("* that PostScript uses to generate the figures.\n\n")
+            cout.write("* green:\n")
+            cout.write("a 0.182082 1 0.181899\n")
+            cout.write("* blue:")
+            cout.write("c 0 0.9372 1\n")
+            cout.write("* organge\n")
+            cout.write("g 1 0.7 0\n")
+            cout.write("* red:\n")
+            cout.write("t 1 0 0\n")
+            cout.write("u 1 0 0\n")
+            cout.write("* polar are GREEN\n")
+            cout.write("G 0 1 0\n")
+            cout.write("S 0 1 0\n")
+            cout.write("T 0 1 0\n")
+            cout.write("Y 0 1 0\n")
+            cout.write("C 0 1 0\n")
+            cout.write("* neutral are purple\n")
+            cout.write("N 1 0 1\n")
+            cout.write("Q 1 0 1\n")
+            cout.write("* basic BLUE\n")
+            cout.write("K 0 0 1\n")
+            cout.write("R 0 0 1 \n")
+            cout.write("H 0 0 1\n")
+            cout.write("* acidic RED\n")
+            cout.write("D 1 0 0\n")
+            cout.write("E 1 0 0\n")
+            cout.write("* the hydrophobic amino acids remain black\n")
+            cout.write("P 0 0 0\n")
+            cout.write("A 0 0 0\n")
+            cout.write("W 0 0 0\n")
+            cout.write("F 0 0 0\n")
+            cout.write("L 0 0 0\n")
+            cout.write("I 0 0 0\n")
+            cout.write("M 0 0 0\n")
+            cout.write("V 0 0 0\n")
+            cout.write("\n")            
+        cout.close()
 
     def makeWaveFile(self):
         '''
@@ -760,6 +761,22 @@ class delilaPipe( object ):
         this off to make pretty logos, I strongly recommend use of it to avoid
         being fooled by small amounts of data.
         '''
+        # check if the user has provided a make logo parameter file if not make one
+        if not os.path.exists('makelogop'):
+            pipe.makeLOGOp()
+
+        # check if the user has provided a wave file if not make one
+        if not os.path.exists('wave'):
+            pipe.makeWaveFile()
+
+        # check if the user has provided a wave file if not make one
+        if not os.path.exists('colors'):
+            pipe.makeColors()
+
+        with open("marks", 'w') as f:
+            pass
+        f.close()            
+
         # set up makeLOGO
         program = pdir + 'makelogo'
         cmd = [ program , '-s', symvec, '-o', output ]
@@ -792,16 +809,27 @@ class delilaPipe( object ):
                 if switch == 1:
                     out.write(line)
     
-    def updateTssPositions(self):
+    def updateTssPositions(self, data):
         '''
         Need to update positions for TSS sites, based on merged chromosome positions.
+        The original TSS site position will be added to the start of the merged chromosome
+        position.
         '''
-        with open('tss-test.txt', 'r') as tss:
+        results = []
+        # open and process tss site file
+        with open(self.tss, 'r') as tss:
             for ln in tss:
-                 dat = ln.rstrip().split('\t')
-                 newPos = int(dat[3]) + mySeq.chrInfo[dat[0]]['start']
-                 dat.append(newPos)
-                 print(dat)
+                dat = ln.rstrip().split('\t')
+                newPos = int(dat[3]) + data.chrInfo[dat[0]]['start']  # add start position
+                dat[3] = newPos
+                results.append(dat)
+        # save the original file
+        os.rename(self.tss, self.tss + '-ORIGINAL' )
+        # write the new tss file
+        with open(self.tss, 'w') as out:
+            for site in results:
+                outLine = '\t'.join([str(x) for x in site])
+                out.write( '{}\n'.format(outLine))
 
 
 def main():
@@ -855,15 +883,21 @@ def main():
         print("")
         print("For help contact:  bioinformaticshelp@glbrc.wisc.edu\n")
         sys.exit(1)
-    
-    if cmdResults['FILE'] is not None:
-        inFile = cmdResults['FILE']        
 
     if cmdResults['PREFIX'] is not None:
         prefix = cmdResults['PREFIX']
 
+    if cmdResults['FILE'] is not None:
+        inFile = cmdResults['FILE']        
+        data = chrUtil.chromosomeUtilities(inFile)
+        data.getPositions()
+        data.combineSeq()
+        data.makeGenBank(prefix)
+        for k,v in data.chrInfo.items():
+            print(k, v)
+
     if cmdResults['TSS'] is not None:
-        tssFile = cmdResults['TSS']
+        tssFile = cmdResults['TSS'] 
     
     if cmdResults['WINDOW'] is not None:
         window = cmdResults['WINDOW']
@@ -879,6 +913,8 @@ def main():
     logger.info('Search Window: {}'.format( ' '.join(window)))
     # create delila object and get to work
     pipe = delilaPipe(inFile, prefix, tssFile)
+    pipe.updateTssPositions(data)
+    '''
     pipe.makeDBBK()
     pipe.catalParameters()
     pipe.runCATAL()
@@ -888,6 +924,8 @@ def main():
     # Create delila instruction sets1
     for inst in pipe.instructions:
         pipe.runDELILA(inst)
+
+        
     pipe.createMalignp()
     pipe.runMALIGN('R.sphaeroides-2.4.1_NC_007493.2_book.txt', 'NC_007493.2_TSS.inst')
     pipe.createMalinp()
@@ -898,15 +936,8 @@ def main():
     pipe.runCOMP('R.sphaeroides-2.4.1_cinst_book.txt', 'compp')
     pipe.runRSEQ('cmp', 'encseq')
     pipe.runDALVEC('rsdata', 'dalvecp')
-    
-    # check if the user has provided a make logo parameter file if not make one
-    if os.path.exists('makelogop'):
-        continue
-    else:
-        pipe.makeLOGOp()
-
     pipe.runMAKELOGO('symvec', pipe.prefix + '.logo')
     pipe.retrievePWM()
-
+    '''
 if __name__ == "__main__":
     main()
