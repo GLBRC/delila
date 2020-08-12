@@ -532,6 +532,22 @@ class delilaPipe( object ):
             cout.write("\n")            
         cout.close()
 
+    def makeALISTp(self):
+        '''
+        Create the alist parameter file
+        '''
+        with open('alistp', 'w') as out:
+            out.write("6.64        version of alistp that this parameter file is designed for.\n")
+            out.write("-10 +10       From and To\n")
+            out.write("pl          display control p: piece&coordinate of zero base; l: long name\n")
+            out.write("p           p: paging, n: no paging\n")
+            out.write("i           f: first base, i: inst, b: book alignment\n")
+            out.write("6  4  1     avalues: column, output width, output decimals\n")
+            out.write("n 0 0 0 0   edgecontrol (p=page), edgeleft, edgeright, edgelow, edgehigh in cm\n")
+            out.write("C 15        mapcontrol: C=do map, R= rotate, char height (72 points/inch)\n")
+            out.write("1.0 -1.0 1.0 amount to move image in x and y (cm) and scale factor\n")
+            out.write("h           headercontrol: h(eader); 0: no header, no numbar; else numbar\n")
+
     def runALIST(self, book, cinst, alistp):
         '''
         from Delila documentation:    
@@ -576,6 +592,18 @@ class delilaPipe( object ):
         # log stdout and stderr 
         logger.info(result1)
         logger.info(result2)
+
+    def makeENCODEp(self):
+        '''
+        Create a parameter file for encode program.
+        '''
+        with open('encodep', 'w') as out:
+            out.write("i\n")
+            out.write("-100 100\n")
+            out.write("1\n")
+            out.write("1\n")
+            out.write("1\n")
+            out.write("1\n")
 
     def runENCODE(self, book, cinst, encodep):
         '''
@@ -679,6 +707,43 @@ class delilaPipe( object ):
         logger.info(result1)
         logger.info(result2)     
 
+    def makeWaveFile(self):
+        '''
+        Make a wave input file
+        '''
+        with open('wave', 'w') as out:
+            out.write("h\n")
+            out.write("2.0\n")
+            out.write("0.5\n")
+            out.write("10.6\n")
+            out.write("0.2\n")
+            out.write("0\n")  
+
+    def makeLOGOp(self):
+        '''
+        Create a default parameter file to make a logo
+        '''
+        with open('makelogop', 'w') as out:
+            out.write("-5 +7\n")
+            out.write("100\n")
+            out.write("5.0 10.0\n")
+            out.write("0\n")
+            out.write("0.36\n")
+            out.write("5 0.5\n")
+            out.write("2\n")
+            out.write("1.0\n")
+            out.write("bt 2 10\n")
+            out.write("no show\n")
+            out.write("no outline\n")
+            out.write("caps\n")
+            out.write("14\n")
+            out.write("1\n")
+            out.write("1.0\n")
+            out.write("n\n")
+            out.write("1\n")
+            out.write("1\n")
+            out.write("-1000 5.2 1\n")
+            out.write("1\n")            
     
     def runMAKELOGO(self, symvec, output ):
         '''
@@ -833,6 +898,13 @@ def main():
     pipe.runCOMP('R.sphaeroides-2.4.1_cinst_book.txt', 'compp')
     pipe.runRSEQ('cmp', 'encseq')
     pipe.runDALVEC('rsdata', 'dalvecp')
+    
+    # check if the user has provided a make logo parameter file if not make one
+    if os.path.exists('makelogop'):
+        continue
+    else:
+        pipe.makeLogop()
+
     pipe.runMAKELOGO('symvec', pipe.prefix + '.logo')
     pipe.retrievePWM()
 
