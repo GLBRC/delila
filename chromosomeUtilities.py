@@ -101,13 +101,13 @@ class chromosomeUtilities(object):
             if seqRec.id not in self.chrInfo:
                 self.chrInfo[seqRec.id] = { 'start':start, 'end':end }    
 
-    def makeGenBank(self):
+    def makeGenBank(self,name):
         '''
         Create a genbank file for the newly created merged chromosome
         '''
-        outName = re.sub('.fasta|.fna|.fa', '', self.fasta)
+        outName = name
         record = SeqRecord(self.mergedSeq, id=outName, name=outName,
-        description='Merged-Chromosome for delila pipeline')
+        description= name + ' merged-Chromosome for delila pipeline')
 
         # add annotation
         feature = SeqFeature(FeatureLocation(start=0,end=len(self.mergedSeq)),type='exon')
@@ -123,7 +123,8 @@ def main():
     
     cmdparser = argparse.ArgumentParser(description="Utilities for manipulating fasta files inside the Delila peline.",
                                         usage='%(prog)s -f <fastq file list.txt>' ,prog='chromosomeUtilities.py'  )
-    cmdparser.add_argument('-f', '--fasta',    action='store', dest='FASTA',    help='fastq file name', metavar='')
+    cmdparser.add_argument('-f', '--fasta', action='store', dest='FASTA', help='fastq file name', metavar='')
+    cmdparser.add_argument('-n', '--name',  action='store', dest='NAME',  help='genbank output name', metavar='')
     cmdResults = vars(cmdparser.parse_args())
         
     # if no args print help
@@ -139,15 +140,18 @@ def main():
         cmdparser.print_help()
         sys.exit(1)  
 
-    
+    if cmdResults['NAME'] is not None:
+        name = cmdResults['NAME'] 
+    else:
+        print("")
+        cmdparser.print_help()
+        sys.exit(1)    
+
+    # example usage
     #mySeq = chromosomeUtilities(fasta)
     #mySeq.getPositions()
     #mySeq.combineSeq()
-    #mySeq.makeGenBank()
-    # set up to write sequence to fasta file
-    #outSeqRec = SeqRecord(mySeq.mergedSeq, id='mergedChromosome',
-    #description='Merged Chromosome for use with delila pipeline')
-    #SeqIO.write(outSeqRec, "mergedChromosome.fa", 'fasta')
+    #mySeq.makeGenBank(name)
 
 if __name__ == "__main__":
     main()
