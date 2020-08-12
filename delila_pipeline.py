@@ -903,7 +903,7 @@ def main():
     if os.path.exists('makelogop'):
         continue
     else:
-        pipe.makeLogop()
+        pipe.makeLOGOp()
 
     pipe.runMAKELOGO('symvec', pipe.prefix + '.logo')
     pipe.retrievePWM()
