@@ -809,7 +809,7 @@ class delilaPipe( object ):
                 if switch == 1:
                     out.write(line)
     
-    def updateTssPositions(self, data):
+    def updateTssPositions(self, data, prefix):
         '''
         Need to update positions for TSS sites, based on merged chromosome positions.
         The original TSS site position will be added to the start of the merged chromosome
@@ -821,6 +821,7 @@ class delilaPipe( object ):
             for ln in tss:
                 dat = ln.rstrip().split('\t')
                 newPos = int(dat[3]) + data.chrInfo[dat[0]]['start']  # add start position
+                dat[0] = prefix
                 dat[3] = newPos
                 results.append(dat)
         # save the original file
@@ -913,7 +914,7 @@ def main():
     logger.info('Search Window: {}'.format( ' '.join(window)))
     # create delila object and get to work
     pipe = delilaPipe(inFile, prefix, tssFile)
-    pipe.updateTssPositions(data)
+    pipe.updateTssPositions(data, prefix)
     '''
     pipe.makeDBBK()
     pipe.catalParameters()
