@@ -145,7 +145,7 @@ gcc -Wall mkdb.c -o mkdb -I/home/mplace/bin/p2c/home -L /home/mplace/bin/p2c/hom
 #define updateversion   1.09
 
 #define maxnamelength   100
-#define maxsequencelength  2500 /* human chromosome 2 length */
+#define maxsequencelength  5000000 
 #define debugging       false
 int debug = 0;
 
@@ -604,8 +604,8 @@ int main(int argc, char **argv)
   int oflag=0;
 	char *sName = "sequence";
   char *params = "parameters";
-  char *outName = "output.txt";
-	static char usage[] = "usage: %s -s sequ -p mkbkp -o out\n";
+  char *outName = "output.gnbk";
+	static char usage[] = "usage: %s -s sequ -p mkdbp -o out\n";
 
 while ((c = getopt(argc, argv, "s:p:o:")) != -1)
 		switch (c) {
