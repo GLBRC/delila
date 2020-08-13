@@ -119,8 +119,8 @@ Example
 -------
     usage:
 
-        delila_pipeline.py -f rhodo_genome.gbff -p rhodo -t all_rhodo_tss_for_delila.txt
-        delila_pipeline.py -f rhodo_genome.gbff -p R.sphaeroides-2.4.1 -t all_rhodo_tss_for_delila.txt
+        delila_pipeline.py -g rhodo_genome.gbff -p rhodo -t all_rhodo_tss_for_delila.txt
+        delila_pipeline.py -g rhodo_genome.gbff -p R.sphaeroides-2.4.1 -t all_rhodo_tss_for_delila.txt
         
 Requirements
 ------------
@@ -148,7 +148,6 @@ import os
 import re              # for regex 
 import subprocess      # used to call delila programs 
 import sys
-import chromosomeUtilities as chrUtil
 
 # program home directory
 pdir = '/home/mplace/scripts/delila/src/'
@@ -165,7 +164,7 @@ class delilaPipe( object ):
     """
     Methods and data structures for delila pipeline
     """
-    def __init__(self, genbank, prefix, tss):
+    def __init__(self, genbank, prefix, tss, window):
         """
         Set up delilaPipe object
         
@@ -193,7 +192,8 @@ class delilaPipe( object ):
         self.cat3        = 'cat3'
         self.instructions = []                 # list of instruction files, one per chromosome
         self.tss         = tss                 # Transcription Start Site information file name
-        self.delilaBOOK  = []                  # list of books, Output of Delila program   
+        self.delilaBOOK  = []                  # list of books, Output of Delila program  
+        self.window      = window              # list, 2 numbers with sign, [ 6, 5 ] [down, up]
 
     def __repr__(self):
         '''
@@ -215,18 +215,7 @@ class delilaPipe( object ):
         rep += 'TSS File {}'.format(self.tss)     
         rep += 'instruction files: {} \n'.format('\t'.join(self.instructions))
         return rep 
-
-    def makeMKDBP(self):
-        '''
-        If it doesn't exist make the mkdb parameter file, called mkdbp
-        '''
-        if not os.path.exists('mkdbp'):
-            with open('mkdbp','w') as out:
-                out.write('1.27\n')
-                out.write('0\n')
-                out.write(i)
-            out.close()
-        
+       
     def makeDBBK(self):
         '''
         Call to Delila dbbk.
@@ -334,7 +323,7 @@ class delilaPipe( object ):
 
         '''
         program = '/home/mplace/scripts/delila/delila_instructions.py'
-        cmd = [ program, '-f', self.tss, '-o', self.prefix ]
+        cmd = [ program, '-f', self.tss, '-o', self.prefix, '-d', self.window[0], '-u', self.window[1] ]
         logger.info('Running splitTSS ')
         logger.info( program + ' ' +  ' '.join(cmd))
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
@@ -404,9 +393,9 @@ class delilaPipe( object ):
         logger.info(result2)
 
         # rename temporary output files 
-        #chrom = re.sub('_TSS.inst', '', inst)
-        os.rename(book, self.prefix + '_' + 'book.txt' )
-        os.rename(listing, self.prefix + '_' + 'listing.txt')
+        chrom = re.sub('_TSS.inst', '', inst)
+        os.rename(book, self.prefix + '_' + chrom + '_' + 'book.txt' )
+        os.rename(listing, self.prefix + '_' + chrom + '_' + 'listing.txt')
 
     def createMalignp(self):
         '''
@@ -537,7 +526,10 @@ class delilaPipe( object ):
         f.close()
 
         # create the colors parameter file
-        self.colors()
+        self.makeColors()
+
+        # create the alistp parameter file
+        self.makeALISTp()
 
         with open("namebook", 'w') as f:
             pass
@@ -582,6 +574,7 @@ class delilaPipe( object ):
         specified parameters, which are in the file 'encodep'.
 
         '''
+        self.makeENCODEp()
         # set up encode
         program = pdir + 'encode'
         cmd = [ program , '-b', book, '-i', cinst, '-p', encodep ]
@@ -684,7 +677,7 @@ class delilaPipe( object ):
             cout.write("* that PostScript uses to generate the figures.\n\n")
             cout.write("* green:\n")
             cout.write("a 0.182082 1 0.181899\n")
-            cout.write("* blue:")
+            cout.write("* blue:\n")
             cout.write("c 0 0.9372 1\n")
             cout.write("* organge\n")
             cout.write("g 1 0.7 0\n")
@@ -774,11 +767,11 @@ class delilaPipe( object ):
         '''
         # check if the user has provided a make logo parameter file if not make one
         if not os.path.exists('makelogop'):
-            pipe.makeLOGOp()
+            self.makeLOGOp()
 
         # check if the user has provided a wave file if not make one
         if not os.path.exists('wave'):
-            pipe.makeWaveFile()
+            self.makeWaveFile()
 
         # check if the user has provided a wave file if not make one
         if not os.path.exists('colors'):
@@ -844,13 +837,11 @@ class delilaPipe( object ):
                 out.write( '{}\n'.format(outLine))
 
 def main():
-    usage ='%(prog)s -f genome.fasta -p prefix -t tss_file.txt -w -10 +10 \n\t May use genbank or fasta NOT BOTH.'             
+    usage ='%(prog)s -g genome.gnbk -p prefix -t tss_file.txt -w -10 +10'             
     cmdparser = argparse.ArgumentParser(description="Delila pipeline to make sequence logo from Transcription start sites.",
                                         usage=usage, prog='delila_pipeline.py'  )
     cmdparser.add_argument('-i', '--info', action='store_true', dest='INFO',
                             help='Print more information to stdout')                            
-    cmdparser.add_argument('-f', '--file', action='store', dest='FILE', 
-                            help='genome fasta file', metavar='')
     cmdparser.add_argument('-g', '--genbank', action='store', dest='GENBANK',
                             help='Genbank input file')
     cmdparser.add_argument('-p', '--prefix', action='store', dest='PREFIX', 
@@ -875,9 +866,9 @@ def main():
         print("    Create a sequence logo for Transcription Start sites using the Delila package.")
         print("")
         print("To Run:\n")
-        print("delila_pipeline.py -f genome.gbff -p ecoli -t ecoli_tss_info.txt")
+        print("delila_pipeline.py -g genome.gnbk -p ecoli -t ecoli_tss_info.txt")
         print("")
-        print("    -f genome genbank file ")
+        print("    -g genome fasta file ")
         print("    -p prefix name to use for output files")
         print("    -t transcription start site information file")
         print("    -w window size to search, takes 2 numbers: -10 +10")
@@ -896,20 +887,12 @@ def main():
         print("For help contact:  bioinformaticshelp@glbrc.wisc.edu\n")
         sys.exit(1)
 
+    # check the command line parameters
     if cmdResults['PREFIX'] is not None:
         prefix = cmdResults['PREFIX']
 
-    if cmdResults['FILE'] is not None:
-        inFile = cmdResults['FILE']                 # infile is a fasta file  
-        data = chrUtil.chromosomeUtilities(inFile)
-        data.getPositions()
-        data.combineSeq()
-        data.makeGenBank(prefix)
-
-        for k,v in data.chrInfo.items():            # print for testing
-            print(k, v)
-
-        inFile = prefix + '.gnbk'
+    if cmdResults['GENBANK'] is not None:
+        inFile = cmdResults['GENBANK']                 # infile is a genbank file  
 
     if cmdResults['TSS'] is not None:
         tssFile = cmdResults['TSS'] 
@@ -922,36 +905,39 @@ def main():
     # log program start
     logger.info("Running delila_pipeline ")
     logger.info('Working Directory: ' + os.getcwd())
-    logger.info('genbank file: {}'.format(inFile))
-    logger.info('output prefix: {}'.format(prefix))
+    logger.info('Input file: {}'.format(inFile))
+    logger.info('Output prefix: {}'.format(prefix))
     logger.info('Transcription Start Site file: {}'.format(tssFile))
     logger.info('Search Window: {}'.format( ' '.join(window)))
+    logger.info('runMKDB, This creates a genbank file from fasta file.')
+
     # create delila object and get to work
-    pipe = delilaPipe(inFile, prefix, tssFile)
-    pipe.updateTssPositions(data, prefix)
+    pipe = delilaPipe(inFile, prefix, tssFile, window)
     
     pipe.makeDBBK()
     pipe.catalParameters()
     pipe.runCATAL()
-    
     pipe.splitTSS()
     # Read instructions from file
     pipe.getInstructions()
-    '''
     # run delila
-    pipe.runDELILA(pipe.instructions[0])   
+    for inst in pipe.instructions:
+        pipe.runDELILA( inst)   
+        
     pipe.createMalignp()
     pipe.runMALIGN('R.sphaeroides-2.4.1_NC_007493.2_book.txt', 'NC_007493.2_TSS.inst')
+    
     pipe.createMalinp()
     pipe.runMALIN('NC_007493.2_TSS.inst')
     pipe.runDELILA('cinst')
+    
     pipe.runALIST( 'R.sphaeroides-2.4.1_cinst_book.txt', 'cinst', 'avalues' )
     pipe.runENCODE('R.sphaeroides-2.4.1_cinst_book.txt', 'cinst', 'encodep')
     pipe.runCOMP('R.sphaeroides-2.4.1_cinst_book.txt', 'compp')
     pipe.runRSEQ('cmp', 'encseq')
     pipe.runDALVEC('rsdata', 'dalvecp')
-    pipe.runMAKELOGO('symvec', pipe.prefix + '.logo')
+    pipe.runMAKELOGO('symvec', prefix + '.logo')
     pipe.retrievePWM()
-    '''
+        
 if __name__ == "__main__":
     main()
