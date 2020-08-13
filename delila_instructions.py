@@ -156,11 +156,11 @@ def main():
                 if dat[2] == 'forward':
                     direction = '+'
                     pos = str(int(dat[3]) - tssPos)   
-                    out.write('get from {} -{} to {} +{} direction {};\n'.format(pos, str(upPos), pos, str(downPos),direction )) 
+                    out.write('get from {} -{} to {} +{} direction {};\n'.format(pos, str(downPos), pos, str(upPos),direction )) 
                 else:
                     direction = '-'
                     pos = str(int(dat[3]) + tssPos) 
-                    out.write('get from {} +{} to {} -{} direction {};\n'.format(pos, str(downPos), pos, str(upPos) ,direction)) 
+                    out.write('get from {} +{} to {} -{} direction {};\n'.format(pos, str(upPos), pos, str(downPos) ,direction)) 
                 
         out.close()
 
