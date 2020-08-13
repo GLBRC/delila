@@ -5,271 +5,9 @@
  #include "/root/src/p2c-2.01/home/src/p2c.h"
 
 
-/*
-
-
-
-
-
-*/
-
 
 
 #define version         3.61
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-
-/*
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-
-
-
-
-
-
 #define feaspot         6
 #define startspot       22
 
@@ -279,32 +17,15 @@
 #define fromspot        19
 #define tospot          28
 #define genuslimit      1
-/*
-
-*/
-
-
-
 
 #define maxstring       2000
-
-
-
-
 #define fillermax       50
-
-
-
-
 
 typedef struct stringDelila {
   Char letters[maxstring];
   long length, current;
   struct stringDelila *previous, *next;
 } stringDelila;
-
-
-
 
 typedef struct parameters {
 
@@ -318,17 +39,8 @@ typedef struct parameters {
   boolean doremove;
 
   Char foundanyway;
-  /*
-
-
-
-
-*/
-
   long alignmentshift;
-  /*
-*/
-
+ 
   boolean generic;
 } parameters;
 
@@ -338,15 +50,7 @@ typedef struct spot {
   struct spot *next;
 } spot;
 
-
-
-/*
-
-
-*/
 typedef Char filler[fillermax];
-
-
 
 typedef struct trigger {
   stringDelila seek;
@@ -361,37 +65,16 @@ Static _TEXT db, binst, einst, oinst, sinst, olength, slength, dbinstp,
 /*
 */
 Static _TEXT featab;
-
 Static spot *freespots;
-
-
 Static jmp_buf _JL1;
-
-
-
-
-
-
 Static Void halt()
 {
-  /*
-
-
-
-
-
-*/
   printf(" program halt.\n");
   longjmp(_JL1, 1);
 }
 
 
 #define tab             9
-
-
-
-
-
 
 Static boolean isblankDelila(c)
 Char c;
@@ -425,20 +108,9 @@ _TEXT *thefile;
   skipnonblanks(thefile);
 }
 
-
-
-
-
-
-
-
-
 Static Void emptystring(ribbon)
 stringDelila *ribbon;
 {
-  /*
-
-*/
   long index;
 
   for (index = 0; index < maxstring; index++)
@@ -451,11 +123,6 @@ stringDelila *ribbon;
 Static Void clearstring(ribbon)
 stringDelila *ribbon;
 {
-  /*
-
-
-
-*/
   emptystring(ribbon);
   ribbon->previous = NULL;
   ribbon->next = NULL;
@@ -483,11 +150,6 @@ stringDelila **ribbon;
 Static Void initializestring(ribbon)
 stringDelila *ribbon;
 {
-  /*
-
-
-
-*/
   printf("remove initializestring routine!\n");
   printf("replace it with clearstring routine!\n");
   halt();
@@ -570,21 +232,7 @@ Char *whzat, *c;
 long *i;
 double *r;
 {
-  /*
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
+ 
   struct LOC_figurestring V;
   long numbers[3];
   long sign, numberstart;
