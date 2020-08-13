@@ -215,6 +215,17 @@ class delilaPipe( object ):
         rep += 'TSS File {}'.format(self.tss)     
         rep += 'instruction files: {} \n'.format('\t'.join(self.instructions))
         return rep 
+
+    def makeMKDBP(self):
+        '''
+        If it doesn't exist make the mkdb parameter file, called mkdbp
+        '''
+        if not os.path.exists('mkdbp'):
+            with open('mkdbp','w') as out:
+                out.write('1.27\n')
+                out.write('0\n')
+                out.write(i)
+            out.close()
         
     def makeDBBK(self):
         '''
@@ -393,9 +404,9 @@ class delilaPipe( object ):
         logger.info(result2)
 
         # rename temporary output files 
-        chrom = re.sub('_TSS.inst', '', inst)
-        os.rename(book, self.prefix + '_' + chrom + '_' + 'book.txt' )
-        os.rename(listing, self.prefix + '_' + chrom + '_' + 'listing.txt')
+        #chrom = re.sub('_TSS.inst', '', inst)
+        os.rename(book, self.prefix + '_' + 'book.txt' )
+        os.rename(listing, self.prefix + '_' + 'listing.txt')
 
     def createMalignp(self):
         '''
@@ -832,16 +843,16 @@ class delilaPipe( object ):
                 outLine = '\t'.join([str(x) for x in site])
                 out.write( '{}\n'.format(outLine))
 
-
 def main():
-    
+    usage ='%(prog)s -f genome.fasta -p prefix -t tss_file.txt -w -10 +10 \n\t May use genbank or fasta NOT BOTH.'             
     cmdparser = argparse.ArgumentParser(description="Delila pipeline to make sequence logo from Transcription start sites.",
-                                        usage='%(prog)s -f genome.genbank -p prefix -t tss_file.txt -w -10 +10 ',
-                                        prog='delila_pipeline.py'  )
+                                        usage=usage, prog='delila_pipeline.py'  )
     cmdparser.add_argument('-i', '--info', action='store_true', dest='INFO',
                             help='Print more information to stdout')                            
     cmdparser.add_argument('-f', '--file', action='store', dest='FILE', 
                             help='genome fasta file', metavar='')
+    cmdparser.add_argument('-g', '--genbank', action='store', dest='GENBANK',
+                            help='Genbank input file')
     cmdparser.add_argument('-p', '--prefix', action='store', dest='PREFIX', 
                             help='Prefix names used on output files', metavar='')
     cmdparser.add_argument('-w', '--window', action='store', dest='WINDOW', 
@@ -889,13 +900,16 @@ def main():
         prefix = cmdResults['PREFIX']
 
     if cmdResults['FILE'] is not None:
-        inFile = cmdResults['FILE']        
+        inFile = cmdResults['FILE']                 # infile is a fasta file  
         data = chrUtil.chromosomeUtilities(inFile)
         data.getPositions()
         data.combineSeq()
         data.makeGenBank(prefix)
-        for k,v in data.chrInfo.items():
+
+        for k,v in data.chrInfo.items():            # print for testing
             print(k, v)
+
+        inFile = prefix + '.gnbk'
 
     if cmdResults['TSS'] is not None:
         tssFile = cmdResults['TSS'] 
@@ -904,7 +918,7 @@ def main():
         window = cmdResults['WINDOW']
     else:
         window = ['-10', '+10']
-
+    
     # log program start
     logger.info("Running delila_pipeline ")
     logger.info('Working Directory: ' + os.getcwd())
@@ -915,18 +929,17 @@ def main():
     # create delila object and get to work
     pipe = delilaPipe(inFile, prefix, tssFile)
     pipe.updateTssPositions(data, prefix)
-    '''
+    
     pipe.makeDBBK()
     pipe.catalParameters()
     pipe.runCATAL()
+    
     pipe.splitTSS()
     # Read instructions from file
     pipe.getInstructions()
-    # Create delila instruction sets1
-    for inst in pipe.instructions:
-        pipe.runDELILA(inst)
-
-        
+    '''
+    # run delila
+    pipe.runDELILA(pipe.instructions[0])   
     pipe.createMalignp()
     pipe.runMALIGN('R.sphaeroides-2.4.1_NC_007493.2_book.txt', 'NC_007493.2_TSS.inst')
     pipe.createMalinp()
