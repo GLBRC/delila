@@ -54,6 +54,7 @@ class chromosomeUtilities(object):
         self.fasta     = fasta            #  input fasta sequence
         self.chrInfo   = {}
         self.mergedSeq = Seq('', alphabet=IUPAC.ambiguous_dna)
+        self.outName   = ''
 
     def combineSeq(self):
         '''
@@ -117,7 +118,17 @@ class chromosomeUtilities(object):
         SeqIO.write(record, outputFile, 'genbank')
         outputFile.close()
 
-    
+    def writeFasta(self, name):
+        '''
+        Write fasta file, all sequences in fasta file have been merged
+        into a single sequence.
+        '''
+        outName = name 
+        record = SeqRecord(self.mergedSeq, id=outName, name=outName, 
+                 description=' merged-Chromosome for delila pipeline')
+        SeqIO.write(record, name + '_merged_Sequence.fasta', 'fasta')
+        self.outName = name + '_merged_Sequence.fasta'
+
 
 def main():
     
@@ -148,9 +159,10 @@ def main():
         sys.exit(1)    
 
     # example usage
-    #mySeq = chromosomeUtilities(fasta)
-    #mySeq.getPositions()
-    #mySeq.combineSeq()
+    mySeq = chromosomeUtilities(fasta)
+    mySeq.getPositions()
+    mySeq.combineSeq()
+    mySeq.writeFasta(name)
     #mySeq.makeGenBank(name)
 
 if __name__ == "__main__":
