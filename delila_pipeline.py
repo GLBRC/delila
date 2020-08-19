@@ -180,7 +180,7 @@ class delilaPipe( object ):
         self.gnbk        = genbank             # genbank file, the primary input file
         self.prefix      = prefix
         self.dbbkChanges = prefix + '_' + 'dbbk_changes.txt'  # record seq changes from dbbk
-        self.catalParams = self.catalParameters()
+        self.catalParams = 'catal_parameters.txt'
         self.l1          = 'l1'                # l1,l2,l3 required by delila, only l1 contains info
         self.l2          = 'l2'
         self.l3          = 'l3'
@@ -237,7 +237,7 @@ class delilaPipe( object ):
         '''
         program = pdir + 'dbbk'       # location of delila 
         # set up dbbk command parameters
-        cmd = [program, '-f', self.gnbk, '-c', self.dbbkChanges, '-o', self.prefix + '_' + 'dbbk.txt']
+        cmd = [program, '-f', self.gnbk, '-c', self.dbbkChanges, '-o', self.prefix + '_' + 'book.txt']
         # log function call
         logger.info("Running makeDBBK ")
         logger.info(program + ' ' + ' '.join(cmd))
@@ -249,7 +249,7 @@ class delilaPipe( object ):
         logger.info(result1)
         logger.info(result2)
         # create a symbolic link to l1 for running catal
-        os.symlink(self.prefix + '_' + 'dbbk.txt', 'l1')
+        os.symlink(self.prefix + '_' + 'book.txt', 'l1')
 
     def catalParameters(self):
         '''
@@ -269,8 +269,6 @@ class delilaPipe( object ):
             out.write('lib3=lib3\n')
             out.write('catalp=catalp\n')
         out.close()
-
-        return 'catal_parameters.txt'
 
     def runCATAL(self):
         '''
@@ -292,9 +290,9 @@ class delilaPipe( object ):
         # create l3
         with open('l3', 'w') as l3:
             pass
-        # create catalp
-        with open('catalp', 'w') as catalp:
-            pass
+        # create catal parameters file
+        if not os.path.exists(self.catalParameters):
+            pipe.catalParameters()
 
         program = pdir + 'catal'
         cmd = [program , '-f', self.catalParams ]
@@ -440,6 +438,10 @@ class delilaPipe( object ):
         malign -b NC_007493.2_book -i NC_007493.2_delila_instructions.inst -m malignp
 
         '''
+        # check if malignp parameter file exists
+        if not os.path.exists('malignp'):
+            self.createMalignp()
+
         # set up malign
         program = pdir + 'malign'
         cmd = [ program , '-b', book, '-i', inst, '-m', 'malignp' ]
@@ -475,6 +477,9 @@ class delilaPipe( object ):
 
         malin -a optalign -i NC_007493.2_TSS.inst -o optinst -p malinp 
         '''
+        # create the malin parameter file
+        self.createMalinp()
+
         # set up malin
         program = pdir + 'malin'
         cmd = [ program , '-a', 'optalign', '-i', inst, '-o', 'optinst' ,'-p','malinp' ]
@@ -522,7 +527,7 @@ class delilaPipe( object ):
         '''
         # create the required empty files   
         with open('avalues', 'w') as f:
-            pass
+            f.write('* avalues')
         f.close()
 
         # create the colors parameter file
@@ -913,31 +918,32 @@ def main():
 
     # create delila object and get to work
     pipe = delilaPipe(inFile, prefix, tssFile, window)
-    
-    pipe.makeDBBK()
-    pipe.catalParameters()
+    # converts GenBank and EMBL data base entries into a book of delila entries.
+    pipe.makeDBBK()          
+    # The catalogue program checks all the input libraries for correct structure.
     pipe.runCATAL()
+    '''
+    # split input TSS file by chromosome
     pipe.splitTSS()
     # Read instructions from file
     pipe.getInstructions()
-    # run delila
+    # run delila for each chromosome
     for inst in pipe.instructions:
         pipe.runDELILA( inst)   
-        
-    pipe.createMalignp()
+       
     pipe.runMALIGN('R.sphaeroides-2.4.1_NC_007493.2_book.txt', 'NC_007493.2_TSS.inst')
-    
-    pipe.createMalinp()
     pipe.runMALIN('NC_007493.2_TSS.inst')
     pipe.runDELILA('cinst')
-    
     pipe.runALIST( 'R.sphaeroides-2.4.1_cinst_book.txt', 'cinst', 'avalues' )
+    
+    
     pipe.runENCODE('R.sphaeroides-2.4.1_cinst_book.txt', 'cinst', 'encodep')
     pipe.runCOMP('R.sphaeroides-2.4.1_cinst_book.txt', 'compp')
     pipe.runRSEQ('cmp', 'encseq')
     pipe.runDALVEC('rsdata', 'dalvecp')
     pipe.runMAKELOGO('symvec', prefix + '.logo')
     pipe.retrievePWM()
-        
+    '''    
+
 if __name__ == "__main__":
     main()
