@@ -180,7 +180,7 @@ class delilaPipe( object ):
         self.gnbk        = genbank             # genbank file, the primary input file
         self.prefix      = prefix
         self.dbbkChanges = prefix + '_' + 'dbbk_changes.txt'  # record seq changes from dbbk
-        self.catalParams = 'catal_parameters.txt'
+        self.catalParams = 'catalp'
         self.l1          = 'l1'                # l1,l2,l3 required by delila, only l1 contains info
         self.l2          = 'l2'
         self.l3          = 'l3'
@@ -255,7 +255,7 @@ class delilaPipe( object ):
         '''
         Write catal parameters file
         '''
-        with open('catal_parameters.txt', 'w') as out:
+        with open('catalp', 'w') as out:
             out.write('l1=l1\n')
             out.write('l2=l2\n')
             out.write('l3=l3\n')
@@ -291,8 +291,8 @@ class delilaPipe( object ):
         with open('l3', 'w') as l3:
             pass
         # create catal parameters file
-        if not os.path.exists(self.catalParameters):
-            pipe.catalParameters()
+        if not os.path.exists(self.catalParams):
+            self.catalParameters()
 
         program = pdir + 'catal'
         cmd = [program , '-f', self.catalParams ]
@@ -401,8 +401,8 @@ class delilaPipe( object ):
         Output a text file called malignp, used as input to malign.
         '''
         with open('malignp', 'w') as out:
-            out.write('-5 +5\n')   # winleft, winright: left and right ends of window
-            out.write('-5 +5\n')   # shiftmin, shiftmax: minimum and maximum shift of aligned base
+            out.write('-3 +3\n')   # winleft, winright: left and right ends of window
+            out.write('-3 +3\n')   # shiftmin, shiftmax: minimum and maximum shift of aligned base
             out.write('54321\n')   # iseed: integer random seed
             out.write('0\n')       # nranseq: number of random sequences, or 0 to use sequences in book
             out.write('2000\n')    # nshuffle: number of times to redo alignment after random shuffle
@@ -509,7 +509,7 @@ class delilaPipe( object ):
             out.write("1.0 -1.0 1.0 amount to move image in x and y (cm) and scale factor\n")
             out.write("h           headercontrol: h(eader); 0: no header, no numbar; else numbar\n")
 
-    def runALIST(self, book, cinst, alistp):
+    def runALIST(self, book, cinst):
         '''
         from Delila documentation:    
       
@@ -546,7 +546,7 @@ class delilaPipe( object ):
 
         # set up alist
         program = pdir + 'alist'
-        cmd = [ program , '-b', book, '-i', cinst, '-p', alistp ]
+        cmd = [ program , '-b', book, '-i', cinst, '-p', 'alistp' ]
         logger.info("Running alist ")
         logger.info(program + ' ' + ' '.join(cmd))
         # run alist
@@ -689,6 +689,7 @@ class delilaPipe( object ):
             cout.write("* red:\n")
             cout.write("t 1 0 0\n")
             cout.write("u 1 0 0\n")
+            '''
             cout.write("* polar are GREEN\n")
             cout.write("G 0 1 0\n")
             cout.write("S 0 1 0\n")
@@ -714,6 +715,7 @@ class delilaPipe( object ):
             cout.write("I 0 0 0\n")
             cout.write("M 0 0 0\n")
             cout.write("V 0 0 0\n")
+            '''
             cout.write("\n")            
         cout.close()
 
@@ -922,28 +924,28 @@ def main():
     pipe.makeDBBK()          
     # The catalogue program checks all the input libraries for correct structure.
     pipe.runCATAL()
-    '''
     # split input TSS file by chromosome
     pipe.splitTSS()
     # Read instructions from file
     pipe.getInstructions()
     # run delila for each chromosome
-    for inst in pipe.instructions:
-        pipe.runDELILA( inst)   
-       
+    
+    #for inst in pipe.instructions:
+    #    pipe.runDELILA( inst)   
+    pipe.runDELILA('NC_007493.2_TSS.inst')   
     pipe.runMALIGN('R.sphaeroides-2.4.1_NC_007493.2_book.txt', 'NC_007493.2_TSS.inst')
     pipe.runMALIN('NC_007493.2_TSS.inst')
     pipe.runDELILA('cinst')
-    pipe.runALIST( 'R.sphaeroides-2.4.1_cinst_book.txt', 'cinst', 'avalues' )
-    
-    
+    pipe.runALIST( 'R.sphaeroides-2.4.1_cinst_book.txt', 'cinst' )
+    '''
     pipe.runENCODE('R.sphaeroides-2.4.1_cinst_book.txt', 'cinst', 'encodep')
+    
     pipe.runCOMP('R.sphaeroides-2.4.1_cinst_book.txt', 'compp')
     pipe.runRSEQ('cmp', 'encseq')
     pipe.runDALVEC('rsdata', 'dalvecp')
     pipe.runMAKELOGO('symvec', prefix + '.logo')
     pipe.retrievePWM()
-    '''    
+    '''  
 
 if __name__ == "__main__":
     main()
