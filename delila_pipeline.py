@@ -650,7 +650,7 @@ class delilaPipe( object ):
         logger.info(result1)
         logger.info(result2)       
 
-    def runDALVEC(self, rsdata, dalvecp):
+    def runDALVEC(self, rsdata):
         '''
         from Delila documentation:
 
@@ -659,9 +659,14 @@ class delilaPipe( object ):
         
         dalvec -r rsdata -p dalvecp
         '''
+        if not os.path.exists('dalvcep'):
+            with open('dalvecp', 'w') as f:
+                pass
+            f.close()
+
         # set up dalvec
         program = pdir + 'dalvec'
-        cmd = [ program , '-r', rsdata, '-p', dalvecp ]
+        cmd = [ program , '-r', rsdata, '-p', 'dalvecp' ]
         logger.info("Running dalvec ")
         logger.info(program + ' ' + ' '.join(cmd))
         # run dalvec
@@ -937,15 +942,12 @@ def main():
     pipe.runMALIN('NC_007493.2_TSS.inst')
     pipe.runDELILA('cinst')
     pipe.runALIST( 'R.sphaeroides-2.4.1_cinst_book.txt', 'cinst' )
-    '''
     pipe.runENCODE('R.sphaeroides-2.4.1_cinst_book.txt', 'cinst', 'encodep')
-    
     pipe.runCOMP('R.sphaeroides-2.4.1_cinst_book.txt', 'compp')
     pipe.runRSEQ('cmp', 'encseq')
-    pipe.runDALVEC('rsdata', 'dalvecp')
+    pipe.runDALVEC('rsdata')
     pipe.runMAKELOGO('symvec', prefix + '.logo')
-    pipe.retrievePWM()
-    '''  
+    pipe.retrievePWM()    
 
 if __name__ == "__main__":
     main()
