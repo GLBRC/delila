@@ -401,8 +401,8 @@ class delilaPipe( object ):
         Output a text file called malignp, used as input to malign.
         '''
         with open('malignp', 'w') as out:
-            out.write('-3 +3\n')   # winleft, winright: left and right ends of window
-            out.write('-3 +3\n')   # shiftmin, shiftmax: minimum and maximum shift of aligned base
+            out.write('-5 +5\n')   # winleft, winright: left and right ends of window
+            out.write('-5 +5\n')   # shiftmin, shiftmax: minimum and maximum shift of aligned base
             out.write('54321\n')   # iseed: integer random seed
             out.write('0\n')       # nranseq: number of random sequences, or 0 to use sequences in book
             out.write('2000\n')    # nshuffle: number of times to redo alignment after random shuffle
@@ -730,6 +730,7 @@ class delilaPipe( object ):
         '''
         with open('wave', 'w') as out:
             out.write("h\n")
+            out.write("0\n")
             out.write("2.0\n")
             out.write("0.5\n")
             out.write("10.6\n")
@@ -741,7 +742,7 @@ class delilaPipe( object ):
         Create a default parameter file to make a logo
         '''
         with open('makelogop', 'w') as out:
-            out.write("-5 +7\n")
+            out.write("-8 +5\n")
             out.write("100\n")
             out.write("5.0 10.0\n")
             out.write("0\n")
@@ -934,7 +935,6 @@ def main():
     # Read instructions from file
     pipe.getInstructions()
     # run delila for each chromosome
-    
     #for inst in pipe.instructions:
     #    pipe.runDELILA( inst)   
     pipe.runDELILA('NC_007493.2_TSS.inst')   
