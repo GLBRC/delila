@@ -1,18 +1,18 @@
-#!/home/glbrc.org/kmyers/anaconda3/bin/python
-"""delila_instructions.py
+#!/home/mplace/anaconda3.7/bin/python
+"""genome_instructions.py
 
-Split input Transcription Start site file by chromosome.
+Create a single genome instruction file.
 
 Notes
 ----- 
 
-Delila only handles one chromosome at a time.   
+Delila normally only handles one chromosome at a time, but we need to handle
+multiple chromosomes.  Idea is based on Tom's script (http://users.fred.net/tds/lab/ftp/delilagenome) 
 
 Method
 ------
 
 Read TSS file line by line.  Parse each line identifying the chromosome.
-Write each chromosome's lines to a new file, named by chromosomeName_TSS.txt.
     
 Parameters
 ----------
@@ -47,21 +47,33 @@ Example
 -------
     usage:
 
-        delila_instructions.py -f input.txt -d 10  -o rhodo -p 10 -u 10
+        genome_instructions.py -f input.txt -d 10  -o rhodo -p 10 -u 10
 
 Output
 ------
 
-A text file with a four line header followed by site request information :
+A text file with a 2 line header followed by site request information :
 
-title "rhodobacter -10 elements TSS sites version 1.0 NC_007490.2_TSS.txt  2020/07/14;
-organism rhodobacter;
-chromosome rhodobacter;
-piece NC_007490.2;
-name "RSP_4139_3142";
-get from 3132 -8 to 3132 +5 direction +;
-name "RSP_4139_3144";
-get from 3134 -8 to 3134 +5 direction +;
+title "test grab";
+organism hg19;
+
+chromosome chr1;
+piece hg19-chr1;
+name "Example 1, sequence 1";
+get from 1 to 5;
+name "Example 1, sequence 2";
+get from 1 to 10;
+name "Example 1, sequence 3";
+get from 6 to 10;
+
+chromosome chrM;
+piece hg19-chrM;
+name "Example 2, sequence 1";
+get from 1 to 5;
+name "Example 2, sequence 2";
+get from 1 to 10;
+name "Example 2, sequence 3";
+get from 6 to 10;
 
 """
 from datetime import date
@@ -71,8 +83,8 @@ import sys
 
 def main():
     
-    cmdparser = argparse.ArgumentParser(description="Split TSS file by chromosome.",
-                                        usage='%(prog)s -f <TSS_site_file.txt> -u <int> -d <int>'  ,prog='delila_instructions.py'  )
+    cmdparser = argparse.ArgumentParser(description="Create whole genome delila instruction file.",
+                                        usage='%(prog)s -f <TSS_site_file.txt> -o organism -u <int> -d <int>'  ,prog='genome_instructions.py'  )
     cmdparser.add_argument('-d', '--down',  action='store', dest='DOWN',
                             help='Downstream base position', metavar='')
     cmdparser.add_argument('-f', '--file',  action='store', dest='FILE',
@@ -131,22 +143,23 @@ def main():
                 data[site[0]][site[1]] = line
 
     f.close()
+    
+    # create output file name
+    outName = organism + '_TSS.inst'
+    # open output file for writing
+    with open(outName, 'w') as out:
+        # each instruction file requires a 4 line header    
+        out.write('title \"{} -10 elements TSS sites version 1.0 {}  {}\";\n'.format(organism, outName, currDate));
+        out.write('organism {};\n'.format(organism))
 
-    # instructions.list contains the instruction files for each chromosome in genome
-    instructions = []
+        previous = ''     # use for printing chromosome and piece only once
+        # write results with separate sections for chromosomes
+        for chrom in data.keys():
+            if previous != chrom:
+                out.write('\nchromosome {};\n'.format(chrom))
+                out.write('piece {};\n'.format(organism + '-' + chrom))
+                previous = chrom
 
-    # write results working with one chromosome at a time
-    for chrom in data.keys():
-        # create output file name
-        outName = chrom + '_TSS.inst'
-        instructions.append(outName)
-        # open output file for writing
-        with open(outName, 'w') as out:
-            # each instruction file requires a 4 line header    
-            out.write('title \"{} -10 elements TSS sites version 1.0 {}  {}\";\n'.format(organism, outName, currDate));
-            out.write('organism {};\n'.format(organism))
-            out.write('chromosome {};\n'.format(organism))
-            out.write('piece {};\n'.format(chrom))
             # now process each site 
             for sites in data[chrom].values():
                 dat = sites.rstrip().split('\t')
@@ -162,16 +175,6 @@ def main():
                     pos = str(int(dat[3]) + tssPos) 
                     out.write('get from {} +{} to {} -{} direction {};\n'.format(pos, str(upPos), pos, str(downPos) ,direction)) 
                 
-        out.close()
-
-    # delete a previously created file
-    if os.path.exists('instructions.list'):
-        os.unlink('instructions.list')
-    
-    # write new list to file
-    with open('instructions.list', 'w') as out:
-        for instFile in instructions:
-            out.write('{}\n'.format(instFile))
     out.close()
 
 if __name__ == "__main__":
