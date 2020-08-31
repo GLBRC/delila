@@ -1,4 +1,4 @@
-#!/home/mplace/anaconda3.7/bin/python
+#!/home/glbrc.org/kmyers/anaconda3/bin/python
 """delila_instructions.py
 
 Split input Transcription Start site file by chromosome.
