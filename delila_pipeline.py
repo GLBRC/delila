@@ -150,7 +150,7 @@ import subprocess      # used to call delila programs
 import sys
 
 # program home directory
-pdir = '/home/glbrc.org/kmyers/scripts/delila/src/'
+pdir = '/home/glbrc.org/mplace/scripts/delila/src/'
 
 # set up log file configuration
 logging.basicConfig(filename='delila_pipeline.log', format='%(asctime)s %(message)s',
