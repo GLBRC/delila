@@ -938,15 +938,15 @@ def main():
     #for inst in pipe.instructions:
     #    pipe.runDELILA( inst)   
     pipe.runDELILA('NC_000913.3_TSS.inst')   
-    pipe.runMALIGN('E.coli-str.-K-12-substr.-MG1655_NC_000913.3_book.txt', 'NC_007493.2_TSS.inst')
-    pipe.runMALIN('NC_007493.2_TSS.inst')
+    pipe.runMALIGN('E.coli-str.-K-12-substr.-MG1655_NC_000913.3_book.txt', 'NC_000913.3_TSS.inst')
+    pipe.runMALIN('NC_000913.3_TSS.inst')
     pipe.runDELILA('cinst')
     pipe.runALIST( 'E.coli-str.-K-12-substr.-MG1655_book.txt', 'cinst' )
     pipe.runENCODE('E.coli-str.-K-12-substr.-MG1655_cinst_book.txt', 'cinst', 'encodep')
     pipe.runCOMP('E.coli-str.-K-12-substr.-MG1655_cinst_book.txt', 'compp')
     pipe.runRSEQ('cmp', 'encseq')
     pipe.runDALVEC('rsdata')
-    pipe.runMAKELOGO('symvec', prefix + '.logo')
+    pipe.runMAKELOGO('symvec', prefix + '.logo.ps')
     pipe.retrievePWM()    
 
 if __name__ == "__main__":
