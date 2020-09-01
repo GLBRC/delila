@@ -835,7 +835,7 @@ class delilaPipe( object ):
         results = []
         # open and process tss site file
         with open(self.tss, 'r') as tss:
-            for ln in tss:
+           for ln in tss:
                 dat = ln.rstrip().split('\t')
                 newPos = int(dat[3]) + data.chrInfo[dat[0]]['start']  # add start position
                 dat[0] = prefix
@@ -937,13 +937,13 @@ def main():
     # run delila for each chromosome
     #for inst in pipe.instructions:
     #    pipe.runDELILA( inst)   
-    pipe.runDELILA('NC_000913.3_TSS.inst')   
-    pipe.runMALIGN('E.coli-str.-K-12-substr.-MG1655_NC_000913.3_book.txt', 'NC_000913.3_TSS.inst')
-    pipe.runMALIN('NC_000913.3_TSS.inst')
+    pipe.runDELILA('NC_000964.3_TSS.inst')   
+    pipe.runMALIGN('B.subtilis-subsp.-subtilis-str.-168_NC_000964.3_book.txt', 'NC_000964.3_TSS.inst')
+    pipe.runMALIN('NC_000964.3_TSS.inst')
     pipe.runDELILA('cinst')
-    pipe.runALIST( 'E.coli-str.-K-12-substr.-MG1655_book.txt', 'cinst' )
-    pipe.runENCODE('E.coli-str.-K-12-substr.-MG1655_cinst_book.txt', 'cinst', 'encodep')
-    pipe.runCOMP('E.coli-str.-K-12-substr.-MG1655_cinst_book.txt', 'compp')
+    pipe.runALIST( 'B.subtilis-subsp.-subtilis-str.-168_book.txt', 'cinst' )
+    pipe.runENCODE('B.subtilis-subsp.-subtilis-str.-168_cinst_book.txt', 'cinst', 'encodep')
+    pipe.runCOMP('B.subtilis-subsp.-subtilis-str.-168_cinst_book.txt', 'compp')
     pipe.runRSEQ('cmp', 'encseq')
     pipe.runDALVEC('rsdata')
     pipe.runMAKELOGO('symvec', prefix + '.logo.ps')
