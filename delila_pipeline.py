@@ -1,4 +1,4 @@
-#!/home/glbrc.org/kmyers/anaconda3/bin/python
+#!/home/mplace/anaconda3.7/bin/python
 """delila_pipeline.py
 
 Create a sequence logo for Transcription Start sites using the Delila package.
@@ -150,7 +150,8 @@ import subprocess      # used to call delila programs
 import sys
 
 # program home directory
-pdir = '/home/glbrc.org/mplace/scripts/delila/src/'
+# pdir = '/home/glbrc.org/mplace/scripts/delila/src/'
+pdir = '/home/mplace/scripts/delila/src/'
 
 # set up log file configuration
 logging.basicConfig(filename='delila_pipeline.log', format='%(asctime)s %(message)s',
