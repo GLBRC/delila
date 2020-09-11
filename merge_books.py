@@ -1,7 +1,7 @@
 #!/home/mplace/anaconda3.7/bin/python
 """merge_books.py
 
-Merge delila instruction files to handle multiple chromosomes.
+Merge delila book files to handle multiple chromosomes.
 
 Notes
 ----- 
@@ -12,7 +12,7 @@ multiple chromosomes.
 Method
 ------
 
-Read each instruction file and parse. Write each chromosome's lines to 
+Read each book file and parse. Write each chromosome's lines to 
 to the same new file.  The original chromosome name and piece tag values have 
 to be made unique.
     
@@ -44,7 +44,7 @@ def main():
     
     cmdparser = argparse.ArgumentParser(description="Merge Delila chromosome book files.",
                                         usage='%(prog)s -f <input.txt>'  ,prog='merge_books.py'  )  
-    cmdparser.add_argument('-f', '--file', action='store', dest='FILE', help='List of delila instruction files to parse.', metavar='')
+    cmdparser.add_argument('-f', '--file', action='store', dest='FILE', help='List of delila book files to parse.', metavar='')
     cmdResults = vars(cmdparser.parse_args())
         
     # if no args print help
