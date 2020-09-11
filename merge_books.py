@@ -74,28 +74,28 @@ def main():
                         chromHeader.append(f.readline())                   
                     first = True
                 else: 
-                    list(islice(f,10))               # unneeded header, send to ether
+                    list(islice(f,10))                # unneeded header, send to ether
                 
                 # gather the pieces in the book
                 while True:
-                    eachPiece = list(islice(f,19))   # should be one entire piece
-                    if not eachPiece:                # end when nothing more to read
+                    eachPiece = list(islice(f,19))    # should be one entire piece
+                    if not eachPiece:                 # end when nothing more to read
                         break
                     else:
                         if not eachPiece[0] == 'chromosome\n':   # if not end of file
                             pieces.append(eachPiece)
 
-                chromHeader[1] = pieces[0][1]
-                for ch in chromHeader:
+                chromHeader[1] = pieces[0][1]         # change chromosome name 
+                for ch in chromHeader:                # write chromosome info
                     out.write(ch)
-                for p in pieces:
+                for p in pieces:                      # write each pieces info
                     for i,ln in enumerate(p):
                         if i == 1:
-                            ln = ln.rstrip() + 'x' + '\n'
+                            ln = ln.rstrip() + 'x' + '\n'   # need a unique name that differs from chromosome
                         out.write(ln)
                 out.write('chromosome\n')
-                pieces = []
-        out.write('organism')    
+                pieces = []                           # reset for next book to use
+        out.write('organism')                         # file end here
 
 if __name__ == "__main__":
     main()
