@@ -936,12 +936,27 @@ def main():
     # Read instructions from file
     pipe.getInstructions()
     # run delila for each chromosome
-    #for inst in pipe.instructions:
-    #    pipe.runDELILA( inst)   
-    pipe.runDELILA('NC_007493.2_TSS.inst')   
-    pipe.runMALIGN('R.sphaeroides-2.4.1_NC_007493.2_book.txt', 'NC_007493.2_TSS.inst')
-    pipe.runMALIN('NC_007493.2_TSS.inst')
-    pipe.runDELILA('cinst')
+    for inst in pipe.instructions:
+        pipe.runDELILA( inst)   
+    
+    # If more than one chromosome merge books
+    # 
+
+    # if more than one chromosome merge instruction file
+    #
+
+    # now run malign on the book and instruction files  src/malign -b MERGED_BOOK_TEST.txt   -i MERGED_INSTRUCTIONS.txt   -m malignp
+    # pipe.runMALIGN('R.sphaeroides-2.4.1_NC_007493.2_book.txt', 'NC_007493.2_TSS.inst')
+
+    # run malin on the malign results  src/malin -a optalign -i MERGED_INSTRUCTIONS.txt  -o optinst -p malinp 
+    # pipe.runMALIN('NC_007493.2_TSS.inst')
+
+    # run delila on the malin results
+    # pipe.runDELILA('cinst')
+
+
+    ''''
+
     pipe.runALIST( 'R.sphaeroides-2.4.1_cinst_book.txt', 'cinst' )
     pipe.runENCODE('R.sphaeroides-2.4.1_cinst_book.txt', 'cinst', 'encodep')
     pipe.runCOMP('R.sphaeroides-2.4.1_cinst_book.txt', 'compp')
@@ -949,6 +964,6 @@ def main():
     pipe.runDALVEC('rsdata')
     pipe.runMAKELOGO('symvec', prefix + '.logo')
     pipe.retrievePWM()    
-
+    '''
 if __name__ == "__main__":
     main()
