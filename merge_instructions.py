@@ -60,6 +60,7 @@ def main():
 
     # variables used to process and merge the instructions
     first  = False
+    organism = ''
 
     with open(inFile, 'r') as fl, open('MERGED_INSTRUCTIONS.txt','w') as out:
         for inst in fl:
@@ -67,8 +68,10 @@ def main():
             with open( inst, 'r') as f:
                 # gather header information from the first file, ignore the other file headers
                 if not first:
-                    for ln in range(2):
-                        out.write(f.readline())       # write title, organism out to file  
+                    out.write(f.readline())       # write title, organism out to file  
+                    organism = f.readline()
+                    out.write(organism)
+                    organism = organism.rstrip().split()[1]
                     out.write('\n')                
                     first = True
                 else: 
@@ -78,7 +81,7 @@ def main():
                 f.readline()
                 piece = f.readline()
                 chrom = 'chromosome ' + piece.split()[1] + '\n'
-                piece = re.sub(';','x;', piece)
+                piece =  piece.split()[0] + ' ' + organism.rstrip(';') + '-' + piece.split()[1] + '\n'
                 out.write(chrom)
                 out.write(piece)
 
