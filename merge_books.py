@@ -38,13 +38,14 @@ A delila book file with multiple chromosomes
 import argparse
 from itertools import islice 
 import os
+import re
 import sys
 
 def main():
     
     cmdparser = argparse.ArgumentParser(description="Merge Delila chromosome book files.",
                                         usage='%(prog)s -f <input.txt>'  ,prog='merge_books.py'  )  
-    cmdparser.add_argument('-f', '--file', action='store', dest='FILE', help='List of delila book files to parse.', metavar='')
+    cmdparser.add_argument('-f', '--file', action='store', dest='FILE', help='delila book file to parse.', metavar='')
     cmdResults = vars(cmdparser.parse_args())
         
     # if no args print help
@@ -61,6 +62,7 @@ def main():
     chromHeader = []     
     pieces = []
     first  = False
+    organism = ''
 
     with open(inFile, 'r') as fl, open('MERGED_BOOK_TEST.txt','w') as out:
         for bookfile in fl:
@@ -68,11 +70,16 @@ def main():
             with open( bookfile, 'r') as f:
                 # gather header information from the first file, ignore the other file headers
                 if not first:
-                    for ln in range(5):
-                        out.write(f.readline())       # write title, organism out to file
+                    out.write(f.readline())       # write title, organism out to file
+                    out.write(f.readline())
+                    org = f.readline()
+                    out.write(org)
+                    out.write(f.readline())
+                    out.write(f.readline())
                     for ln in range(5):
                         chromHeader.append(f.readline())                   
                     first = True
+                    organism = org.rstrip().split()[1]
                 else: 
                     list(islice(f,10))                # unneeded header, send to ether
                 
@@ -91,11 +98,12 @@ def main():
                 for p in pieces:                      # write each pieces info
                     for i,ln in enumerate(p):
                         if i == 1:
-                            ln = ln.rstrip() + 'x' + '\n'   # need a unique name that differs from chromosome
+                            ln = re.sub('\* ', '* ' + organism.rstrip() + '-', ln)  # need a unique name that differs from chromosome
                         out.write(ln)
                 out.write('chromosome\n')
                 pieces = []                           # reset for next book to use
         out.write('organism')                         # file end here
+    
 
 if __name__ == "__main__":
     main()
