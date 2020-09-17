@@ -149,6 +149,9 @@ import re              # for regex
 import subprocess      # used to call delila programs 
 import sys
 
+import merge_books     
+import merge_instructions 
+
 # program home directory
 # pdir = '/home/glbrc.org/mplace/scripts/delila/src/'
 pdir = '/home/mplace/scripts/delila/src/'
@@ -940,10 +943,10 @@ def main():
         pipe.runDELILA( inst)   
     
     # If more than one chromosome merge books
-    # 
+    merge_books.mergeBook('testInput.txt')
 
     # if more than one chromosome merge instruction file
-    #
+    merge_instructions.mergeInst('instructions.list')
 
     # now run malign on the book and instruction files  src/malign -b MERGED_BOOK_TEST.txt   -i MERGED_INSTRUCTIONS.txt   -m malignp
     # pipe.runMALIGN('R.sphaeroides-2.4.1_NC_007493.2_book.txt', 'NC_007493.2_TSS.inst')
@@ -951,13 +954,17 @@ def main():
     # run malin on the malign results  src/malin -a optalign -i MERGED_INSTRUCTIONS.txt  -o optinst -p malinp 
     # pipe.runMALIN('NC_007493.2_TSS.inst')
 
-    # run delila on the malin results
+    #  We need to take the new book and run catal again to run delila again  
+    #  So take the original lib1 and rename the chromosomes and pieces to match the merged book and merged instruction file
+    #  then link to l1 
+    #  THEN RUN CATAL
+
+    # Finally we can run delila on the malin results
     # pipe.runDELILA('cinst')
 
+    # pipe.runALIST( 'R.sphaeroides-2.4.1_cinst_book.txt', 'cinst' )
 
     ''''
-
-    pipe.runALIST( 'R.sphaeroides-2.4.1_cinst_book.txt', 'cinst' )
     pipe.runENCODE('R.sphaeroides-2.4.1_cinst_book.txt', 'cinst', 'encodep')
     pipe.runCOMP('R.sphaeroides-2.4.1_cinst_book.txt', 'compp')
     pipe.runRSEQ('cmp', 'encseq')
@@ -965,5 +972,6 @@ def main():
     pipe.runMAKELOGO('symvec', prefix + '.logo')
     pipe.retrievePWM()    
     '''
+
 if __name__ == "__main__":
     main()
