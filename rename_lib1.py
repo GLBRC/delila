@@ -51,9 +51,7 @@ def main():
     chromHeader = []     
     pieces = []
     first  = False
-    organism = ''
     dna = False
-
 
     with open(inFile, 'r') as f, open('New_lib1.txt','w') as out:
         # gather header information from the first file, ignore the other file headers
@@ -84,6 +82,14 @@ def main():
         for p in pieceInfo:
             out.write(p)
 
+        # now process the rest of the file
+        while True:
+            nextline = f.readline()
+            if not line:
+                break
+            if nextline == 'dna':
+                
+
         
         #nextline = f.readline().rstrip()     # should be "dna"
         #if nextline == "dna":
@@ -91,12 +97,10 @@ def main():
         #        seq = f.readline()
         #        if re.match("\*  [g|a|t|c]", seq):
         #            print(seq)
-            
+         
 
-            
-        sys.exit(1)
                 
-        '''        for ln in range(5):
+    '''        for ln in range(5):
                         chromHeader.append(f.readline())                   
                     first = True
                     organism = org.rstrip().split()[1]
@@ -123,7 +127,7 @@ def main():
                 out.write('chromosome\n')
                 pieces = []                           # reset for next book to use
         out.write('organism')                         # file end here
-        '''
+    '''
 
 if __name__ == "__main__":
     main()
