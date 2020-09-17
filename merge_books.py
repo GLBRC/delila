@@ -41,24 +41,12 @@ import os
 import re
 import sys
 
-def main():
-    
-    cmdparser = argparse.ArgumentParser(description="Merge Delila chromosome book files.",
-                                        usage='%(prog)s -f <input.txt>'  ,prog='merge_books.py'  )  
-    cmdparser.add_argument('-f', '--file', action='store', dest='FILE', help='delila book file to parse.', metavar='')
-    cmdResults = vars(cmdparser.parse_args())
-        
-    # if no args print help
-    if len(sys.argv) == 1:
-        print("")
-        cmdparser.print_help()
-        sys.exit(1)
+def mergeBook(inFile):
+    '''
+    Merge a list of books
+    '''
 
-    # get the input file, the list of book files to process
-    if cmdResults['FILE'] is not None:
-        inFile = cmdResults['FILE']     
-
-    # variables used to process and merge the books
+        # variables used to process and merge the books
     chromHeader = []     
     pieces = []
     first  = False
@@ -103,7 +91,26 @@ def main():
                 out.write('chromosome\n')
                 pieces = []                           # reset for next book to use
         out.write('organism')                         # file end here
+
+
+def main():
     
+    cmdparser = argparse.ArgumentParser(description="Merge Delila chromosome book files.",
+                                        usage='%(prog)s -f <input.txt>'  ,prog='merge_books.py'  )  
+    cmdparser.add_argument('-f', '--file', action='store', dest='FILE', help='delila book file to parse.', metavar='')
+    cmdResults = vars(cmdparser.parse_args())
+        
+    # if no args print help
+    if len(sys.argv) == 1:
+        print("")
+        cmdparser.print_help()
+        sys.exit(1)
+
+    # get the input file, the list of book files to process
+    if cmdResults['FILE'] is not None:
+        inFile = cmdResults['FILE']     
+
+    mergeBook(inFile)    
 
 if __name__ == "__main__":
     main()
