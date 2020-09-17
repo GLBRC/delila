@@ -41,23 +41,10 @@ import os
 import re
 import sys
 
-def main():
-    
-    cmdparser = argparse.ArgumentParser(description="Merge Delila instruction files.",
-                                        usage='%(prog)s -f <input.txt>'  ,prog='merge_instructions.py'  )  
-    cmdparser.add_argument('-f', '--file', action='store', dest='FILE', help='List of delila instruction files to parse.', metavar='')
-    cmdResults = vars(cmdparser.parse_args())
-        
-    # if no args print help
-    if len(sys.argv) == 1:
-        print("")
-        cmdparser.print_help()
-        sys.exit(1)
-
-    # get the input file, the list of book files to process
-    if cmdResults['FILE'] is not None:
-        inFile = cmdResults['FILE']     
-
+def mergeInst(inFile):
+    '''
+    Merge instruction file for multiple chromosomes
+    '''
     # variables used to process and merge the instructions
     first  = False
     organism = ''
@@ -88,6 +75,25 @@ def main():
                 for lines in f:
                     out.write(lines)
                 out.write('\n')  
+
+def main():
+    
+    cmdparser = argparse.ArgumentParser(description="Merge Delila instruction files.",
+                                        usage='%(prog)s -f <input.txt>'  ,prog='merge_instructions.py'  )  
+    cmdparser.add_argument('-f', '--file', action='store', dest='FILE', help='List of delila instruction files to parse.', metavar='')
+    cmdResults = vars(cmdparser.parse_args())
+        
+    # if no args print help
+    if len(sys.argv) == 1:
+        print("")
+        cmdparser.print_help()
+        sys.exit(1)
+
+    # get the input file, the list of book files to process
+    if cmdResults['FILE'] is not None:
+        inFile = cmdResults['FILE']    
+
+    mergeInst(inFile) 
 
 if __name__ == "__main__":
     main()
