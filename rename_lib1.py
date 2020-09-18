@@ -84,50 +84,30 @@ def main():
 
         # now process the rest of the file
         while True:
-            nextline = f.readline()
-            if not line:
+            nextline = f.readline().rstrip()
+            if not nextline:                        # if end of file
                 break
-            if nextline == 'dna':
-                
-
-        
-        #nextline = f.readline().rstrip()     # should be "dna"
-        #if nextline == "dna":
-        #    while not dna:
-        #        seq = f.readline()
-        #        if re.match("\*  [g|a|t|c]", seq):
-        #            print(seq)
-         
-
-                
-    '''        for ln in range(5):
-                        chromHeader.append(f.readline())                   
-                    first = True
-                    organism = org.rstrip().split()[1]
-                else: 
-                    list(islice(f,10))                # unneeded header, send to ether
-                
-                # gather the pieces in the book
-                while True:
-                    eachPiece = list(islice(f,19))    # should be one entire piece
-                    if not eachPiece:                 # end when nothing more to read
-                        break
-                    else:
-                        if not eachPiece[0] == 'chromosome\n':   # if not end of file
-                            pieces.append(eachPiece)
-
-                chromHeader[1] = pieces[0][1]         # change chromosome name 
-                for ch in chromHeader:                # write chromosome info
-                    out.write(ch)
-                for p in pieces:                      # write each pieces info
-                    for i,ln in enumerate(p):
-                        if i == 1:
-                            ln = re.sub('\* ', '* ' + organism.rstrip() + '-', ln)  # need a unique name that differs from chromosome
-                        out.write(ln)
-                out.write('chromosome\n')
-                pieces = []                           # reset for next book to use
-        out.write('organism')                         # file end here
-    '''
+            elif nextline == 'organism':            # write organism
+                out.write(nextline)
+            elif nextline == 'dna':                 # 
+                out.write(nextline + '\n')
+            elif re.match('\*  [g|a|t|c]',nextline): # write all the sequence out
+                out.write(nextline + '\n')
+            elif nextline == 'piece':
+                out.write(nextline + '\n')
+                # grab piece
+                pieceInfo = list(islice(f,15))
+                # add orgamism name to piece tag
+                if pieceInfo[0] == 'chromosome\n':   # handle the end tags for the file
+                    for p in pieceInfo:
+                        out.write(p)
+                else:
+                    print(pieceInfo)
+                    pieceInfo[1] = '* ' + organism + '-' + pieceInfo[1].split()[1] + '\n'
+                    for p in pieceInfo:
+                        out.write(p)
+            else:
+                out.write(nextline)
 
 if __name__ == "__main__":
     main()
