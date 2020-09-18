@@ -398,6 +398,7 @@ class delilaPipe( object ):
         chrom = re.sub('_TSS.inst', '', inst)
         os.rename(book, self.prefix + '_' + chrom + '_' + 'book.txt' )
         os.rename(listing, self.prefix + '_' + chrom + '_' + 'listing.txt')
+        self.delilaBOOK.append(self.prefix + '_' + chrom + '_' + 'book.txt')
 
     def createMalignp(self):
         '''
@@ -941,18 +942,23 @@ def main():
     # run delila for each chromosome
     for inst in pipe.instructions:
         pipe.runDELILA( inst)   
+
+    # write the list of generate books from runDELILA step to file
+    with open('mybooks.txt', 'w') as out:
+        for b in pipe.delilaBOOK:
+            out.write(b + '\n')    
     
-    # If more than one chromosome merge books
-    merge_books.mergeBook('testInput.txt')
+    # If more than one chromosome merge books, input is a text file listing the split books
+    merge_books.mergeBook('mybooks.txt')
 
     # if more than one chromosome merge instruction file
     merge_instructions.mergeInst('instructions.list')
 
     # now run malign on the book and instruction files  src/malign -b MERGED_BOOK_TEST.txt   -i MERGED_INSTRUCTIONS.txt   -m malignp
-    # pipe.runMALIGN('R.sphaeroides-2.4.1_NC_007493.2_book.txt', 'NC_007493.2_TSS.inst')
+    pipe.runMALIGN('MERGED_BOOK_TEST.txt', 'MERGED_INSTRUCTIONS.txt')
 
     # run malin on the malign results  src/malin -a optalign -i MERGED_INSTRUCTIONS.txt  -o optinst -p malinp 
-    # pipe.runMALIN('NC_007493.2_TSS.inst')
+    pipe.runMALIN('MERGED_INSTRUCTIONS.txt')
 
     #  We need to take the new book and run catal again to run delila again  
     #  So take the original lib1 and rename the chromosomes and pieces to match the merged book and merged instruction file
