@@ -36,17 +36,14 @@ language is available https://alum.mit.edu/www/toms/libdef.html, although not
 all of it is implemented. There are also tutorials on building Delila libraries
 and using Delila instructions. 
 
-
 Method
 ------
 
-(From the Delila Documentation)
+Delila is a modular set of programs which produce results that feed into the next
+program.  It is highly configurable using parameter files.  The delila programs
+used are listed below with general descripbtions.
 
-If you are working with binding sites in GenBank, you will need many programs.
-They are given below in the order you use them, with a brief explanation of each.
-Be sure to read the manual page of each one. In particular, note how the output
-of each program generally becomes the input to the next. Also, it helps to read
-various definitions in the glossary.
+(From the Delila Documentation)
 
 dbbk: Convert GenBank flat file format to Delila format, which is called a `book'
 (db = database, bk = book). This produces an 'l1' file which contains the book.
@@ -70,6 +67,27 @@ be able to see the background noise around the binding site. By the way, the
 number 5600 becomes the zero coordinate of the binding site. I try to pick a
 position that is strongly conserved (high information content). 
 
+malign: Given a book of aligned sequences, this program searches for the alignment
+of the sequences that has the lowest uncertainty, i.e. the highest value of
+Rsequence. The user specifies the "window" of bases within which
+uncertainty is calculated, and the maximum number of bases that each
+sequence is allowed to shift from the original alignment.  The program
+considers each sequence in turn, shifting it to an alignment with minimum
+uncertainty while holding the other sequences fixed.  A "pass" is complete
+when all sequences have been considered.  A "run" is complete when no
+alignments have changed in the preceding pass, and the alignment is then
+considered "optimal".  The first run starts with the original alignment;
+every run after that starts with a "shuffled" alignment obtained by shifting
+each sequence independently by a random amount between the allowed limits.
+The program maintains a list of all of the unique optimal alignments
+achieved from these starting alignments, and it outputs them in order of
+increasing uncertainty.
+
+malin: This program allows one to select one of the alignments created by malign
+and to make the corresponding Delila instructions.  Because it copies the
+inst file it keeps the organism and chromosome information (along with all
+comments) so it is better than the "bestinst" file created by malign!
+
 alist: Make an aligned listing of sequences using the Delila instructions 
 and the book created by Delila. The pair of the book and inst file is a set
 called an 'aligned book'. I create a listing of the sequences to be sure 
@@ -86,6 +104,14 @@ which is a bit large. To save space, you can delete the encseq file after
 running the next program. Note that the range can be reduced in the 
 parameter file, so I normally set this to -200 to 200.
 
+comp:Comp counts the number of each oligonucleotide (from length 1 to
+compmax) in the book and prints that to file "cmp".  The output is
+printed in order of increasing length of oligonucleotide (i.e., first
+the monos, then the dis, ...).  If there are no occurences of an
+oligonucleotide, but its one-shorter parent did occur, it will be given
+a zero.  None of its descendants will be printed in the composition
+file.
+
 rseq: Compute Rsequence for each position in the aligned book, make an rsdata file.
 
 dalvec: Convert the rsdata file into a symvec file, which the next program
@@ -101,7 +127,7 @@ and the number of binding sites in that region.
 Parameters
 ----------
 
-f : str
+g : str
     A genbank file for a genome.
 
 p : str
@@ -114,19 +140,16 @@ t : str
     NC_007488.2     RSP_4037_3543   forward 3543
     NC_007488.2     RSP_4025_19218  reverse 19218
 
+w : int
+
+    window position, number of bases up & downstream of the center of the start site position.
 
 Example
 -------
     usage:
 
-        delila_pipeline.py -g rhodo_genome.gbff -p rhodo -t all_rhodo_tss_for_delila.txt
-        delila_pipeline.py -g rhodo_genome.gbff -p R.sphaeroides-2.4.1 -t all_rhodo_tss_for_delila.txt
+    delila_pipeline.py -g rhodo_genome.gbff -p R.sphaeroides-2.4.1 -t TSS.txt -w 6 5
         
-Requirements
-------------
-
-
-
 References
 ----------
 
@@ -172,7 +195,23 @@ class delilaPipe( object ):
     def __init__(self, genbank, prefix, tss, window):
         """
         Set up delilaPipe object
-        
+
+        Parameters
+        ----------
+        genbank : str
+            Genbank file
+        prefix : str
+            Prefix string used to name output files
+        tss : str
+            Transciption Start Site file name
+        window : int int
+            Two numbers defining the window around the central base of the site.
+
+        Returns
+        -------
+
+        delilaPipe object
+
         gnbk            Delila book, result of running makeDBBK
         dbbkChanges     Changes recored from makeDBBK
         l1              l1 is output of makeDBBK
@@ -180,6 +219,7 @@ class delilaPipe( object ):
         lib1,lib2,lib3  
         cat1,cat2,cat3
         instructions     A list of instruction files, one for each chromosome
+        delilaBook       List of books from the Delila program output
 
         """
         self.gnbk        = genbank             # genbank file, the primary input file
@@ -322,8 +362,6 @@ class delilaPipe( object ):
         NC_007488.2	RSP_4038_2627	forward	2627
 
         creates instruction files for running delila by chromosome.
-
-
         '''
         program = '/home/mplace/scripts/delila/delila_instructions.py'
         cmd = [ program, '-f', self.tss, '-o', self.prefix, '-d', self.window[0], '-u', self.window[1] ]
@@ -379,6 +417,12 @@ class delilaPipe( object ):
         cat2: the second catalogue, corresponding to lib2
         lib3: the third library
         cat3: the third catalogue, corresponding to lib3
+
+        Parameters
+        ----------
+        inst : str
+            Delila instruction file
+
         '''
         book    = 'BOOK.tmp'
         listing = 'LISTING.tmp' 
@@ -443,6 +487,13 @@ class delilaPipe( object ):
 
         malign -b NC_007493.2_book -i NC_007493.2_delila_instructions.inst -m malignp
 
+        Parameters
+        ----------
+        book : str
+            Name of delila book
+        inst : str
+            Delila instruction file
+
         '''
         # check if malignp parameter file exists
         if not os.path.exists('malignp'):
@@ -482,6 +533,11 @@ class delilaPipe( object ):
         comments) so it is better than the "bestinst" file created by malign!
 
         malin -a optalign -i NC_007493.2_TSS.inst -o optinst -p malinp 
+
+        Parameters
+        ----------
+        inst : str
+            Delila instruction file
         '''
         # create the malin parameter file
         self.createMalinp()
@@ -529,6 +585,13 @@ class delilaPipe( object ):
         files created are avalues, colors, namebook, namelist
 
         alist  -b book.txt -i cinst -p alistp
+
+        Parameters
+        ----------
+        book : str
+            delila book file
+        cinst : str
+            updated instructions from malin
 
         '''
         # create the required empty files   
@@ -584,6 +647,14 @@ class delilaPipe( object ):
         integers (ended by an 'end of sequence' symbol) according to the user
         specified parameters, which are in the file 'encodep'.
 
+        Parameters
+        ----------
+        book : str
+            Delila book
+        cinst : str
+            cinst file from malin
+        encodep : str
+            encode parameter file
         '''
         self.makeENCODEp()
         # set up encode
@@ -610,6 +681,12 @@ class delilaPipe( object ):
         oligonucleotide, but its one-shorter parent did occur, it will be given
         a zero.
 
+        Parameters
+        ----------
+        book : str
+            Delila book
+        compp : str
+            comp parameter file
         '''
         with open("compp", 'w') as f:
             pass
@@ -642,6 +719,13 @@ class delilaPipe( object ):
         both n and e(hnb) are shown.
 
         rseq -c cmp -e encseq 
+
+        Parameters
+        ----------
+        cmp : str
+            Composition from the comp program.
+        encseq : str
+            Output of the encode program.
         ''' 
         # set up rseq
         program = pdir + 'rseq'
@@ -664,6 +748,11 @@ class delilaPipe( object ):
         can use.  The format is a 'symbol vector'.
         
         dalvec -r rsdata -p dalvecp
+
+        Parameters
+        ----------
+        rsdata : str
+            Data file from rseq program
         '''
         if not os.path.exists('dalvcep'):
             with open('dalvecp', 'w') as f:
@@ -783,6 +872,13 @@ class delilaPipe( object ):
         'I-beam' overlayed on the top of the logo.  Although the user may turn
         this off to make pretty logos, I strongly recommend use of it to avoid
         being fooled by small amounts of data.
+
+        Parameters
+        ----------
+        symvec : str
+             A "symbol vector" file from dalvec
+        output : str
+            Logo output name
         '''
         # check if the user has provided a make logo parameter file if not make one
         if not os.path.exists('makelogop'):
