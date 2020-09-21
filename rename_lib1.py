@@ -7,14 +7,9 @@ Notes
 ----- 
 
 Delila only handles one chromosome at a time, but can be "tricked" into using
-multiple chromosomes.   
+multiple chromosomes.  Chromosome names and piece tags will match the merged book
+and merged instruction files.
     
-Parameters
-----------
-
-None, it is assumed that lib1 exists in current directory.
-
-
 Example
 -------
     usage:
@@ -24,7 +19,7 @@ Example
 Output
 ------
 
-lib1 file with chromosome and piece tags rename to work with multiple chromosomes 
+lib1 file with chromosome and piece tags renamed to work with multiple chromosomes.
 
 """
 import argparse
@@ -36,6 +31,11 @@ import sys
 def newLib(inFile):
     '''
     Rename the chromosome and all the piece tags to match the merged book and merged instructions.
+
+    Parameters
+    ----------
+    inFile : str
+        The lib1 file produced by the first delila run.
     '''
      # variables used to process and merge the books
     chromHeader = []     
@@ -108,6 +108,11 @@ def newLib(inFile):
 def moveLib(inFile):
     '''
     Move original lib1 to lib1_original and link new_lib1.txt to lib1
+
+    Parameters
+    ----------
+    inFile : str
+        lib1 file
     '''
     os.rename(inFile, 'lib1_original.txt')
     os.unlink('l1')
@@ -117,7 +122,6 @@ def moveLib(inFile):
         f.close()
 
 def main():
-    
     cmdparser = argparse.ArgumentParser(description="Rename chromosome & piece tags in lib1 file.",
                                         usage='%(prog)s '  ,prog='rename_lib1.py'  )  
     cmdResults = vars(cmdparser.parse_args())

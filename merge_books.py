@@ -44,9 +44,14 @@ import sys
 def mergeBook(inFile):
     '''
     Merge a list of books
-    '''
 
-        # variables used to process and merge the books
+    Parameters
+    ----------
+    inFile : str
+        Text file with a list of book files to merge
+
+    '''
+    # variables used to process and merge the books
     chromHeader = []     
     pieces = []
     first  = False
@@ -92,7 +97,6 @@ def mergeBook(inFile):
                 pieces = []                           # reset for next book to use
         out.write('organism')                         # file end here
 
-
 def main():
     
     cmdparser = argparse.ArgumentParser(description="Merge Delila chromosome book files.",
@@ -114,4 +118,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

@@ -44,6 +44,11 @@ import sys
 def mergeInst(inFile):
     '''
     Merge instruction file for multiple chromosomes
+
+    Parameters
+    ----------
+    inFile : str
+        Text file with a list of instruction files to merge.
     '''
     # variables used to process and merge the instructions
     first  = False
