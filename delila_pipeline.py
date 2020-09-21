@@ -151,6 +151,7 @@ import sys
 
 import merge_books     
 import merge_instructions 
+import rename_lib1 
 
 # program home directory
 # pdir = '/home/glbrc.org/mplace/scripts/delila/src/'
@@ -960,10 +961,13 @@ def main():
     # run malin on the malign results  src/malin -a optalign -i MERGED_INSTRUCTIONS.txt  -o optinst -p malinp 
     pipe.runMALIN('MERGED_INSTRUCTIONS.txt')
 
-    #  We need to take the new book and run catal again to run delila again  
-    #  So take the original lib1 and rename the chromosomes and pieces to match the merged book and merged instruction file
-    #  then link to l1 
-    #  THEN RUN CATAL
+    # Rename the tags in the original lib1 to match the merged book and merged instructions
+    # this is required to run catal and then delila again
+    rename_lib1.newLib('lib1')
+    rename_lib1.moveLib('lib1')
+
+    # run catal again prior to running delila  
+    pipe.runCATAL()
 
     # Finally we can run delila on the malin results
     # pipe.runDELILA('cinst')
