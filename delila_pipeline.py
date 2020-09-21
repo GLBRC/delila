@@ -970,18 +970,17 @@ def main():
     pipe.runCATAL()
 
     # Finally we can run delila on the malin results
-    # pipe.runDELILA('cinst')
+    pipe.runDELILA('cinst')
 
-    # pipe.runALIST( 'R.sphaeroides-2.4.1_cinst_book.txt', 'cinst' )
-
-    ''''
+    pipe.runALIST( 'R.sphaeroides-2.4.1_cinst_book.txt', 'cinst' )
+ 
     pipe.runENCODE('R.sphaeroides-2.4.1_cinst_book.txt', 'cinst', 'encodep')
     pipe.runCOMP('R.sphaeroides-2.4.1_cinst_book.txt', 'compp')
     pipe.runRSEQ('cmp', 'encseq')
     pipe.runDALVEC('rsdata')
     pipe.runMAKELOGO('symvec', prefix + '.logo')
     pipe.retrievePWM()    
-    '''
+    
 
 if __name__ == "__main__":
     main()
