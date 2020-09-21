@@ -93,6 +93,12 @@ def newLib(inFile):
                     for p in pieceInfo:
                         out.write(p)
                 else:
+                    out.write('chromosome\n')        # close chromosome tag
+                    out.write('chromosome\n')        # open next tag
+                    out.write('* ' + pieceInfo[1].split()[1] + '\n')   # write chromosome name
+                    out.write("*\n") 
+                    out.write(pieceInfo[-2])          # write size, always starts with 1 
+                    out.write(pieceInfo[-1])
                     pieceInfo[1] = '* ' + organism + '-' + pieceInfo[1].split()[1] + '\n'
                     for p in pieceInfo:
                         out.write(p)
