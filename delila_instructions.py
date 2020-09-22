@@ -98,11 +98,19 @@ def main():
 
     # get the input tss site file
     if cmdResults['FILE'] is not None:
-        inFile = cmdResults['FILE']     
+        inFile = cmdResults['FILE']  
+    else:
+        print('\n\t-f TSS file not found')
+        cmdparser.print_help()
+        sys.exit(1)   
     
     # get the orgamism name
     if cmdResults['ORGANISM'] is not None:
         organism = cmdResults['ORGANISM']    
+    else:
+        print('\n\t-o organism not found')
+        cmdparser.print_help()
+        sys.exit(1)
 
     # get the TSS position
     if cmdResults['POS']:
