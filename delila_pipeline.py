@@ -442,8 +442,10 @@ class delilaPipe( object ):
         # rename temporary output files 
         chrom = re.sub('_TSS.inst', '', inst)
         os.rename(book, self.prefix + '_' + chrom + '_' + 'book.txt' )
+        book = self.prefix + '_' + chrom + '_' + 'book.txt'
         os.rename(listing, self.prefix + '_' + chrom + '_' + 'listing.txt')
         self.delilaBOOK.append(self.prefix + '_' + chrom + '_' + 'book.txt')
+        return book
 
     def createMalignp(self):
         '''
@@ -1003,16 +1005,28 @@ def main():
         sys.exit(1)
 
     # check the command line parameters
-    if cmdResults['PREFIX'] is not None:
+    if cmdResults['PREFIX'] is not None:               # output prefix
         prefix = cmdResults['PREFIX']
+    else:
+        print('\n\t-p prefix parameter missing.')
+        cmdparser.print_help()
+        sys.exit(1)
 
     if cmdResults['GENBANK'] is not None:
         inFile = cmdResults['GENBANK']                 # infile is a genbank file  
+    else:
+        print('\n\t-g genbank file missing')
+        cmdparser.print_help()
+        sys.exit(1)
 
-    if cmdResults['TSS'] is not None:
+    if cmdResults['TSS'] is not None:                  # start site file
         tssFile = cmdResults['TSS'] 
+    else:
+        print('\n\tStart Site file missing')
+        cmdparser.print_help()
+        sys.exit(1)       
     
-    if cmdResults['WINDOW'] is not None:
+    if cmdResults['WINDOW'] is not None:               # window relative to site 
         window = cmdResults['WINDOW']
     else:
         window = ['-10', '+10']
@@ -1045,38 +1059,43 @@ def main():
         for b in pipe.delilaBOOK:
             out.write(b + '\n')    
     
-    # If more than one chromosome merge books, input is a text file listing the split books
-    merge_books.mergeBook('mybooks.txt')
-
-    # if more than one chromosome merge instruction file
-    merge_instructions.mergeInst('instructions.list')
-
-    # now run malign on the book and instruction files  src/malign -b MERGED_BOOK_TEST.txt   -i MERGED_INSTRUCTIONS.txt   -m malignp
-    pipe.runMALIGN('MERGED_BOOK_TEST.txt', 'MERGED_INSTRUCTIONS.txt')
-
-    # run malin on the malign results  src/malin -a optalign -i MERGED_INSTRUCTIONS.txt  -o optinst -p malinp 
-    pipe.runMALIN('MERGED_INSTRUCTIONS.txt')
-
-    # Rename the tags in the original lib1 to match the merged book and merged instructions
-    # this is required to run catal and then delila again
-    rename_lib1.newLib('lib1')
-    rename_lib1.moveLib('lib1')
-
-    # run catal again prior to running delila  
-    pipe.runCATAL()
-
+    # if there are multiple chromosomes, merge books and instructions
+    if len(pipe.delilaBOOK) > 1:       
+        # If more than one chromosome merge books, input is a text file listing the split books
+        merge_books.mergeBook('mybooks.txt')
+        # if more than one chromosome merge instruction file
+        merge_instructions.mergeInst('instructions.list')
+        # Rename the tags in the original lib1 to match the merged book and merged instructions
+        # this is required to run catal and then delila again
+        rename_lib1.newLib('lib1')
+        rename_lib1.moveLib('lib1')
+        # now run malign on the book and instruction files  src/malign -b MERGED_BOOK_TEST.txt   -i MERGED_INSTRUCTIONS.txt   -m malignp
+        pipe.runMALIGN('MERGED_BOOK_TEST.txt', 'MERGED_INSTRUCTIONS.txt')
+        # run malin on the malign results  src/malin -a optalign -i MERGED_INSTRUCTIONS.txt  -o optinst -p malinp 
+        pipe.runMALIN('MERGED_INSTRUCTIONS.txt')
+        # run catal again prior to running delila  
+        pipe.runCATAL()
+    else:                                    # There is only one chromosome present
+        with open('mybooks.txt', 'r') as f:  # get the name of the single book 
+            malignBook = f.readline().rstrip()
+        f.close()
+        with open('instructions.list', 'r') as f:  # get the single instruction file name
+            malignInst = f.readline().rstrip()
+        f.close()
+        
+        pipe.runMALIGN(malignBook, malignInst)
+        pipe.runMALIN(malignInst)
+    
     # Finally we can run delila on the malin results
-    pipe.runDELILA('cinst')
-
-    pipe.runALIST( 'R.sphaeroides-2.4.1_cinst_book.txt', 'cinst' )
- 
-    pipe.runENCODE('R.sphaeroides-2.4.1_cinst_book.txt', 'cinst', 'encodep')
-    pipe.runCOMP('R.sphaeroides-2.4.1_cinst_book.txt', 'compp')
+    book = pipe.runDELILA('cinst')
+    
+    pipe.runALIST(book , 'cinst' )
+    pipe.runENCODE(book, 'cinst', 'encodep')
+    pipe.runCOMP(book, 'compp')
     pipe.runRSEQ('cmp', 'encseq')
     pipe.runDALVEC('rsdata')
     pipe.runMAKELOGO('symvec', prefix + '.logo')
-    pipe.retrievePWM()    
+    pipe.retrievePWM()        
     
-
 if __name__ == "__main__":
     main()
