@@ -163,6 +163,11 @@ https://doi.org/10.1093/nar/10.9.3013
 
 https://www.ncbi.nlm.nih.gov/Sitemap/samplerecord.html
 
+General bacterial promoter positioning
+
+  <-- upstream                                                          downstream -->
+5'-XXXXXXXPPPPPPXXXXXXPPPPPPXXXXGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGXXXX-3'
+           -35       -10       Gene to be transcribed
 
 
 """
@@ -193,7 +198,7 @@ class delilaPipe( object ):
     """
     Methods and data structures for delila pipeline
     """
-    def __init__(self, genbank, prefix, tss, window):
+    def __init__(self, genbank, prefix, tss, window, site):
         """
         Set up delilaPipe object
 
@@ -207,6 +212,8 @@ class delilaPipe( object ):
             Transciption Start Site file name
         window : int int
             Two numbers defining the window around the central base of the site.
+        site : int
+            Base number of primary search site as in -10 ,or -35 upstream of TSS
 
         Returns
         -------
@@ -223,22 +230,23 @@ class delilaPipe( object ):
         delilaBook       List of books from the Delila program output
 
         """
-        self.gnbk        = genbank             # genbank file, the primary input file
-        self.prefix      = prefix
-        self.dbbkChanges = prefix + '_' + 'dbbk_changes.txt'  # record seq changes from dbbk
+        self.cat1        = 'cat1'              # cat1, cat2, cat3 required by delila, only cat1 contains info
+        self.cat2        = 'cat2'
+        self.cat3        = 'cat3'
         self.catalParams = 'catalp'
+        self.dbbkChanges = prefix + '_' + 'dbbk_changes.txt'  # record seq changes from dbbk
+        self.delilaBOOK  = []                  # list of books, Output of Delila program  
+        self.gnbk        = genbank             # genbank file, the primary input file
+        self.instructions = []                 # list of instruction files, one per chromosome
         self.l1          = 'l1'                # l1,l2,l3 required by delila, only l1 contains info
         self.l2          = 'l2'
         self.l3          = 'l3'
         self.lib1        = 'lib1'              # lib1, lib2, lib3 required by delila, only lib1 contains info
         self.lib2        = 'lib2'
         self.lib3        = 'lib3'
-        self.cat1        = 'cat1'              # cat1, cat2, cat3 required by delila, only cat1 contains info
-        self.cat2        = 'cat2'
-        self.cat3        = 'cat3'
-        self.instructions = []                 # list of instruction files, one per chromosome
+        self.prefix      = prefix
+        self.site        = site
         self.tss         = tss                 # Transcription Start Site information file name
-        self.delilaBOOK  = []                  # list of books, Output of Delila program  
         self.window      = window              # list, 2 numbers with sign, [ 6, 5 ] [down, up]
 
     def __repr__(self):
@@ -258,7 +266,9 @@ class delilaPipe( object ):
         rep += 'cat1\n'
         rep += 'cat2\n'
         rep += 'cat3\n'   
-        rep += 'TSS File {}'.format(self.tss)     
+        rep += 'site {}\n'.format(self.site)
+        rep += 'TSS File {}\n'.format(self.tss) 
+        rep += 'Window {} \n'.format(self.window)
         rep += 'instruction files: {} \n'.format('\t'.join(self.instructions))
         return rep 
        
@@ -367,7 +377,9 @@ class delilaPipe( object ):
         Parameters
         ----------
         site : int
-            position upstream from TSS to search, i.e. 10 (default)
+            position upstream from TSS to search, i.e. 10 (default) 
+            This will be subtracted from TSS position.  Assumption is
+            the user is always looking upstream of promoter.
 
         '''
         program = '/home/mplace/scripts/delila/delila_instructions.py'
@@ -1002,10 +1014,9 @@ def main():
         sys.exit(1)
 
     if cmdResults['SITE'] is not None:                # position upstream from TSS to search  
-        site = cmdResults['site']
+        site = cmdResults['SITE']
     else:
-        site = '-10'
-
+        site = '10'
 
     if cmdResults['TSS'] is not None:                  # start site file
         tssFile = cmdResults['TSS'] 
@@ -1017,7 +1028,7 @@ def main():
     if cmdResults['WINDOW'] is not None:               # window relative to site 
         window = cmdResults['WINDOW']
     else:
-        window = ['-10', '+10']
+        window = ['10', '10']                        # up, down
     
     # log program start
     logger.info("Running delila_pipeline ")
@@ -1026,10 +1037,12 @@ def main():
     logger.info('Output prefix: {}'.format(prefix))
     logger.info('Transcription Start Site file: {}'.format(tssFile))
     logger.info('Search Window: {}'.format( ' '.join(window)))
+    logger.info('Site : {}'.format(site))
     logger.info('runMKDB, This creates a genbank file from fasta file.')
 
     # create delila object and get to work
-    pipe = delilaPipe(inFile, prefix, tssFile, window)
+    pipe = delilaPipe(inFile, prefix, tssFile, window, site)
+    
     # converts GenBank and EMBL data base entries into a book of delila entries.
     pipe.makeDBBK()          
     # The catalogue program checks all the input libraries for correct structure.
@@ -1038,10 +1051,11 @@ def main():
     pipe.splitTSS(site)
     # Read instructions from file
     pipe.getInstructions()
+    
     # run delila for each chromosome
     for inst in pipe.instructions:
         pipe.runDELILA( inst)   
-
+    
     # write the list of generate books from runDELILA step to file
     with open('mybooks.txt', 'w') as out:
         for b in pipe.delilaBOOK:
