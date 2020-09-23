@@ -164,6 +164,7 @@ https://doi.org/10.1093/nar/10.9.3013
 https://www.ncbi.nlm.nih.gov/Sitemap/samplerecord.html
 
 
+
 """
 import argparse        # for command line args
 import logging         
@@ -351,7 +352,7 @@ class delilaPipe( object ):
         logger.info(result1)
         logger.info(result2)
 
-    def splitTSS(self):
+    def splitTSS(self, site):
         '''
         Break up the input transcription start site input file into delila 
         instruction files by chromosome. 
@@ -362,9 +363,15 @@ class delilaPipe( object ):
         NC_007488.2	RSP_4038_2627	forward	2627
 
         creates instruction files for running delila by chromosome.
+
+        Parameters
+        ----------
+        site : int
+            position upstream from TSS to search, i.e. 10 (default)
+
         '''
         program = '/home/mplace/scripts/delila/delila_instructions.py'
-        cmd = [ program, '-f', self.tss, '-o', self.prefix, '-d', self.window[0], '-u', self.window[1] ]
+        cmd = [ program, '-f', self.tss, '-o', self.prefix, '-d', self.window[0], '-u', self.window[1], '-p', site ]
         logger.info('Running splitTSS ')
         logger.info( program + ' ' +  ' '.join(cmd))
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
@@ -563,7 +570,7 @@ class delilaPipe( object ):
         '''
         with open('alistp', 'w') as out:
             out.write("6.64        version of alistp that this parameter file is designed for.\n")
-            out.write("-10 +10       From and To\n")
+            out.write("-10 +10       From and To\n")  
             out.write("pl          display control p: piece&coordinate of zero base; l: long name\n")
             out.write("p           p: paging, n: no paging\n")
             out.write("i           f: first base, i: inst, b: book alignment\n")
@@ -791,33 +798,6 @@ class delilaPipe( object ):
             cout.write("* red:\n")
             cout.write("t 1 0 0\n")
             cout.write("u 1 0 0\n")
-            '''
-            cout.write("* polar are GREEN\n")
-            cout.write("G 0 1 0\n")
-            cout.write("S 0 1 0\n")
-            cout.write("T 0 1 0\n")
-            cout.write("Y 0 1 0\n")
-            cout.write("C 0 1 0\n")
-            cout.write("* neutral are purple\n")
-            cout.write("N 1 0 1\n")
-            cout.write("Q 1 0 1\n")
-            cout.write("* basic BLUE\n")
-            cout.write("K 0 0 1\n")
-            cout.write("R 0 0 1 \n")
-            cout.write("H 0 0 1\n")
-            cout.write("* acidic RED\n")
-            cout.write("D 1 0 0\n")
-            cout.write("E 1 0 0\n")
-            cout.write("* the hydrophobic amino acids remain black\n")
-            cout.write("P 0 0 0\n")
-            cout.write("A 0 0 0\n")
-            cout.write("W 0 0 0\n")
-            cout.write("F 0 0 0\n")
-            cout.write("L 0 0 0\n")
-            cout.write("I 0 0 0\n")
-            cout.write("M 0 0 0\n")
-            cout.write("V 0 0 0\n")
-            '''
             cout.write("\n")            
         cout.close()
 
@@ -839,15 +819,15 @@ class delilaPipe( object ):
         Create a default parameter file to make a logo
         '''
         with open('makelogop', 'w') as out:
-            out.write("-8 +5\n")
+            out.write("-" + self.window[0] + " +" + self.window[1] + "\n") # sets the logo width , maybe we want to make this related to the window
             out.write("100\n")
-            out.write("5.0 10.0\n")
+            out.write("5.0 10.0\n")      # change the coordinate position
             out.write("0\n")
-            out.write("0.36\n")
-            out.write("5 0.5\n")
-            out.write("2\n")
-            out.write("1.0\n")
-            out.write("bt 2 10\n")
+            out.write("0.36\n")          # set character width
+            out.write("5 0.05\n")        # set side bar height and width, .05 is good for width
+            out.write("2\n")             # sets the height of the bar in bits, 2 works well
+            out.write("1.0\n")           
+            out.write("bt 2 2\n")        # display the side bar on both sides of the logo
             out.write("no show\n")
             out.write("no outline\n")
             out.write("caps\n")
@@ -965,6 +945,8 @@ def main():
                             help='Prefix names used on output files', metavar='')
     cmdparser.add_argument('-w', '--window', action='store', dest='WINDOW', 
                             help='Window to search for site, 2 numbers: -10 +10', nargs='+', metavar='' )
+    cmdparser.add_argument('-s', '--site', action='store', dest='SITE',
+                            help='Site type: -10, -35, defaults to -10', metavar='')
     cmdparser.add_argument('-t', '--tss',  action='store', dest='TSS',  
                             help='TSS site information text file.)', metavar='')    
     cmdResults = vars(cmdparser.parse_args())
@@ -1019,6 +1001,12 @@ def main():
         cmdparser.print_help()
         sys.exit(1)
 
+    if cmdResults['SITE'] is not None:                # position upstream from TSS to search  
+        site = cmdResults['site']
+    else:
+        site = '-10'
+
+
     if cmdResults['TSS'] is not None:                  # start site file
         tssFile = cmdResults['TSS'] 
     else:
@@ -1046,8 +1034,8 @@ def main():
     pipe.makeDBBK()          
     # The catalogue program checks all the input libraries for correct structure.
     pipe.runCATAL()
-    # split input TSS file by chromosome
-    pipe.splitTSS()
+    # split input TSS file by chromosome, pass site information
+    pipe.splitTSS(site)
     # Read instructions from file
     pipe.getInstructions()
     # run delila for each chromosome
@@ -1094,7 +1082,7 @@ def main():
     pipe.runCOMP(book, 'compp')
     pipe.runRSEQ('cmp', 'encseq')
     pipe.runDALVEC('rsdata')
-    pipe.runMAKELOGO('symvec', prefix + '.logo')
+    pipe.runMAKELOGO('symvec', prefix + '.logo')       # make logo
     pipe.retrievePWM()        
     
 if __name__ == "__main__":
