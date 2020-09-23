@@ -181,7 +181,7 @@ def main():
         for instFile in instructions:
             out.write('{}\n'.format(instFile))
     out.close()
-
+    
 if __name__ == "__main__":
     main()
 
