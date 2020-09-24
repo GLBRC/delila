@@ -383,7 +383,7 @@ class delilaPipe( object ):
 
         '''
         program = '/home/mplace/scripts/delila/delila_instructions.py'
-        cmd = [ program, '-f', self.tss, '-o', self.prefix, '-d', self.window[0], '-u', self.window[1], '-p', site ]
+        cmd = [ program, '-f', self.tss, '-o', self.prefix, '-u', self.window[0], '-d', self.window[1], '-p', site ]
         logger.info('Running splitTSS ')
         logger.info( program + ' ' +  ' '.join(cmd))
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
@@ -952,13 +952,13 @@ def main():
     cmdparser.add_argument('-i', '--info', action='store_true', dest='INFO',
                             help='Print more information to stdout')                            
     cmdparser.add_argument('-g', '--genbank', action='store', dest='GENBANK',
-                            help='Genbank input file')
+                            help='Genbank file')
     cmdparser.add_argument('-p', '--prefix', action='store', dest='PREFIX', 
-                            help='Prefix names used on output files', metavar='')
+                            help='Prefix names for output files', metavar='')
     cmdparser.add_argument('-w', '--window', action='store', dest='WINDOW', 
-                            help='Window to search for site, 2 numbers: -10 +10', nargs='+', metavar='' )
+                            help='Window to search, 2 integers, upstream & downstream', nargs='+', metavar='' )
     cmdparser.add_argument('-s', '--site', action='store', dest='SITE',
-                            help='Site type: -10, -35, defaults to -10', metavar='')
+                            help='Site type: -10,-35 defaults to -10', metavar='')
     cmdparser.add_argument('-t', '--tss',  action='store', dest='TSS',  
                             help='TSS site information text file.)', metavar='')    
     cmdResults = vars(cmdparser.parse_args())
@@ -979,10 +979,11 @@ def main():
         print("To Run:\n")
         print("delila_pipeline.py -g genome.gnbk -p ecoli -t ecoli_tss_info.txt")
         print("")
-        print("    -g genome fasta file ")
+        print("    -g genome genbank file ")
         print("    -p prefix name to use for output files")
+        print("    -s site, position from Start site , assumed to be upstream")
         print("    -t transcription start site information file")
-        print("    -w window size to search, takes 2 numbers: -10 +10")
+        print("    -w window size to search, takes 2 numbers, upstream & downstream")
         print("")
         print("    TSS file provides chromosome, name, strand, position information in a tab delimited format.")
         print("")
@@ -1026,9 +1027,17 @@ def main():
         sys.exit(1)       
     
     if cmdResults['WINDOW'] is not None:               # window relative to site 
-        window = cmdResults['WINDOW']
+        tmpWindow = cmdResults['WINDOW']
+        window = []
+        for x in tmpWindow:
+            if x.startswith('-'):                      # strip sign 
+                window.append(re.sub('-','',x))
+            elif x.startswith('+'):
+                window.append(re.sub('+','',x))
+            else:
+                window.append(x)            
     else:
-        window = ['10', '10']                        # up, down
+        window = ['10', '10']                          # default values up, down
     
     # log program start
     logger.info("Running delila_pipeline ")
