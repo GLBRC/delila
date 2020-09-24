@@ -137,7 +137,6 @@ def main():
                 data[site[0]][site[1]] = line # use the location info as 2nd key
             else:
                 data[site[0]][site[1]] = line
-
     f.close()
 
     # instructions.list contains the instruction files for each chromosome in genome
@@ -164,11 +163,11 @@ def main():
                 if dat[2] == 'forward':
                     direction = '+'
                     pos = str(int(dat[3]) - tssPos)   
-                    out.write('get from {} -{} to {} +{} direction {};\n'.format(pos, str(downPos), pos, str(upPos),direction )) 
+                    out.write('get from {} -{} to {} +{} direction {};\n'.format(pos, str(upPos), pos, str(downPos),direction )) 
                 else:
                     direction = '-'
                     pos = str(int(dat[3]) + tssPos) 
-                    out.write('get from {} +{} to {} -{} direction {};\n'.format(pos, str(upPos), pos, str(downPos) ,direction)) 
+                    out.write('get from {} +{} to {} -{} direction {};\n'.format(pos, str(downPos), pos, str(upPos) ,direction)) 
                 
         out.close()
 
