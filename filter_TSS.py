@@ -6,7 +6,7 @@ Remove TSS site within user defined number of bases of each other.
 Notes
 ----- 
 
-Assumes the sites are sorted, low to high.   
+Assumes the sites are sorted by chromosome and then by position low to high.   
 
 Method
 ------
@@ -42,13 +42,43 @@ Example
 Output
 ------
 
-A TSS site text file of the same format as the input.
-
+A TSS site text file of the same format as the input. 
+All sites within "X" bases of each other removed.
 
 """
 import argparse 
 import os
 import sys
+
+def filterSites(inFile, baseNum):
+    '''
+    '''
+    chrom     = ''    # keep track of the previous site's chrom
+    strand    = ''    # keep track of the previous site's strand
+    previous  = 0     # keep track of the previous site's position
+
+    # open and parse tss file
+    with open(inFile, 'r') as f:
+        for line in f:
+            site = int(line.rstrip().split('\t')[3])   # get position 
+            dat  = line.split('\t')                    
+            if dat[0] == chrom and dat[2] == strand:   # site on same chrom and strand
+                    if site - previous < baseNum:      # if site is within X bases skip
+                        chrom = dat[0]
+                        strand = dat[2]
+                        continue
+                    else:                              # site is greater than X bases
+                        print(line.rstrip())           # keep it
+                        previous = site                # now set previous to current position
+                        chrom = dat[0]                 
+                        strand = dat[2]
+            else:
+                print(line.rstrip())                   # if not on the same chromosome print
+                previous = site
+                chrom = dat[0]
+                strand = dat[2]
+            
+    f.close()
 
 def main():
     
@@ -79,36 +109,8 @@ def main():
     else:
         baseNum = 15
     
-    pchrom    = ''    # keep track of the previous previous site's chrom
-    pstrand   = ''    # keep track of the previous previous site's strand
-    pPrevious = ''    # keep track of the previous previous site's position
-    chrom     = ''    # keep track of the previous site's chrom
-    strand    = ''    # keep track of the previous site's strand
-    previous  = 0     # keep track of the previous site's position
-
-    # open and parse tss file
-    with open(inFile, 'r') as f:
-        for line in f:
-            site = int(line.rstrip().split('\t')[3])   # get position 
-            dat  = line.split('\t')                    
-            if dat[0] == chrom and dat[2] == strand:   # site on same chrom and strand
-                    if site - previous < baseNum:      # if site is within X bases skip
-                        chrom = dat[0]
-                        strand = dat[2]
-                        continue
-                    else:                              # site is greater than X bases
-                        print(line.rstrip())           # keep it
-                        previous = site                # now set previous to current position
-                        chrom = dat[0]                 
-                        strand = dat[2]
-            else:
-                print(line.rstrip())                   # if not on the same chromosome print
-                previous = site
-                chrom = dat[0]
-                strand = dat[2]
-            
-    f.close()
+    filterSites(inFile, baseNum)
     
 if __name__ == "__main__":
     main()
-
+    
