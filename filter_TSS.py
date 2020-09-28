@@ -52,6 +52,15 @@ import sys
 
 def filterSites(inFile, baseNum):
     '''
+    Filter TSS sites within "X" bases.
+
+    Parameters
+    ----------
+    inFile : str
+        Input TSS file, text file
+    baseNum : int
+        Number of bases to use as filter, i.e. if site A is within baseNum remove site.
+        
     '''
     chrom     = ''    # keep track of the previous site's chrom
     strand    = ''    # keep track of the previous site's strand
