@@ -52,7 +52,7 @@ import sys
 
 def main():
     
-    cmdparser = argparse.ArgumentParser(description="Filter TSS file by number of bases overlap.",
+    cmdparser = argparse.ArgumentParser(description="Filter TSS file by number of bases overlap, file MUST BE SORTED.",
                                         usage='%(prog)s -f <TSS_site_file.txt> -n <int>'  ,prog='filter_TSS.py'  )
     cmdparser.add_argument('-f', '--file',  action='store', dest='FILE',
                             help='Text file, containing TSS sites', metavar='')
@@ -79,27 +79,30 @@ def main():
     else:
         baseNum = 15
     
-    chrom = ''          # keep track of the previous site's chrom
-    strand = ''         # keep track of the previous site's strand
-    previous = 0        # keep track of the previous site's position
+    pchrom    = ''    # keep track of the previous previous site's chrom
+    pstrand   = ''    # keep track of the previous previous site's strand
+    pPrevious = ''    # keep track of the previous previous site's position
+    chrom     = ''    # keep track of the previous site's chrom
+    strand    = ''    # keep track of the previous site's strand
+    previous  = 0     # keep track of the previous site's position
+
     # open and parse tss file
     with open(inFile, 'r') as f:
         for line in f:
             site = int(line.rstrip().split('\t')[3])   # get position 
             dat  = line.split('\t')                    
-            if dat[0] == chrom and dat[2] == strand:                   # compare strands
+            if dat[0] == chrom and dat[2] == strand:   # site on same chrom and strand
                     if site - previous < baseNum:      # if site is within X bases skip
-                        previous = site
                         chrom = dat[0]
                         strand = dat[2]
                         continue
-                    else:
-                        print(line.rstrip())
-                        previous = site
-                        chrom = dat[0]
+                    else:                              # site is greater than X bases
+                        print(line.rstrip())           # keep it
+                        previous = site                # now set previous to current position
+                        chrom = dat[0]                 
                         strand = dat[2]
             else:
-                print(line.rstrip())
+                print(line.rstrip())                   # if not on the same chromosome print
                 previous = site
                 chrom = dat[0]
                 strand = dat[2]
