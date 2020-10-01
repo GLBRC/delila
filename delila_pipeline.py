@@ -2,6 +2,7 @@
 """delila_pipeline.py
 
 Create a sequence logo for Transcription Start sites using the Delila package.
+Script now works with single or multiple chromsomes.
 
 Notes
 ----- 
@@ -142,13 +143,14 @@ t : str
 
 w : int
 
-    window position, number of bases up & downstream of the center of the start site position.
+    window position, number of bases up & downstream of the center of the start 
+    site position.
 
 Example
 -------
     usage:
 
-    delila_pipeline.py -g rhodo_genome.gbff -p R.sphaeroides-2.4.1 -t TSS.txt -w 6 5
+   delila_pipeline.py -g rhodo_genome.gbff -p R.sphaeroides-2.4.1 -t TSS.txt -w 6 5
         
 References
 ----------
@@ -165,8 +167,8 @@ https://www.ncbi.nlm.nih.gov/Sitemap/samplerecord.html
 
 General bacterial promoter positioning
 
-  <-- upstream                                                          downstream -->
-5'-XXXXXXXPPPPPPXXXXXXPPPPPPXXXXGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGXXXX-3'
+  <-- upstream                                            downstream -->
+5'-XXXXXXXPPPPPPXXXXXXPPPPPPXXXXGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGXXXX-3'
            -35       -10       Gene to be transcribed
 
 
@@ -178,6 +180,7 @@ import re              # for regex
 import subprocess      # used to call delila programs 
 import sys
 
+import filter_TSS      #
 import merge_books     
 import merge_instructions 
 import rename_lib1 
@@ -230,7 +233,8 @@ class delilaPipe( object ):
         delilaBook       List of books from the Delila program output
 
         """
-        self.cat1        = 'cat1'              # cat1, cat2, cat3 required by delila, only cat1 contains info
+
+        self.cat1        = 'cat1'              # cat1, cat2, cat3 required by delila, only cat1 has info
         self.cat2        = 'cat2'
         self.cat3        = 'cat3'
         self.catalParams = 'catalp'
@@ -831,7 +835,7 @@ class delilaPipe( object ):
         Create a default parameter file to make a logo
         '''
         with open('makelogop', 'w') as out:
-            out.write("-" + self.window[0] + " +" + self.window[1] + "\n") # sets the logo width , maybe we want to make this related to the window
+            out.write("-" + self.window[0] + " +" + self.window[1] + "\n") # sets the logo width
             out.write("100\n")
             out.write("5.0 10.0\n")      # change the coordinate position
             out.write("0\n")
@@ -884,7 +888,7 @@ class delilaPipe( object ):
 
         # check if the user has provided a wave file if not make one
         if not os.path.exists('colors'):
-            pipe.makeColors()
+            self.makeColors()
 
         with open("marks", 'w') as f:
             pass
@@ -1080,9 +1084,9 @@ def main():
         # this is required to run catal and then delila again
         rename_lib1.newLib('lib1')
         rename_lib1.moveLib('lib1')
-        # now run malign on the book and instruction files  src/malign -b MERGED_BOOK_TEST.txt   -i MERGED_INSTRUCTIONS.txt   -m malignp
+        # now run malign on the book and instruction files  
         pipe.runMALIGN('MERGED_BOOK_TEST.txt', 'MERGED_INSTRUCTIONS.txt')
-        # run malin on the malign results  src/malin -a optalign -i MERGED_INSTRUCTIONS.txt  -o optinst -p malinp 
+        # run malin on the malign results   
         pipe.runMALIN('MERGED_INSTRUCTIONS.txt')
         # run catal again prior to running delila  
         pipe.runCATAL()
@@ -1104,6 +1108,7 @@ def main():
     pipe.runENCODE(book, 'cinst', 'encodep')
     pipe.runCOMP(book, 'compp')
     pipe.runRSEQ('cmp', 'encseq')
+    # RUN Ri, then rerun malign, malign ugh!
     pipe.runDALVEC('rsdata')
     pipe.runMAKELOGO('symvec', prefix + '.logo')       # make logo
     pipe.retrievePWM()        
