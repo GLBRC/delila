@@ -467,6 +467,13 @@ weighted too low.  To allow for comparison to previous versions of the
 code, the niot parameter can be set to 'b'.  This should not be used
 normally.
 
+To Compile:
+  gcc ri.c -o ri -I/home/mplace/bin/p2c/src -L /home/mplace/bin/p2c/src -lm -lp2c
+
+To Run:
+  src/ri -b R.sphaeroides-2.4.1_cinst_book.txt -i cinst -r rsdata -p rip -v values -w wave -o riout
+  
+ 
 */
 #include <getopt.h>  /* getopt API */ 
 #include <stdio.h>   /* printf */
@@ -1119,7 +1126,7 @@ _TEXT *thefile;
 
 Static Void copyaline(fin, fout)
 _TEXT *fin, *fout;
-{
+{  
   while (!P_eoln(fin->f)) {
     putc(P_peek(fin->f), fout->f);
     getc(fin->f);
@@ -2659,7 +2666,6 @@ ribltype *matrix;
   putc('\n', afile->f);
 }
 
-
 Static Void Riheader(infile, book, c_, outfile)
 _TEXT *infile, *book;
 Char c_;
@@ -2700,9 +2706,11 @@ _TEXT *outfile;
     _EscIO2(FileNotFound, book->name);
   RESETBUF(book->f, Char);
   fprintf(outfile->f, "%c BOOK/INST sequences are from:\n", c_);
+
   copyaline(book, outfile);
   fprintf(outfile->f, "%c ", c_);
-  if (*inst.name != '\0') {
+    if (*inst.name != '\0') {
+      printf("inst.name = %s", inst.name);
     if (inst.f != NULL)
       inst.f = freopen(inst.name, "r", inst.f);
     else
@@ -3236,7 +3244,7 @@ boolean printsequ, printrixyin;
 Char partials;
 double niot;
 Char ricalctype, alignmenttype;
-{
+{ 
   fprintf(fout->f, "* PARAMETERS FOR Ri:\n");
   fprintf(fout->f, "* %ld %ld from-to\n", thefrom, theto);
   fprintf(fout->f, "* %ld column of value file\n", column);
@@ -3370,9 +3378,9 @@ _TEXT *inst, *book, *rsdata, *values, *rip, *wave, *rixyin, *sequ, *ribl;
   *TEMP.name = '\0';
   PatentMessage(&TEMP);
   limitdate('9', '9', '9', '9', "    /99/99 99:99:99");
-
+  
   apiece = (piece *)Malloc(sizeof(piece));
-
+  
   brinit(book, &theline);
   if (*rixyin->name != '\0') {
     if (rixyin->f != NULL)
@@ -3390,8 +3398,10 @@ _TEXT *inst, *book, *rsdata, *values, *rip, *wave, *rixyin, *sequ, *ribl;
   SETUPBUF(rixyin->f, Char);
 
   fprintf(rixyin->f, "* bits\n");
+ 
   Riheader(rsdata, book, '*', rixyin);
   if (*ribl->name != '\0') {
+   
     if (ribl->f != NULL)
       ribl->f = freopen(ribl->name, "w", ribl->f);
     else
@@ -3405,8 +3415,9 @@ _TEXT *inst, *book, *rsdata, *values, *rip, *wave, *rixyin, *sequ, *ribl;
   if (ribl->f == NULL)
     _EscIO2(FileNotFound, ribl->name);
   SETUPBUF(ribl->f, Char);
+   
   if (*riinst.name != '\0') {
-    if (riinst.f != NULL)
+      if (riinst.f != NULL)
       riinst.f = freopen(riinst.name, "w", riinst.f);
     else
       riinst.f = fopen(riinst.name, "w");
@@ -3424,7 +3435,7 @@ _TEXT *inst, *book, *rsdata, *values, *rip, *wave, *rixyin, *sequ, *ribl;
   Riheader(rsdata, book, '*', &riinst);
   fprintf(riinst.f, " *)\n\n");
   fprintf(riinst.f, "organism ORG; chromosome CHR;\n");
-
+ 
   matrix = (ribltype *)Malloc(sizeof(ribltype));
 
   readparameters(rip, &matrix->riblname, &thefrom, &theto, &column, &lowerRi,
@@ -3938,10 +3949,10 @@ int main(int argc, Char **argv)
   char *val  = "values.txt";
   char *param = "riParameter.txt";
   char *wv    = "wave.txt";
-  char *out   = "ri_out_inst.txt";
+  char *outInst   = "riInstOut.txt";
 
 /* Process command line arguments  */
-while ((c = getopt(argc, argv, "b:i:r:v:p:w:o")) != -1)
+while ((c = getopt(argc, argv, "b:i:r:v:p:w:o:")) != -1)
 		switch (c) {
 		case 'b':
       bflag = 1;
@@ -3969,7 +3980,7 @@ while ((c = getopt(argc, argv, "b:i:r:v:p:w:o")) != -1)
       break; 
     case 'o':
       oflag = 1;
-      out = optarg;
+      outInst = optarg;
       break;      
 		case '?':
 			err = 1;
@@ -3988,7 +3999,7 @@ while ((c = getopt(argc, argv, "b:i:r:v:p:w:o")) != -1)
 		fprintf(stderr, "%s: missing -i instruction file\n", argv[0]);
 		usage();
 		exit(1);
-  } 
+  }  
 
   /* rsdata file name  */  
   if (rflag == 0) { 
@@ -4002,7 +4013,7 @@ while ((c = getopt(argc, argv, "b:i:r:v:p:w:o")) != -1)
     fprintf(stderr, "%s: missing -p ri parameter file name \n", argv[0]);
 		usage();
 		exit(1);
-    } 
+    }  
 
   /* values file name  */  
   if (vflag == 0) { 
@@ -4017,6 +4028,7 @@ while ((c = getopt(argc, argv, "b:i:r:v:p:w:o")) != -1)
 		usage();
 		exit(1);
     } 
+
   /* ri out instructions file name  */  
   if (oflag == 0) { 
     fprintf(stderr, "%s: missing -o ri instructions out file name \n", argv[0]);
@@ -4028,11 +4040,12 @@ while ((c = getopt(argc, argv, "b:i:r:v:p:w:o")) != -1)
 		usage();
 		exit(1);
 	}
+ 
   PASCAL_MAIN(argc, argv);
   if (setjmp(_JL1))
     goto _L1;
   riinst.f = NULL;
-  strcpy(riinst.name, instructions);
+  strcpy(riinst.name, outInst);
   ribl.f = NULL;
   strcpy(ribl.name, "ribl");
   sequ.f = NULL;
@@ -4050,7 +4063,7 @@ while ((c = getopt(argc, argv, "b:i:r:v:p:w:o")) != -1)
   book.f = NULL;
   strcpy(book.name, bookName);
   inst.f = NULL;
-  strcpy(inst.name, out);
+  strcpy(inst.name, instructions);
   themain(&inst, &book, &rsdata, &values, &rip, &wave, &rixyin, &sequ, &ribl);
 _L1:
   if (inst.f != NULL)
@@ -4074,6 +4087,7 @@ _L1:
   if (riinst.f != NULL)
     fclose(riinst.f);
   exit(EXIT_SUCCESS);
+  
 return 0;
 }
 /* End. */
