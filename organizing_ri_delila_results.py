@@ -6,6 +6,13 @@ Created on Fri Oct 16 10:48:47 2020
 Script to organize the Delila outputs of Malign_list and Ri Results and write
 them to files.
 
+The script requires outputs of the delila pipeline:  LIST and RIXYIN
+
+It will write the files to a more readable format, combine them, and then
+retain ONLY those that have a positive (>0) Ri value from RIXYIN file.
+
+The surviving genes will be formatted into a file to use in the delila_instructions.py script.
+
 @author: kevinmyers
 """
 import argparse
@@ -87,7 +94,7 @@ def main():
     cmdparser.add_argument('-l', '--malign_list',    action='store', dest='MALIGN_LIST',    help='malign_list file from Delila pipeline.', metavar='')
     cmdparser.add_argument('-r', '--rixyin_file', action='store', dest='RIXYIN_FILE', help='Rixyin results file from Ri in the Delila pipeline', metavar='')
     cmdparser.add_argument('-d', '--detail',  action='store_true', dest='DETAIL',  help='Print a more detailed description of program.')
-    cmdparser.add_argument('-o', '--output', action='store', dest='OUTPUT', help='Output file name. Default is "positive_Ri_updated_instruction.inst".',metavar='')
+    cmdparser.add_argument('-o', '--output', action='store', dest='OUTPUT', help='Output file name. Default is "positive_Ri_updated_locations.txt".',metavar='')
     cmdResults = vars(cmdparser.parse_args())
     
         # if no args print help
@@ -122,7 +129,7 @@ def main():
     if cmdResults["OUTPUT"] is not None:
         output_file = cmdResults['OUTPUT']
     else:
-        output_file = "positive_Ri_updated_instruction.inst"   
+        output_file = "ositive_Ri_updated_locations.txt"   
         
     processFiles( malign_file, rixyin_file, output_file )
     
