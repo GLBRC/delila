@@ -952,7 +952,7 @@ class delilaPipe( object ):
 
     def runRi(self, book, cinst, rsdata, out):
         '''
-        Ri determines the individual informations of the sites in the book
+        Ri determines the individual information of the sites in the book
         as aligned by the instructions, according to the frequency table given in
         the rsdata file.  The program calculates the Ri(b,l) table:
 
@@ -1224,10 +1224,70 @@ def main():
     pipe.runParseRI('list', 'rixyin', 'RI_out.txt')
     # split input TSS file by chromosome, pass site information
     pipe.splitTSS('RI_out.txt', site)
-    pipe.runMAKELOGO('symvec', prefix + '.logo')       # make logo
-    pipe.retrievePWM()    
     
+    # here we change the chromosome name and piece name to match the l1 (lib1) file
+    with open('instructions.list', 'r') as instructionsFile:
+        #fix chromosome and piece names for each instruction file
+        for i in instructionsFile:
+            with open(i.rstrip(), 'r') as f, open('TSS.tmp', 'w') as out:
+                out.write(f.readline())           # title
+                out.write(f.readline())           # organism
+                chrom    = f.readline()           # 
+                piece    = f.readline().rstrip(';\n').split()[1]     # capture piece name
+                tmp_piece = 'piece ' + chrom.rstrip(';\n').split()[1] + '-' + piece + ';\n' # now chrom-piece
+                chrom    = 'chromosome ' + piece +';\n'
+                piece = tmp_piece                
+                out.write(chrom)
+                out.write(piece)
+                for line in f:                    # write out remaining lines w/o change
+                    out.write(line)
+            
+            os.rename('TSS.tmp', i.rstrip())      # overwrite old instruction file
+            f.close()
+            out.close()
+    instructionsFile.close()
+
+    #pipe.runMAKELOGO('symvec', prefix + '.logo')       # make logo
+    #pipe.retrievePWM()    
+
+    # clear book list
+    pipe.delilaBOOK = []
+    # now repeat the earlier part of the pipeline
+    # run delila for each chromosome's instruction set
+    for inst in pipe.instructions:
+        pipe.runDELILA( inst)  
+
+    '''
+    if len(pipe.delilaBOOK) > 1:           
+        # write the list of generate books from runDELILA step to file
+        with open('mybooks.txt', 'w') as out:
+            for b in pipe.delilaBOOK:
+                out.write(b + '\n')  
+
+        # If more than one chromosome merge books, input is a text file listing the split books
+        merge_books.mergeBook('mybooks.txt')
+        # if more than one chromosome merge instruction file
+        merge_instructions.mergeInst('instructions.list')
+        # Rename the tags in the original lib1 to match the merged book and merged instructions
+        # this is required to run catal and then delila again
+        rename_lib1.newLib('lib1')
+        rename_lib1.moveLib('lib1')
+        # now run malign on the book and instruction files  
+        pipe.runMALIGN('MERGED_BOOK_TEST.txt', 'MERGED_INSTRUCTIONS.txt')
+        # run malin on the malign results   
+        pipe.runMALIN('MERGED_INSTRUCTIONS.txt')
+        # run catal again prior to running delila  
+        pipe.runCATAL()
+    else:                                    # There is only one chromosome present
+        with open('mybooks.txt', 'r') as f:  # get the name of the single book 
+            malignBook = f.readline().rstrip()
+        f.close()
+        with open('instructions.list', 'r') as f:  # get the single instruction file name
+            malignInst = f.readline().rstrip()
+        f.close()
         
-    
+        pipe.runMALIGN(malignBook, malignInst)
+        pipe.runMALIN(malignInst)
+    '''
 if __name__ == "__main__":
     main()
