@@ -965,6 +965,9 @@ class delilaPipe( object ):
         regression.  The ribl matrix is ready to be used to scan sequences with the
         scan program.
 
+        ri -b R.sphaeroides-2.4.1_cinst_book.txt -i cinst -r rsdata -v values -o ri_inst.out -p rip -w wave
+
+
         Parameters
         ----------
         book : str
@@ -994,7 +997,7 @@ class delilaPipe( object ):
         cmd = [ program , '-b', book, '-i', cinst, '-r', rsdata, '-p', 'rip', '-v', 'values', '-w', 'wave', '-o', out ]
         logger.info("Running runRi ")
         logger.info(program + ' ' + ' '.join(cmd))
-        # run dalvec
+        # run ri
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
         result2 = output[1].decode('utf-8')
@@ -1162,14 +1165,17 @@ def main():
     
     # converts GenBank and EMBL data base entries into a book of delila entries.
     pipe.makeDBBK()          
+    
     # The catalogue program checks all the input libraries for correct structure.
     pipe.runCATAL()
+
     # split input TSS file by chromosome, pass site information
     pipe.splitTSS(pipe.tss, site)
+
     # Read instructions from file
     pipe.getInstructions()
     
-    # run delila for each chromosome
+    # run delila for each chromosome's instruction set
     for inst in pipe.instructions:
         pipe.runDELILA( inst)   
     
@@ -1214,12 +1220,14 @@ def main():
     pipe.runRSEQ('cmp', 'encseq')
     pipe.runDALVEC('rsdata')
     # RUN Ri, then rerun malign, malign ugh!
-    pipe.runRi(book, 'cinst', 'rsdata', 'rip.log' )
+    pipe.runRi(book, 'cinst', 'rsdata', 'riplog' )
     pipe.runParseRI('list', 'rixyin', 'RI_out.txt')
     # split input TSS file by chromosome, pass site information
     pipe.splitTSS('RI_out.txt', site)
-    #pipe.runMAKELOGO('symvec', prefix + '.logo')       # make logo
-    #pipe.retrievePWM()        
+    pipe.runMAKELOGO('symvec', prefix + '.logo')       # make logo
+    pipe.retrievePWM()    
+    
+        
     
 if __name__ == "__main__":
     main()
