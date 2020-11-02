@@ -1257,7 +1257,6 @@ def main():
     for inst in pipe.instructions:
         pipe.runDELILA( inst)  
 
-    '''
     if len(pipe.delilaBOOK) > 1:           
         # write the list of generate books from runDELILA step to file
         with open('mybooks.txt', 'w') as out:
@@ -1288,6 +1287,16 @@ def main():
         
         pipe.runMALIGN(malignBook, malignInst)
         pipe.runMALIN(malignInst)
-    '''
+
+    # Finally we can run delila on the malin results
+    book = pipe.runDELILA('cinst')
+    pipe.runALIST(book , 'cinst' )
+    pipe.runENCODE(book, 'cinst', 'encodep')
+    pipe.runCOMP(book, 'compp')
+    pipe.runRSEQ('cmp', 'encseq')
+    pipe.runDALVEC('rsdata')
+    pipe.runMAKELOGO('symvec', prefix + '.logo')       # make logo
+    pipe.retrievePWM()    
+
 if __name__ == "__main__":
     main()
