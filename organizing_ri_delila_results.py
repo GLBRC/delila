@@ -33,12 +33,12 @@ def processFiles( malign_file, rixyin_file, output_file ):
             if line.startswith("\x0cpage"):
                 continue
             else:
-                geneID = line.rstrip().split()[0]
-                chromosome = line.rstrip().split()[1]
-                minus10 = line.rstrip().split()[2]
-                strand = line.rstrip().split()[3]
-                siteID = line.rstrip().split()[4]
-                sequence = line.rstrip().split()[5]
+                geneID = line.rstrip().split()[0]         # RSP_4039_1700 in the case of R.sphaeroides
+                chromosome = line.rstrip().split()[1].split('-')[-1]     # R.sphaeroides-2.4.1-NC_007488.2   organism plus chromosome ID
+                minus10 = line.rstrip().split()[2]        # 1691  base pair position 
+                strand = line.rstrip().split()[3]         # + or -
+                siteID = line.rstrip().split()[4]         # row number from malign list file
+                sequence = line.rstrip().split()[5]       # gctcagcgcatagtcgtcctt              
                 if strand == "+":
                     strand2 = "forward"
                     position = int(minus10) + 9
@@ -47,7 +47,7 @@ def processFiles( malign_file, rixyin_file, output_file ):
                     position = int(minus10) - 10
                 idlist.append(f"{siteID}\t{geneID}\t{chromosome}\t{minus10}\t{strand}\t{sequence}\n")
                 idDict[siteID] = []
-                idDict[siteID].append(f"{geneID}\t{strand2}\t{position}")
+                idDict[siteID].append(f"{chromosome}\t{geneID}\t{strand2}\t{position}\n")
                 
     for each in idlist:
         with open("malign_list_organized.txt", 'a') as f:
@@ -63,31 +63,31 @@ def processFiles( malign_file, rixyin_file, output_file ):
             if line.startswith("*"):
                 continue
             else:
-                siteID = line.rstrip().split()[0]
-                chromosome = line.rstrip().split()[1]
-                seq = line.rstrip().split()[2]
-                length = line.rstrip().split()[3]
-                minus10 = line.rstrip().split()[4]
-                riScore = line.rstrip().split()[5]
-                value = line.rstrip().split()[6]
-                stdDev = line.rstrip().split()[7]
+                siteID = line.rstrip().split()[0]        # row number from rixyin, = malign list row number
+                chromosome = line.rstrip().split()[1]    # R.sphaeroide, automatically truncated by ri ?
+                seq = line.rstrip().split()[2]           # gatcggcgtatacagcaatct
+                length = line.rstrip().split()[3]        # length of seq, i.e. 21
+                minus10 = line.rstrip().split()[4]       # minus 10 site, base pair position
+                riScore = line.rstrip().split()[5]       # numeric score -1.205503
+                value = line.rstrip().split()[6]         # value from the values file (0 if values is empty)
+                stdDev = line.rstrip().split()[7]        # stsDev of Rindividual for that sequence
                 if siteID in idDict:
                     geneID = idDict[siteID]
                     geneID2 = '\t'.join([str(elem) for elem in geneID])
-                if float(riScore) > 0:
-                    rilist.append(f"{siteID}\t{geneID2}\t{chromosome}\t{seq}\t{length}\t{minus10}\t{riScore}\t{value}\t{stdDev}\n")
-                    forInst.append(f"{chromosome}\t{geneID2}\n")
+                    if float(riScore) > 0:
+                        rilist.append(f"{siteID}\t{geneID2}\t{chromosome}\t{seq}\t{length}\t{minus10}\t{riScore}\t{value}\t{stdDev}\n")
+                        forInst.append(idDict[siteID][0])
                 else:
                     continue
-                
-    for each in rilist:
-        with open("ri_results_organized.txt", 'a') as f:
+    # write parsed ri results for a check
+    with open("ri_results_organized.txt", 'w') as f:
+        for each in rilist:
             f.write(each)
-            
-    for each in forInst:
-        with open(output_file, 'a') as f:
+    # write a new TSS site file for the refining stage of the pipeline
+    with open(output_file, 'w') as f:
+        for each in forInst:
             f.write(each)
-            
+    
 def main():
     cmdparser = argparse.ArgumentParser(description="Removal of sites with negative Ri values in Delila.",
                                         usage='%(prog)s -f <fastq file list.txt> [optional args: -a -r -d -ref ]' ,prog='organizing_ri_delila_results.py'  )
