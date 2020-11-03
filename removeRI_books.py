@@ -54,7 +54,7 @@ def parseRI(riout):
                 ri[id] = 1
     return ri
 
-def removeRI(inFile):
+def removeRI(inFile, riIDs):
     '''
     Parse and retain sites with RI score greater than zero.
 
@@ -62,53 +62,43 @@ def removeRI(inFile):
     ----------
     inFile : str
         Text file with a list of book files to merge
-
+    riIDs : dict
+        Dictionary with gene ID's to retain.
     '''
     # variables used to process and merge the books
-    chromHeader = []     
+    chromTracker = set()     
     pieces = []
-    first  = False
     organism = ''
+    counter = 1
 
-    with open(inFile, 'r') as fl, open('MERGED_BOOK.txt','w') as out:
-        for bookfile in fl:
-            bookfile = bookfile.rstrip()
-            with open( bookfile, 'r') as f:
-                # gather header information from the first file, ignore the other file headers
-                if not first:
-                    out.write(f.readline())       # write title, organism out to file
-                    out.write(f.readline())
-                    org = f.readline()
-                    out.write(org)
-                    out.write(f.readline())
-                    out.write(f.readline())
-                    for ln in range(5):
-                        chromHeader.append(f.readline())                   
-                    first = True
-                    organism = org.rstrip().split()[1]
-                else: 
-                    list(islice(f,10))                # unneeded header, send to ether
-                
-                # gather the pieces in the book
-                while True:
-                    eachPiece = list(islice(f,19))    # should be one entire piece
-                    if not eachPiece:                 # end when nothing more to read
-                        break
-                    else:
-                        if not eachPiece[0] == 'chromosome\n':   # if not end of file
-                            pieces.append(eachPiece)
 
-                chromHeader[1] = pieces[0][1]         # change chromosome name 
-                for ch in chromHeader:                # write chromosome info
-                    out.write(ch)
-                for p in pieces:                      # write each pieces info
-                    for i,ln in enumerate(p):
-                        if i == 1:
-                            ln = re.sub('\* ', '* ' + organism.rstrip() + '-', ln)  # need a unique name that differs from chromosome
-                        out.write(ln)
-                out.write('chromosome\n')
-                pieces = []                           # reset for next book to use
-        out.write('organism')                         # file end here
+    with open(inFile, 'r') as f, open('NEW_MERGED_BOOK.txt','w') as out:
+        # gather header information from the first file, ignore the other file headers
+        for ln in range(10):
+            out.write(f.readline())                   
+            # gather the pieces in the book
+        while True:
+            peek = f.readline()                    # is the next line the start of a piece
+            if peek.startswith('piece'):          
+                wholePiece = list(islice(f,18))    # should be rest of the piece
+                id =  wholePiece[1].rstrip().split()[1]   # check if the gene ID should be retained
+                if id in riIDs:                           # gene ID found, now write piece
+                    out.write(peek)
+                    wholePiece[3] = f"* # {str(counter)}\n"
+                    counter +=1
+                    for row in wholePiece:
+                        out.write(row)
+            elif peek.startswith('chrom'):                # chromsome line
+                out.write(peek)
+                counter = 1                               # reset counter for each chromosome
+                newChrom = list(islice(f,5)) 
+                if len(newChrom) == 5:                    # write chromosome info
+                    for c in newChrom:
+                        out.write(c)
+                else:                                     # we are at the end of the file
+                    out.write(f.readline())
+                    out.write("organism")
+                    break                
 
 def main():
     
@@ -133,9 +123,7 @@ def main():
         riFile = cmdResults['RIOUT']
 
     riIDs = parseRI(riFile)
-    print(riIDs)
-    print(len(riIDs))
-    #removeRI(inFile)    
+    removeRI(inFile, riIDs)    
 
 if __name__ == "__main__":
     main()
