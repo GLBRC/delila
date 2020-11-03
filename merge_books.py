@@ -57,7 +57,7 @@ def mergeBook(inFile):
     first  = False
     organism = ''
 
-    with open(inFile, 'r') as fl, open('MERGED_BOOK_TEST.txt','w') as out:
+    with open(inFile, 'r') as fl, open('MERGED_BOOK.txt','w') as out:
         for bookfile in fl:
             bookfile = bookfile.rstrip()
             with open( bookfile, 'r') as f:
