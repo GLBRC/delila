@@ -41,6 +41,18 @@ import os
 import re
 import sys
 
+def parseRI(riout):
+    """
+    Parse RI_out.txt file into dictionary.
+    Key = gene ID  value = 1
+    """
+    ri = {}
+    with open(riout, 'r') as f:
+        for ln in f:
+            id = ln.split('\t')[1]
+            if id not in ri:
+                ri[id] = 1
+    return ri
 
 def removeRI(inFile):
     '''
@@ -107,7 +119,7 @@ def main():
     cmdResults = vars(cmdparser.parse_args())
         
     # if no args print help
-    if len(sys.argv) == 1:
+    if len(sys.argv) < 3:
         print("")
         cmdparser.print_help()
         sys.exit(1)
@@ -117,9 +129,12 @@ def main():
         inFile = cmdResults['FILE']     
 
     # get the RI_out.txt file
-    if cmdResults['RIOUT'] if not None:
+    if cmdResults['RIOUT'] is not None:
         riFile = cmdResults['RIOUT']
 
+    riIDs = parseRI(riFile)
+    print(riIDs)
+    print(len(riIDs))
     #removeRI(inFile)    
 
 if __name__ == "__main__":
