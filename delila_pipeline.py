@@ -184,6 +184,8 @@ import filter_TSS      #
 import merge_books     
 import merge_instructions 
 import rename_lib1 
+import removeRI_books
+import removeRI_instructions
 
 # program home directory
 # pdir = '/home/glbrc.org/mplace/scripts/delila/src/'
@@ -933,7 +935,7 @@ class delilaPipe( object ):
         '''
         with open('rip', 'w') as out:
             out.write('2.54\n')          # parameterversion
-            out.write('weight matrix\n') # name of the weight matrix, here imaginatively named       
+            out.write('"weight matrix"\n') # name of the weight matrix, here imaginatively named       
             out.write('-10 +10\n')       # The FROM and TO over which to do the Ri calculation
             out.write('1\n')             # defines the column of the values file to use
             out.write('a\n')             #  the lowest and highest Ri evaluation to report
@@ -1195,7 +1197,7 @@ def main():
         rename_lib1.newLib('lib1')
         rename_lib1.moveLib('lib1')
         # now run malign on the book and instruction files  
-        pipe.runMALIGN('MERGED_BOOK_TEST.txt', 'MERGED_INSTRUCTIONS.txt')
+        pipe.runMALIGN('MERGED_BOOK.txt', 'MERGED_INSTRUCTIONS.txt')
         # run malin on the malign results   
         pipe.runMALIN('MERGED_INSTRUCTIONS.txt')
         # run catal again prior to running delila  
@@ -1224,57 +1226,23 @@ def main():
     pipe.runParseRI('list', 'rixyin', 'RI_out.txt')
     # split input TSS file by chromosome, pass site information
     pipe.splitTSS('RI_out.txt', site)
+
+    # MAKE IN INITIAL LOGO TO COMPARE WITH THE FINAL LOG
+    pipe.runMAKELOGO('symvec', prefix + '-initial.logo')       # make logo
+    pipe.retrievePWM()
     
-    # here we change the chromosome name and piece name to match the l1 (lib1) file
-    with open('instructions.list', 'r') as instructionsFile:
-        #fix chromosome and piece names for each instruction file
-        for i in instructionsFile:
-            with open(i.rstrip(), 'r') as f, open('TSS.tmp', 'w') as out:
-                out.write(f.readline())           # title
-                out.write(f.readline())           # organism
-                chrom    = f.readline()           # 
-                piece    = f.readline().rstrip(';\n').split()[1]     # capture piece name
-                tmp_piece = 'piece ' + chrom.rstrip(';\n').split()[1] + '-' + piece + ';\n' # now chrom-piece
-                chrom    = 'chromosome ' + piece +';\n'
-                piece = tmp_piece                
-                out.write(chrom)
-                out.write(piece)
-                for line in f:                    # write out remaining lines w/o change
-                    out.write(line)
-            
-            os.rename('TSS.tmp', i.rstrip())      # overwrite old instruction file
-            f.close()
-            out.close()
-    instructionsFile.close()
-
-    #pipe.runMAKELOGO('symvec', prefix + '.logo')       # make logo
-    #pipe.retrievePWM()    
-
-    # clear book list
-    pipe.delilaBOOK = []
-    # now repeat the earlier part of the pipeline
-    # run delila for each chromosome's instruction set
-    for inst in pipe.instructions:
-        pipe.runDELILA( inst)  
+    ### REFINE THE LOGO BY REMOVING SITES WITH AN RI score 0 or less     
+    #  Use the filtered/refined data set to run the pipeline again, 
+    # creating the FINAL logo
 
     if len(pipe.delilaBOOK) > 1:           
-        # write the list of generate books from runDELILA step to file
-        with open('mybooks.txt', 'w') as out:
-            for b in pipe.delilaBOOK:
-                out.write(b + '\n')  
-
-        # If more than one chromosome merge books, input is a text file listing the split books
-        merge_books.mergeBook('mybooks.txt')
-        # if more than one chromosome merge instruction file
-        merge_instructions.mergeInst('instructions.list')
-        # Rename the tags in the original lib1 to match the merged book and merged instructions
-        # this is required to run catal and then delila again
-        rename_lib1.newLib('lib1')
-        rename_lib1.moveLib('lib1')
+        riIDs = removeRI_books.parseRI('RI_out.txt')
+        removeRI_books.removeRI('MERGED_BOOK.txt', riIDs)  
+        removeRI_instructions.removeRI('MERGED_INSTRUCTIONS.txt',riIDs)
         # now run malign on the book and instruction files  
-        pipe.runMALIGN('MERGED_BOOK_TEST.txt', 'MERGED_INSTRUCTIONS.txt')
+        pipe.runMALIGN('NEW_MERGED_BOOK.txt', 'NEW_MERGED_INSTRUCTIONS.txt')
         # run malin on the malign results   
-        pipe.runMALIN('MERGED_INSTRUCTIONS.txt')
+        pipe.runMALIN('NEW_MERGED_INSTRUCTIONS.txt')
         # run catal again prior to running delila  
         pipe.runCATAL()
     else:                                    # There is only one chromosome present
@@ -1287,7 +1255,7 @@ def main():
         
         pipe.runMALIGN(malignBook, malignInst)
         pipe.runMALIN(malignInst)
-
+    
     # Finally we can run delila on the malin results
     book = pipe.runDELILA('cinst')
     pipe.runALIST(book , 'cinst' )
@@ -1297,6 +1265,6 @@ def main():
     pipe.runDALVEC('rsdata')
     pipe.runMAKELOGO('symvec', prefix + '.logo')       # make logo
     pipe.retrievePWM()    
-
+    
 if __name__ == "__main__":
     main()
