@@ -65,7 +65,7 @@ def removeRI(inFile, riIDs):
     riIDs : dict
         Dictionary with gene ID's to retain.
     '''
-    # variables used to process and merge the books
+    # variables used to process the book
     chromTracker = set()     
     pieces = []
     organism = ''
@@ -73,7 +73,7 @@ def removeRI(inFile, riIDs):
 
 
     with open(inFile, 'r') as f, open('NEW_MERGED_BOOK.txt','w') as out:
-        # gather header information from the first file, ignore the other file headers
+        # gather header information
         for ln in range(10):
             out.write(f.readline())                   
             # gather the pieces in the book
@@ -102,7 +102,7 @@ def removeRI(inFile, riIDs):
 
 def main():
     
-    cmdparser = argparse.ArgumentParser(description="Merge Delila chromosome book files.",
+    cmdparser = argparse.ArgumentParser(description="Filter book file by ri score.",
                                         usage='%(prog)s -f <input.txt> -r <RI_out.txt>'  ,prog='removeRI_books.py'  )  
     cmdparser.add_argument('-f', '--file', action='store', dest='FILE', help='Merged delila book file to parse.', metavar='')
     cmdparser.add_argument('-r', '--ri', action='store', dest="RIOUT",  help='RI_out.txt file', metavar='')
