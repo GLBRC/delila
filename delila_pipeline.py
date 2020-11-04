@@ -1235,20 +1235,26 @@ def main():
     #  Use the filtered/refined data set to run the pipeline again, 
     # creating the FINAL logo
 
-    if len(pipe.delilaBOOK) > 1:           
+    if len(pipe.delilaBOOK) > 1:      
+        logger.info('\nRunning removeRI_books.removeRI on MERGED_BOOK.txt\n')     
         riIDs = removeRI_books.parseRI('RI_out.txt')
-        removeRI_books.removeRI('MERGED_BOOK.txt', riIDs)  
+        removeRI_books.removeRI('MERGED_BOOK.txt', riIDs) 
+
+        logger.info('\nRunning removeRI_instructions.parseRI on MERGED_INSTRUCTIONS.txt\n')
         removeRI_instructions.removeRI('MERGED_INSTRUCTIONS.txt',riIDs)
+
         # now run malign on the book and instruction files  
         pipe.runMALIGN('NEW_MERGED_BOOK.txt', 'NEW_MERGED_INSTRUCTIONS.txt')
         # run malin on the malign results   
         pipe.runMALIN('NEW_MERGED_INSTRUCTIONS.txt')
+        
         # run catal again prior to running delila  
         pipe.runCATAL()
     else:                                    # There is only one chromosome present
         with open('mybooks.txt', 'r') as f:  # get the name of the single book 
             malignBook = f.readline().rstrip()
         f.close()
+
         with open('instructions.list', 'r') as f:  # get the single instruction file name
             malignInst = f.readline().rstrip()
         f.close()
@@ -1263,7 +1269,7 @@ def main():
     pipe.runCOMP(book, 'compp')
     pipe.runRSEQ('cmp', 'encseq')
     pipe.runDALVEC('rsdata')
-    pipe.runMAKELOGO('symvec', prefix + '.logo')       # make logo
+    pipe.runMAKELOGO('symvec', prefix + '.logo')       # Make Final logo
     pipe.retrievePWM()    
     
 if __name__ == "__main__":
