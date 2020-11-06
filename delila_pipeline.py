@@ -1066,8 +1066,6 @@ def main():
                             help='Print more information to stdout')                            
     cmdparser.add_argument('-g', '--genbank', action='store', dest='GENBANK',
                             help='Genbank file')
-    cmdparser.add_argument('-p', '--prefix', action='store', dest='PREFIX', 
-                            help='Prefix names for output files', metavar='')
     cmdparser.add_argument('-w', '--window', action='store', dest='WINDOW', 
                             help='Window to search, 2 integers, upstream & downstream', nargs='+', metavar='' )
     cmdparser.add_argument('-s', '--site', action='store', dest='SITE',
@@ -1093,7 +1091,6 @@ def main():
         print("delila_pipeline.py -g genome.gnbk -p ecoli -t ecoli_tss_info.txt")
         print("")
         print("    -g genome genbank file ")
-        print("    -p prefix name to use for output files")
         print("    -s site, position from Start site , assumed to be upstream")
         print("    -t transcription start site information file")
         print("    -w window size to search, takes 2 numbers, upstream & downstream")
@@ -1112,16 +1109,22 @@ def main():
         print("For help contact:  bioinformaticshelp@glbrc.wisc.edu\n")
         sys.exit(1)
 
+    prefix = ''
     # check the command line parameters
-    if cmdResults['PREFIX'] is not None:               # output prefix
-        prefix = cmdResults['PREFIX']
-    else:
-        print('\n\t-p prefix parameter missing.')
-        cmdparser.print_help()
-        sys.exit(1)
-
     if cmdResults['GENBANK'] is not None:
-        inFile = cmdResults['GENBANK']                 # infile is a genbank file  
+        inFile = cmdResults['GENBANK']                 # infile is a genbank file
+        # need to capture the organism name from the genbank file
+        with open(inFile, 'r') as f:
+            for ln in f:
+                if ln.startswith('SOURCE'):            
+                    prefix = ln.rstrip().split('E')[1].lstrip()
+                    species = prefix.split(' ')
+                    abrv = species.pop(0)[0]        
+                    name = abrv + '.' + species[0]
+                    species[0] = name
+                    prefix = '-'.join(species)     
+                    break
+
     else:
         print('\n\t-g genbank file missing')
         cmdparser.print_help()
