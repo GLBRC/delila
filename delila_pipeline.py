@@ -1088,6 +1088,26 @@ class delilaPipe( object ):
         logger.info(result1)
         logger.info(result2)
 
+def cleanUp(self):
+    """
+    Organize and clean up the files produced by the pipeline.
+    """
+    # parameter directory and move all parameter files 
+
+    # intermediate files
+
+    pass
+
+def ps2pdf(self):
+    """
+    Call ps2pdf to convert the postscript logo files to PDFs.
+    """
+    # get list of all logo files
+    # then use subprocess to call ps2pdf 
+    for logo in glob.glob('*.logo'):
+        cmd = ['ps2pdf', logo ]
+        subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+
 def main():
     usage ='%(prog)s -g genome.gnbk -t tss_file.txt -l +10 -r -10 -s 35'             
     cmdparser = argparse.ArgumentParser(description="Delila pipeline to make sequence logo from Transcription start sites.",
