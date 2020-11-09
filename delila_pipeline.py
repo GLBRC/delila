@@ -37,6 +37,24 @@ language is available https://alum.mit.edu/www/toms/libdef.html, although not
 all of it is implemented. There are also tutorials on building Delila libraries
 and using Delila instructions. 
 
+Understanding Left and Right boundaries:
+Delila positioning, bounds will be set by LEFT and RIGHT.
+
+scenario 1:
+Left = -10 
+Right = +10 
+TSS at position 100, then the bounds are Left = position 90, Right = position 110
+
+scenario 2:
+Left = -20
+Right = -5
+TSS at position 100,  Left = position 80, Right = position 95
+
+scenario 3:
+Left = +5
+Right = +25
+TSS at position 100, Left = position 105, Right = position 125
+
 Method
 ------
 
@@ -141,16 +159,17 @@ t : str
     NC_007488.2     RSP_4037_3543   forward 3543
     NC_007488.2     RSP_4025_19218  reverse 19218
 
-w : int
+l : int
+    Left boundary relative to center of the site
 
-    window position, number of bases up & downstream of the center of the start 
-    site position.
+r : int
+    Right boundary relative to the center of the site
 
 Example
 -------
     usage:
 
-   delila_pipeline.py -g rhodo_genome.gbff -p R.sphaeroides-2.4.1 -t TSS.txt -w 6 5
+   delila_pipeline.py -g rhodo_genome.gbff -t TSS.txt -l 8  -r 5 -s 35
         
 References
 ----------
@@ -173,14 +192,15 @@ General bacterial promoter positioning
 
 
 """
-import argparse        # for command line args
+import argparse        # command line args
 import logging         
 import os
-import re              # for regex 
-import subprocess      # used to call delila programs 
+import re              # regex 
+import subprocess      # call external programs, delila's programs in this case 
 import sys
 
-import filter_TSS      #
+# external python scripts 
+import filter_TSS      
 import merge_books     
 import merge_instructions 
 import rename_lib1 
@@ -204,7 +224,7 @@ class delilaPipe( object ):
     """
     Methods and data structures for delila pipeline
     """
-    def __init__(self, genbank, prefix, tss, window, site):
+    def __init__(self, genbank, prefix, tss, left, right, site):
         """
         Set up delilaPipe object
 
@@ -216,8 +236,10 @@ class delilaPipe( object ):
             Prefix string used to name output files
         tss : str
             Transciption Start Site file name
-        window : int int
-            Two numbers defining the window around the central base of the site.
+        left : int
+            Integer defining the left bound relative to the central base of the site.
+        right : int
+            Integer defining the right bound relative to the central base of the site.
         site : int
             Base number of primary search site as in -10 ,or -35 upstream of TSS
 
@@ -254,7 +276,8 @@ class delilaPipe( object ):
         self.prefix      = prefix
         self.site        = site
         self.tss         = tss                 # Transcription Start Site information file name
-        self.window      = window              # list, 2 numbers with sign, [ 6, 5 ] [down, up]
+        self.left        = left                # left bound number, +/-
+        self.right       = right               # right bound number, +/-
 
     def __repr__(self):
         '''
@@ -275,7 +298,7 @@ class delilaPipe( object ):
         rep += 'cat3\n'   
         rep += 'site {}\n'.format(self.site)
         rep += 'TSS File {}\n'.format(self.tss) 
-        rep += 'Window {} \n'.format(self.window)
+        rep += 'left and right bounds {}  {} \n'.format(self.left, self.right)
         rep += 'instruction files: {} \n'.format('\t'.join(self.instructions))
         return rep 
        
@@ -303,7 +326,7 @@ class delilaPipe( object ):
         cmd = [program, '-f', self.gnbk, '-c', self.dbbkChanges, '-o', self.prefix + '_' + 'book.txt']
         # log function call
         logger.info("Running makeDBBK ")
-        logger.info(program + ' ' + ' '.join(cmd))
+        logger.info(' '.join(cmd))
         # run dbbk
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
@@ -360,7 +383,7 @@ class delilaPipe( object ):
         program = pdir + 'catal'
         cmd = [program , '-f', self.catalParams ]
         logger.info("Running catal ")
-        logger.info(program + ' ' + ' '.join(cmd))
+        logger.info(' '.join(cmd))
         # run catal
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
@@ -390,9 +413,9 @@ class delilaPipe( object ):
 
         '''
         program = '/home/mplace/scripts/delila/delila_instructions.py'
-        cmd = [ program, '-f', tss, '-o', self.prefix, '-u', self.window[0], '-d', self.window[1], '-p', site ]
+        cmd = [ program, '-f', tss, '-o', self.prefix, '-l', self.left, '-r', self.right, '-p', site ]
         logger.info('Running splitTSS ')
-        logger.info( program + ' ' +  ' '.join(cmd))
+        logger.info(' '.join(cmd))
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
         result2 = output[1].decode('utf-8')
@@ -456,7 +479,7 @@ class delilaPipe( object ):
         program = pdir + 'delila'
         cmd = [program , '-b', book, '-i', inst, '-l' , listing ]
         logger.info("Running delila ")
-        logger.info(program + ' ' + ' '.join(cmd))
+        logger.info(' '.join(cmd))
         # run delila
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
@@ -531,7 +554,7 @@ class delilaPipe( object ):
         program = pdir + 'malign'
         cmd = [ program , '-b', book, '-i', inst, '-m', 'malignp' ]
         logger.info("Running malign ")
-        logger.info(program + ' ' + ' '.join(cmd))
+        logger.info(' '.join(cmd))
         # run malign
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
@@ -574,7 +597,7 @@ class delilaPipe( object ):
         program = pdir + 'malin'
         cmd = [ program , '-a', 'optalign', '-i', inst, '-o', 'optinst' ,'-p','malinp' ]
         logger.info("Running malin ")
-        logger.info(program + ' ' + ' '.join(cmd))
+        logger.info(' '.join(cmd))
         # run malin
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
@@ -645,7 +668,7 @@ class delilaPipe( object ):
         program = pdir + 'alist'
         cmd = [ program , '-b', book, '-i', cinst, '-p', 'alistp' ]
         logger.info("Running alist ")
-        logger.info(program + ' ' + ' '.join(cmd))
+        logger.info(' '.join(cmd))
         # run alist
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
@@ -689,7 +712,7 @@ class delilaPipe( object ):
         program = pdir + 'encode'
         cmd = [ program , '-b', book, '-i', cinst, '-p', encodep ]
         logger.info("Running encode ")
-        logger.info(program + ' ' + ' '.join(cmd))
+        logger.info(' '.join(cmd))
         # run encode
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
@@ -724,7 +747,7 @@ class delilaPipe( object ):
         program = pdir + 'comp'
         cmd = [ program , '-b', book, '-p', compp ]
         logger.info("Running compp ")
-        logger.info(program + ' ' + ' '.join(cmd))
+        logger.info(' '.join(cmd))
         # run comp
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
@@ -759,7 +782,7 @@ class delilaPipe( object ):
         program = pdir + 'rseq'
         cmd = [ program , '-c', cmp, '-e', encseq ]
         logger.info("Running rseq ")
-        logger.info(program + ' ' + ' '.join(cmd))
+        logger.info(' '.join(cmd))
         # run rseq
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
@@ -791,7 +814,7 @@ class delilaPipe( object ):
         program = pdir + 'dalvec'
         cmd = [ program , '-r', rsdata, '-p', 'dalvecp' ]
         logger.info("Running dalvec ")
-        logger.info(program + ' ' + ' '.join(cmd))
+        logger.info(' '.join(cmd))
         # run dalvec
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
@@ -837,8 +860,15 @@ class delilaPipe( object ):
         '''
         Create a default parameter file to make a logo
         '''
+        # strip sign if present from left and right bounds
+        if self.left.startswith('-') or self.left.startswith('+'):
+            lft = self.left[1:]
+
+        if self.right.startswith('-') or self.right.startswith('+'):
+            rt = self.right[1:]
+
         with open('makelogop', 'w') as out:
-            out.write("-" + self.window[0] + " +" + self.window[1] + "\n") # sets the logo width
+            out.write("-" + lft + " +" + rt + "\n") # sets the logo width
             out.write("100\n")
             out.write("5.0 10.0\n")      # change the coordinate position
             out.write("0\n")
@@ -901,7 +931,7 @@ class delilaPipe( object ):
         program = pdir + 'makelogo'
         cmd = [ program , '-s', symvec, '-o', output ]
         logger.info("Running makelogo ")
-        logger.info(program + ' ' + ' '.join(cmd))
+        logger.info(' '.join(cmd))
         # run dalvec
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
@@ -998,7 +1028,7 @@ class delilaPipe( object ):
         program = pdir + 'ri'
         cmd = [ program , '-b', book, '-i', cinst, '-r', rsdata, '-p', 'rip', '-v', 'values', '-w', 'wave', '-o', out ]
         logger.info("Running runRi ")
-        logger.info(program + ' ' + ' '.join(cmd))
+        logger.info(' '.join(cmd))
         # run ri
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
@@ -1050,7 +1080,7 @@ class delilaPipe( object ):
         program = scriptDir + 'organizing_ri_delila_results.py'
         cmd = [ program, '-l', malign_list, '-r', rixyin, '-o', out ]
         logger.info('Running  runParseRI ')
-        logger.info( program + ' ' +  ' '.join(cmd))
+        logger.info(' '.join(cmd))
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
         result2 = output[1].decode('utf-8')
@@ -1059,20 +1089,20 @@ class delilaPipe( object ):
         logger.info(result2)
 
 def main():
-    usage ='%(prog)s -g genome.gnbk -t tss_file.txt -u +10 -l -10 -s 35'             
+    usage ='%(prog)s -g genome.gnbk -t tss_file.txt -l +10 -r -10 -s 35'             
     cmdparser = argparse.ArgumentParser(description="Delila pipeline to make sequence logo from Transcription start sites.",
                                         usage=usage, prog='delila_pipeline.py'  )                          
     cmdparser.add_argument('-g', '--genbank', action='store', dest='GENBANK',
                             help='Genbank file')
     cmdparser.add_argument('-i', '--info', action='store_true', dest='INFO',
                             help='Print script information to stdout') 
-    cmdparser.add_argument('-l', '--lower', action='store', dest='LOW', metavar='',
+    cmdparser.add_argument('-l', '-left', action='store', dest='LEFT', metavar='',
                             help='Lower boundary from site, defaults to -10')
     cmdparser.add_argument('-s', '--site', action='store', dest='SITE',
                             help='Site type: -10,-35 defaults to -10', metavar='')
     cmdparser.add_argument('-t', '--tss',  action='store', dest='TSS',  
                             help='TSS site information text file.)', metavar='')    
-    cmdparser.add_argument('-u', '--upper', action='store', dest='UP', metavar='',
+    cmdparser.add_argument('-r', '--right', action='store', dest='RIGHT', metavar='',
                             help='Upper boundary from site, defaults to 10')
     cmdResults = vars(cmdparser.parse_args())
 
@@ -1090,13 +1120,14 @@ def main():
         print("    Create a sequence logo for Transcription Start sites using the Delila package.")
         print("")
         print("To Run:\n")
-        print("delila_pipeline.py -g genome.gnbk -t ecoli_tss_info.txt -u 10 -l 5 -s 35")
+        print("delila_pipeline.py -g genome.gnbk -t ecoli_tss_info.txt -l 10 -r 5 -s 35")
         print("")
         print("    -g genome genbank file ")
-        print("    -l lower boundary relative to site")
-        print("    -s site, position from Start site , assumed to be upstream")
+        print("    -l left boundary relative to site")
+        print("    -s site, position relative Start site, i.e. -10, -35, assumed to be\n")
+        print("       upstream of transcription start site.")
         print("    -t transcription start site information file")
-        print("    -u upper boundary relative to site")
+        print("    -r right boundary relative to site")
         print("")
         print("    TSS file provides chromosome, name, strand, position information in a tab delimited format.")
         print("")
@@ -1134,15 +1165,17 @@ def main():
         cmdparser.print_help()
         sys.exit(1)
 
-    # Get the lower boundary value or set default
-    if cmdResults['LOW']:
-        lower = cmdResults['LOW']
+    # Get the left boundary value or set default
+    if cmdResults['LEFT']:
+        left = cmdResults['LEFT']
     else:
-        lower = '-10'
+        left = '-10'
 
-    # Site location, i.e. 35 upstream of TSS site
+    # Site location, typically -10 or -35 upstream of TSS site
     if cmdResults['SITE'] is not None:                # position upstream from TSS to search  
         site = cmdResults['SITE']
+        if site.startswith('-'):
+            site = site[1:]
     else:
         site = '10'
 
@@ -1153,11 +1186,11 @@ def main():
         cmdparser.print_help()
         sys.exit(1)       
 
-    # Get the upper boundary or set default
-    if cmdResults['UP']:
-        upper = cmdResults['UP']
+    # Get the right boundary or set default
+    if cmdResults['RIGHT']:
+        right = cmdResults['RIGHT']
     else:
-        upper = '10'
+        right = '+10'
     
     # log program start
     logger.info("Running delila_pipeline ")
@@ -1165,13 +1198,13 @@ def main():
     logger.info('Input file       : {}'.format(inFile))
     logger.info('Organism Name    : {}'.format(prefix))
     logger.info('Start Site file  : {}'.format(tssFile))
-    logger.info('Upper Bound      : {}'.format(upper))
-    logger.info('Lower Bound      : {}'.format(lower))
+    logger.info('Left Bound       : {}'.format(left))
+    logger.info('Right Bound      : {}'.format(right))
     logger.info('Site             : {}\n'.format(site))
     logger.info('runMKDB, This creates a genbank file from fasta file.')
 
     # create delila object and get to work
-    pipe = delilaPipe(inFile, prefix, tssFile, window, site)
+    pipe = delilaPipe(inFile, prefix, tssFile, left, right, site)
     
     # converts GenBank and EMBL data base entries into a book of delila entries.
     pipe.makeDBBK()          

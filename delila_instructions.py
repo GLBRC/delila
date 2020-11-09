@@ -23,8 +23,8 @@ f : str
 h : str
     show help message and exit
 
-d : int
-    Downstream base position
+l : int
+    left boundary base position
 
 o : str
     Organism
@@ -32,8 +32,8 @@ o : str
 p : int
     Position of the TSS site, generally upstream of gene start.
 
-u : int
-    Upstream base position
+r : int
+    right boundary base position
 
 example input file:
 
@@ -47,7 +47,7 @@ Example
 -------
     usage:
 
-        delila_instructions.py -f input.txt -d 10  -o rhodo -p 10 -u 10
+        delila_instructions.py -f input.txt -l -10 -o rhodo -p 10 -r 10
 
 Output
 ------
@@ -72,16 +72,16 @@ import sys
 def main():
     
     cmdparser = argparse.ArgumentParser(description="Split TSS file by chromosome.",
-                                        usage='%(prog)s -f <TSS_site_file.txt> -u <int> -d <int>'  ,prog='delila_instructions.py'  )
-    cmdparser.add_argument('-d', '--down',  action='store', dest='DOWN',
-                            help='Downstream base position', metavar='')
+                                        usage='%(prog)s -f <TSS_site_file.txt> -l <int> -r <int>'  ,prog='delila_instructions.py'  )
+    cmdparser.add_argument('-l', '--left',  action='store', dest='LEFT',
+                            help='Left boundary base position', metavar='')
     cmdparser.add_argument('-f', '--file',  action='store', dest='FILE',
                             help='Text file, containing TSS sites', metavar='')
     cmdparser.add_argument('-o', '--organism', action='store', dest='ORGANISM',help='Organism', metavar='')
     cmdparser.add_argument('-p', '--position', action='store', dest='POS',
                             help='Position of the TSS site, generally upstream of gene start.')
-    cmdparser.add_argument('-u', '--upstream', action='store', dest='UP',
-                            help='Upstream base position', metavar='')    
+    cmdparser.add_argument('-r', '--right', action='store', dest='RIGHT',
+                            help='Right boundary base position', metavar='')    
     cmdResults = vars(cmdparser.parse_args())
         
     # if no args print help
@@ -90,11 +90,11 @@ def main():
         cmdparser.print_help()
         sys.exit(1)
 
-    # get the downstream base position
-    if cmdResults['DOWN']:
-        downPos = cmdResults['DOWN']
+    # get the left boundary base position
+    if cmdResults['LEFT']:
+        left = cmdResults['LEFT']
     else:
-        downPos = 10
+        left = '-10'
 
     # get the input tss site file
     if cmdResults['FILE'] is not None:
@@ -118,11 +118,11 @@ def main():
     else:
         tssPos = 10
     
-    # get the upstream base position
-    if cmdResults['UP']:
-        upPos = cmdResults['UP']
+    # get the right boundary base position
+    if cmdResults['RIGHT']:
+        right = cmdResults['RIGHT']
     else:
-        upPos = 10    
+        right = 10    
     
     # today's date for a time stamp
     currDate = date.today().strftime("%Y/%m/%d")
@@ -163,11 +163,11 @@ def main():
                 if dat[2] == 'forward':
                     direction = '+'
                     pos = str(int(dat[3]) - tssPos)   
-                    out.write('get from {} -{} to {} +{} direction {};\n'.format(pos, str(upPos), pos, str(downPos),direction )) 
+                    out.write('get from {} {} to {} {} direction {};\n'.format(pos, str(left), pos, str(right),direction )) 
                 else:
                     direction = '-'
                     pos = str(int(dat[3]) + tssPos) 
-                    out.write('get from {} +{} to {} -{} direction {};\n'.format(pos, str(downPos), pos, str(upPos) ,direction)) 
+                    out.write('get from {} {} to {} {} direction {};\n'.format(pos, str(right), pos, str(left) ,direction)) 
                 
         out.close()
 
