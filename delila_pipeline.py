@@ -1059,22 +1059,22 @@ class delilaPipe( object ):
         logger.info(result2)
 
 def main():
-    usage ='%(prog)s -g genome.gnbk -p prefix -t tss_file.txt -w -10 +10'             
+    usage ='%(prog)s -g genome.gnbk -t tss_file.txt -u +10 -l -10 -s 35'             
     cmdparser = argparse.ArgumentParser(description="Delila pipeline to make sequence logo from Transcription start sites.",
-                                        usage=usage, prog='delila_pipeline.py'  )
-    cmdparser.add_argument('-i', '--info', action='store_true', dest='INFO',
-                            help='Print more information to stdout')                            
+                                        usage=usage, prog='delila_pipeline.py'  )                          
     cmdparser.add_argument('-g', '--genbank', action='store', dest='GENBANK',
                             help='Genbank file')
-
+    cmdparser.add_argument('-i', '--info', action='store_true', dest='INFO',
+                            help='Print script information to stdout') 
+    cmdparser.add_argument('-l', '--lower', action='store', dest='LOW', metavar='',
+                            help='Lower boundary from site, defaults to -10')
     cmdparser.add_argument('-s', '--site', action='store', dest='SITE',
                             help='Site type: -10,-35 defaults to -10', metavar='')
     cmdparser.add_argument('-t', '--tss',  action='store', dest='TSS',  
                             help='TSS site information text file.)', metavar='')    
+    cmdparser.add_argument('-u', '--upper', action='store', dest='UP', metavar='',
+                            help='Upper boundary from site, defaults to 10')
     cmdResults = vars(cmdparser.parse_args())
-    cmdparser.add_argument('-w', '--window', action='store', dest='WINDOW', 
-                            help='Window to search, 2 integers, upstream & downstream', nargs='+', metavar='' )
-
 
     # if no args print help
     if len(sys.argv) == 1:
@@ -1090,12 +1090,13 @@ def main():
         print("    Create a sequence logo for Transcription Start sites using the Delila package.")
         print("")
         print("To Run:\n")
-        print("delila_pipeline.py -g genome.gnbk -p ecoli -t ecoli_tss_info.txt")
+        print("delila_pipeline.py -g genome.gnbk -t ecoli_tss_info.txt -u 10 -l 5 -s 35")
         print("")
         print("    -g genome genbank file ")
+        print("    -l lower boundary relative to site")
         print("    -s site, position from Start site , assumed to be upstream")
         print("    -t transcription start site information file")
-        print("    -w window size to search, takes 2 numbers, upstream & downstream")
+        print("    -u upper boundary relative to site")
         print("")
         print("    TSS file provides chromosome, name, strand, position information in a tab delimited format.")
         print("")
@@ -1133,6 +1134,13 @@ def main():
         cmdparser.print_help()
         sys.exit(1)
 
+    # Get the lower boundary value or set default
+    if cmdResults['LOW']:
+        lower = cmdResults['LOW']
+    else:
+        lower = '-10'
+
+    # Site location, i.e. 35 upstream of TSS site
     if cmdResults['SITE'] is not None:                # position upstream from TSS to search  
         site = cmdResults['SITE']
     else:
@@ -1144,19 +1152,12 @@ def main():
         print('\n\tStart Site file missing')
         cmdparser.print_help()
         sys.exit(1)       
-    
-    if cmdResults['WINDOW'] is not None:               # window relative to site 
-        tmpWindow = cmdResults['WINDOW']
-        window = []
-        for x in tmpWindow:
-            if x.startswith('-'):                      # strip sign 
-                window.append(re.sub('-','',x))
-            elif x.startswith('+'):
-                window.append(re.sub('+','',x))
-            else:
-                window.append(x)            
+
+    # Get the upper boundary or set default
+    if cmdResults['UP']:
+        upper = cmdResults['UP']
     else:
-        window = ['10', '10']                          # default values up, down
+        upper = '10'
     
     # log program start
     logger.info("Running delila_pipeline ")
@@ -1164,7 +1165,8 @@ def main():
     logger.info('Input file       : {}'.format(inFile))
     logger.info('Organism Name    : {}'.format(prefix))
     logger.info('Start Site file  : {}'.format(tssFile))
-    logger.info('Search Window    : {}'.format( ' '.join(window)))
+    logger.info('Upper Bound      : {}'.format(upper))
+    logger.info('Lower Bound      : {}'.format(lower))
     logger.info('Site             : {}\n'.format(site))
     logger.info('runMKDB, This creates a genbank file from fasta file.')
 
