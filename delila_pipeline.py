@@ -1066,14 +1066,16 @@ def main():
                             help='Print more information to stdout')                            
     cmdparser.add_argument('-g', '--genbank', action='store', dest='GENBANK',
                             help='Genbank file')
-    cmdparser.add_argument('-w', '--window', action='store', dest='WINDOW', 
-                            help='Window to search, 2 integers, upstream & downstream', nargs='+', metavar='' )
+
     cmdparser.add_argument('-s', '--site', action='store', dest='SITE',
                             help='Site type: -10,-35 defaults to -10', metavar='')
     cmdparser.add_argument('-t', '--tss',  action='store', dest='TSS',  
                             help='TSS site information text file.)', metavar='')    
     cmdResults = vars(cmdparser.parse_args())
-        
+    cmdparser.add_argument('-w', '--window', action='store', dest='WINDOW', 
+                            help='Window to search, 2 integers, upstream & downstream', nargs='+', metavar='' )
+
+
     # if no args print help
     if len(sys.argv) == 1:
         print("")
@@ -1111,18 +1113,19 @@ def main():
 
     prefix = ''
     # check the command line parameters
+    # Do we have a genbank file
     if cmdResults['GENBANK'] is not None:
-        inFile = cmdResults['GENBANK']                 # infile is a genbank file
+        inFile = cmdResults['GENBANK']                            # genbank file
         # need to capture the organism name from the genbank file
         with open(inFile, 'r') as f:
             for ln in f:
-                if ln.startswith('SOURCE'):            
-                    prefix = ln.rstrip().split('E')[1].lstrip()
-                    species = prefix.split(' ')
-                    abrv = species.pop(0)[0]        
-                    name = abrv + '.' + species[0]
-                    species[0] = name
-                    prefix = '-'.join(species)     
+                if ln.startswith('SOURCE'):                       # provides organism name       
+                    prefix = ln.rstrip().split('E')[1].lstrip()   # remove all white space
+                    species = prefix.split(' ')                   
+                    abrv = species.pop(0)[0]                      # Get genus name's first letter 
+                    name = abrv + '.' + species[0]                # looks like S.cerecisiae now
+                    species[0] = name                             
+                    prefix = '-'.join(species)                    
                     break
 
     else:
@@ -1158,11 +1161,11 @@ def main():
     # log program start
     logger.info("Running delila_pipeline ")
     logger.info('Working Directory: ' + os.getcwd())
-    logger.info('Input file: {}'.format(inFile))
-    logger.info('Output prefix: {}'.format(prefix))
-    logger.info('Transcription Start Site file: {}'.format(tssFile))
-    logger.info('Search Window: {}'.format( ' '.join(window)))
-    logger.info('Site : {}'.format(site))
+    logger.info('Input file       : {}'.format(inFile))
+    logger.info('Organism Name    : {}'.format(prefix))
+    logger.info('Start Site file  : {}'.format(tssFile))
+    logger.info('Search Window    : {}'.format( ' '.join(window)))
+    logger.info('Site             : {}\n'.format(site))
     logger.info('runMKDB, This creates a genbank file from fasta file.')
 
     # create delila object and get to work
