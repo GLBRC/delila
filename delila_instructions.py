@@ -69,6 +69,14 @@ import argparse
 import os
 import sys
 
+def calculateShift(left, right, tssPos):
+    """
+    Calculate the number of bases to shift right or left based on
+    the signs of the left and right boundaries.
+    """
+    pass
+
+
 def main():
     
     cmdparser = argparse.ArgumentParser(description="Split TSS file by chromosome.",
@@ -92,9 +100,9 @@ def main():
 
     # get the left boundary base position
     if cmdResults['LEFT']:
-        left = cmdResults['LEFT']
+        left = int(cmdResults['LEFT'])
     else:
-        left = '-10'
+        left = -10
 
     # get the input tss site file
     if cmdResults['FILE'] is not None:
@@ -115,15 +123,19 @@ def main():
     # get the TSS position
     if cmdResults['POS']:
         tssPos = int(cmdResults['POS'])
+        if tssPos < 0:                            # remove the sign if neg
+            tssPos = -1 * tssPos
     else:
-        tssPos = 10
+        tssPos = -10
     
     # get the right boundary base position
     if cmdResults['RIGHT']:
-        right = cmdResults['RIGHT']
+        right = int(cmdResults['RIGHT'])
     else:
-        right = 10    
-    
+        right = +10    
+
+    print(left, right, tssPos)
+
     # today's date for a time stamp
     currDate = date.today().strftime("%Y/%m/%d")
     # dictionary to hold input data, as a dict of dicts
@@ -160,15 +172,41 @@ def main():
                 out.write('name \"{}\";\n'.format(dat[1]))    # each site's info is precedded by the site name 
                 
                 # handle the strandedness and write request to instruction file
-                if dat[2] == 'forward':
-                    direction = '+'
-                    pos = str(int(dat[3]) - tssPos)   
-                    out.write('get from {} {} to {} {} direction {};\n'.format(pos, str(left), pos, str(right),direction )) 
-                else:
-                    direction = '-'
-                    pos = str(int(dat[3]) + tssPos) 
-                    out.write('get from {} {} to {} {} direction {};\n'.format(pos, str(right), pos, str(left) ,direction)) 
+                if left < 0 and right > 0:                    #  left = -10 right = +10
+                    if dat[2] == 'forward':
+                        direction = '+'
+                        pos = str(int(dat[3]) - tssPos)   
+                        out.write('get from {} {} to {} +{} direction {};\n'.format(pos, str(left), pos, str(right),direction )) 
+                    else:
+                        direction = '-'
+                        pos = str(int(dat[3]) + tssPos) 
+                        out.write('get from {} +{} to {} {} direction {};\n'.format(pos, str(right), pos, str(left) ,direction)) 
                 
+                elif left <= 0 and right <= 0:                  # left = -20 right = -5
+                    # calculate the number of bases to shift TSS site
+                    # shift tssPos to right boundary prior to subtracting the avg distance between left and right
+                    shift = tssPos - abs(right)                                
+                    shift = shift - (int(abs(abs(left) - abs(right))))/2
+
+                    if dat[2] == 'forward':
+                        direction = '+'
+                        pos = str(int(dat[3]) - (tssPos - shift))
+                        out.write('get from {} {} to {} {} direction {};\n'.format(pos, str(left), pos, str(right),direction )) 
+                    else:
+                        direction = '-'
+                        pos = str(int(dat[3]) - (tssPos + shift))
+                        out.write('get from {} {} to {} {} direction {};\n'.format(pos, str(right), pos, str(left) ,direction))
+                else:
+                    shift = calculateShift(left, right)       # calculate the number of bases to shift TSS site
+                    if dat[2] == 'forward':
+                        direction = '+'
+                        pos = str(int(dat[3]) - (tssPos + shift))
+                        out.write('get from {} {} to {} +{} direction {};\n'.format(pos, str(left), pos, str(right),direction ))
+                    else:
+                        direction = '-'
+                        pos = str(int(dat[3]) - (tssPos - shift))
+                        out.write('get from {} +{} to {} {} direction {};\n'.format(pos, str(left), pos, str(right),direction ))     
+                   
         out.close()
 
     # delete a previously created file
