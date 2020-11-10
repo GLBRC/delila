@@ -193,6 +193,7 @@ General bacterial promoter positioning
 
 """
 import argparse        # command line args
+import glob
 import logging         
 import os
 import re              # regex 
@@ -200,7 +201,7 @@ import subprocess      # call external programs, delila's programs in this case
 import sys
 
 # external python scripts 
-import filter_TSS      
+#import filter_TSS      
 import merge_books     
 import merge_instructions 
 import rename_lib1 
@@ -1123,7 +1124,7 @@ def main():
     cmdparser.add_argument('-t', '--tss',  action='store', dest='TSS',  
                             help='TSS site information text file.)', metavar='')    
     cmdparser.add_argument('-r', '--right', action='store', dest='RIGHT', metavar='',
-                            help='Upper boundary from site, defaults to 10')
+                            help='Upper boundary from site, defaults to +10')
     cmdResults = vars(cmdparser.parse_args())
 
     # if no args print help
@@ -1144,8 +1145,8 @@ def main():
         print("")
         print("    -g genome genbank file ")
         print("    -l left boundary relative to site, defaults to -10")
-        print("    -s site, position relative Start site, i.e. -10, -35, assumed to be\n")
-        print("       upstream of transcription start site.")
+        print("    -s site, position relative Start site, i.e. -10 \n")
+        print("       would be upstream of transcription start site.")
         print("    -t transcription start site information file")
         print("    -r right boundary relative to site, defaults to +10")
         print("")
@@ -1209,14 +1210,12 @@ def main():
     # a sign is required
     if cmdResults['SITE'] is not None:                # position upstream from TSS to search  
         site = cmdResults['SITE']
-        if site[:1] in ['-', '+']:
-            site = site[1:]
-        else:
+        if site[:1] not in ['-', '+']:
             print('\n\tSite requires a sign (+/-)\n')
             cmdparser.print_help()
             sys.exit(1)
     else:
-        site = '10'
+        site = '-10'
 
     if cmdResults['TSS'] is not None:                  # start site file
         tssFile = cmdResults['TSS'] 
@@ -1299,7 +1298,7 @@ def main():
     pipe.runRi(book, 'cinst', 'rsdata', 'riplog' )
     pipe.runParseRI('list', 'rixyin', 'RI_out.txt')
     # split input TSS file by chromosome, pass site information
-    pipe.splitTSS('RI_out.txt', site)
+    #pipe.splitTSS('RI_out.txt', site)
 
     # MAKE IN INITIAL LOGO TO COMPARE WITH THE FINAL LOG
     pipe.runMAKELOGO('symvec', prefix + '-initial.logo')       # make logo
@@ -1332,6 +1331,12 @@ def main():
         with open('instructions.list', 'r') as f:  # get the single instruction file name
             malignInst = f.readline().rstrip()
         f.close()
+
+        #riIDs = removeRI_books.parseRI('RI_out.txt')
+        #removeRI_books.removeRI('MERGED_BOOK.txt', riIDs)   # FIX FILE NAME OUTPUT IN REMOVERI_BOOKS AND INSTRUCTIONS
+
+        #logger.info('\nRunning removeRI_instructions.parseRI on MERGED_INSTRUCTIONS.txt\n')
+        #removeRI_instructions.removeRI('MERGED_INSTRUCTIONS.txt',riIDs)
         
         pipe.runMALIGN(malignBook, malignInst)
         pipe.runMALIN(malignInst)
