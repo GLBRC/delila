@@ -69,14 +69,6 @@ import argparse
 import os
 import sys
 
-def calculateShift(left, right, tssPos):
-    """
-    Calculate the number of bases to shift right or left based on
-    the signs of the left and right boundaries.
-    """
-    pass
-
-
 def main():
     
     cmdparser = argparse.ArgumentParser(description="Split TSS file by chromosome.",
@@ -126,7 +118,9 @@ def main():
         if tssPos < 0:                            # remove the sign if neg
             tssPos = -1 * tssPos
     else:
-        tssPos = -10
+        print('\n\t -p tssPos not found')
+        cmdparser.print_help()
+        sys.exit(1)
     
     # get the right boundary base position
     if cmdResults['RIGHT']:
@@ -182,30 +176,24 @@ def main():
                         pos = str(int(dat[3]) + tssPos) 
                         out.write('get from {} +{} to {} {} direction {};\n'.format(pos, str(right), pos, str(left) ,direction)) 
                 
-                elif left <= 0 and right <= 0:                  # left = -20 right = -5
-                    # calculate the number of bases to shift TSS site
-                    # shift tssPos to right boundary prior to subtracting the avg distance between left and right
-                    shift = tssPos - abs(right)                                
-                    shift = shift - (int(abs(abs(left) - abs(right))))/2
-
+                elif left < 0 and right < 0:                  # left = -20 right = -5
                     if dat[2] == 'forward':
                         direction = '+'
-                        pos = str(int(dat[3]) - (tssPos - shift))
-                        out.write('get from {} {} to {} {} direction {};\n'.format(pos, str(left), pos, str(right),direction )) 
+                        pos = str(int(dat[3]) - tssPos)
+                        out.write('get from {} {} to {} +{} direction {};\n'.format(pos, str(left), pos, str(-1 * right),direction )) 
                     else:
                         direction = '-'
-                        pos = str(int(dat[3]) - (tssPos + shift))
-                        out.write('get from {} {} to {} {} direction {};\n'.format(pos, str(right), pos, str(left) ,direction))
-                else:
-                    shift = calculateShift(left, right)       # calculate the number of bases to shift TSS site
+                        pos = str(int(dat[3]) + tssPos)
+                        out.write('get from {} +{} to {} {} direction {};\n'.format(pos, str(-1* right), pos, str(left) ,direction))
+                elif left > 0 and right >0:                    # left = -5 right = +20                   
                     if dat[2] == 'forward':
                         direction = '+'
-                        pos = str(int(dat[3]) - (tssPos + shift))
-                        out.write('get from {} {} to {} +{} direction {};\n'.format(pos, str(left), pos, str(right),direction ))
+                        pos = str(int(dat[3]) + tssPos)
+                        out.write('get from {} -{} to {} +{} direction {};\n'.format(pos, str(left), pos, str(right),direction ))
                     else:
                         direction = '-'
-                        pos = str(int(dat[3]) - (tssPos - shift))
-                        out.write('get from {} +{} to {} {} direction {};\n'.format(pos, str(left), pos, str(right),direction ))     
+                        pos = str(int(dat[3]) - tssPos)
+                        out.write('get from {} +{} to {} -{} direction {};\n'.format(pos, str(left), pos, str(right),direction ))     
                    
         out.close()
 
