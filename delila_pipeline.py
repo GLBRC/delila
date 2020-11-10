@@ -1307,7 +1307,7 @@ def main():
     ### REFINE THE LOGO BY REMOVING SITES WITH AN RI score 0 or less     
     #  Use the filtered/refined data set to run the pipeline again, 
     # creating the FINAL logo
-
+    
     if len(pipe.delilaBOOK) > 1:      
         logger.info('\nRunning removeRI_books.removeRI on MERGED_BOOK.txt\n')     
         riIDs = removeRI_books.parseRI('RI_out.txt')
