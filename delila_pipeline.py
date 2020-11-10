@@ -149,9 +149,6 @@ Parameters
 g : str
     A genbank file for a genome.
 
-p : str
-    prefix used for naming output files.
-
 t : str
     Transcription start site information file.
 
@@ -160,16 +157,19 @@ t : str
     NC_007488.2     RSP_4025_19218  reverse 19218
 
 l : int
-    Left boundary relative to center of the site
+    Left boundary relative to center of the site, defaults to -10
 
 r : int
-    Right boundary relative to the center of the site
+    Right boundary relative to the center of the site, defaults to +10
+
+s : int
+    Site position, typically -10 or -35, defaults to -10
 
 Example
 -------
     usage:
 
-   delila_pipeline.py -g rhodo_genome.gbff -t TSS.txt -l 8  -r 5 -s 35
+   delila_pipeline.py -g rhodo_genome.gbff -t TSS.txt -l -8  -r +5 -s -10
         
 References
 ----------
@@ -1109,7 +1109,7 @@ def ps2pdf(self):
         subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
 
 def main():
-    usage ='%(prog)s -g genome.gnbk -t tss_file.txt -l +10 -r -10 -s 35'             
+    usage ='%(prog)s -g genome.gnbk -t tss_file.txt -l -10 -r +10 -s -35'             
     cmdparser = argparse.ArgumentParser(description="Delila pipeline to make sequence logo from Transcription start sites.",
                                         usage=usage, prog='delila_pipeline.py'  )                          
     cmdparser.add_argument('-g', '--genbank', action='store', dest='GENBANK',
@@ -1140,14 +1140,14 @@ def main():
         print("    Create a sequence logo for Transcription Start sites using the Delila package.")
         print("")
         print("To Run:\n")
-        print("delila_pipeline.py -g genome.gnbk -t ecoli_tss_info.txt -l 10 -r 5 -s 35")
+        print("delila_pipeline.py -g genome.gnbk -t ecoli_tss_info.txt -l -10 -r +5 -s -35")
         print("")
         print("    -g genome genbank file ")
-        print("    -l left boundary relative to site")
+        print("    -l left boundary relative to site, defaults to -10")
         print("    -s site, position relative Start site, i.e. -10, -35, assumed to be\n")
         print("       upstream of transcription start site.")
         print("    -t transcription start site information file")
-        print("    -r right boundary relative to site")
+        print("    -r right boundary relative to site, defaults to +10")
         print("")
         print("    TSS file provides chromosome, name, strand, position information in a tab delimited format.")
         print("")
@@ -1188,14 +1188,33 @@ def main():
     # Get the left boundary value or set default
     if cmdResults['LEFT']:
         left = cmdResults['LEFT']
+        if left[:1] not in ['-','+']:
+            print('\n\tLeft boundary requires sign (+/-)\n')
+            cmdparser.print_help()
+            sys.exit(1)
     else:
         left = '-10'
+    
+    # Get the right boundary or set default
+    if cmdResults['RIGHT']:
+        right = cmdResults['RIGHT']
+        if right[:1] not in ['-', '+']:
+            print('\n\tRight boundary requires sign (+/-)\n')
+            cmdparser.print_help()
+            sys.exit(1)
+    else:
+        right = '+10'
 
     # Site location, typically -10 or -35 upstream of TSS site
+    # a sign is required
     if cmdResults['SITE'] is not None:                # position upstream from TSS to search  
         site = cmdResults['SITE']
-        if site.startswith('-'):
+        if site[:1] in ['-', '+']:
             site = site[1:]
+        else:
+            print('\n\tSite requires a sign (+/-)\n')
+            cmdparser.print_help()
+            sys.exit(1)
     else:
         site = '10'
 
@@ -1205,12 +1224,6 @@ def main():
         print('\n\tStart Site file missing')
         cmdparser.print_help()
         sys.exit(1)       
-
-    # Get the right boundary or set default
-    if cmdResults['RIGHT']:
-        right = cmdResults['RIGHT']
-    else:
-        right = '+10'
     
     # log program start
     logger.info("Running delila_pipeline ")
