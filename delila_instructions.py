@@ -92,9 +92,9 @@ def main():
 
     # get the left boundary base position
     if cmdResults['LEFT']:
-        left = cmdResults['LEFT']
+        left = int(cmdResults['LEFT'])
     else:
-        left = '-10'
+        left = -10
 
     # get the input tss site file
     if cmdResults['FILE'] is not None:
@@ -115,15 +115,21 @@ def main():
     # get the TSS position
     if cmdResults['POS']:
         tssPos = int(cmdResults['POS'])
+        if tssPos < 0:                            # remove the sign if neg
+            tssPos = -1 * tssPos
     else:
-        tssPos = 10
+        print('\n\t -p tssPos not found')
+        cmdparser.print_help()
+        sys.exit(1)
     
     # get the right boundary base position
     if cmdResults['RIGHT']:
-        right = cmdResults['RIGHT']
+        right = int(cmdResults['RIGHT'])
     else:
-        right = 10    
-    
+        right = +10    
+
+    print(left, right, tssPos)
+
     # today's date for a time stamp
     currDate = date.today().strftime("%Y/%m/%d")
     # dictionary to hold input data, as a dict of dicts
@@ -160,15 +166,52 @@ def main():
                 out.write('name \"{}\";\n'.format(dat[1]))    # each site's info is precedded by the site name 
                 
                 # handle the strandedness and write request to instruction file
-                if dat[2] == 'forward':
-                    direction = '+'
-                    pos = str(int(dat[3]) - tssPos)   
-                    out.write('get from {} {} to {} {} direction {};\n'.format(pos, str(left), pos, str(right),direction )) 
-                else:
-                    direction = '-'
-                    pos = str(int(dat[3]) + tssPos) 
-                    out.write('get from {} {} to {} {} direction {};\n'.format(pos, str(right), pos, str(left) ,direction)) 
-                
+                if left < 0 and right > 0:                    #  left = -10 right = +10
+                    if dat[2] == 'forward':
+                        direction = '+'
+                        pos = str(int(dat[3]) - tssPos)   
+                        out.write('get from {} {} to {} +{} direction {};\n'.format(pos, str(left), pos, str(right),direction )) 
+                    else:
+                        direction = '-'
+                        pos = str(int(dat[3]) + tssPos) 
+                        out.write('get from {} +{} to {} {} direction {};\n'.format(pos, str(right), pos, str(left) ,direction))                                        
+                elif left < 0 and right < 0:                  # left = -20 right = -5
+                    if dat[2] == 'forward':
+                        direction = '+'
+                        pos = str(int(dat[3]) - tssPos)
+                        out.write('get from {} {} to {} +{} direction {};\n'.format(pos, str(left), pos, str(-1 * right),direction )) 
+                    else:
+                        direction = '-'
+                        pos = str(int(dat[3]) + tssPos)
+                        out.write('get from {} +{} to {} {} direction {};\n'.format(pos, str(-1* right), pos, str(left) ,direction))
+                elif left > 0 and right >0:                    # left = -5 right = +20                   
+                    if dat[2] == 'forward':
+                        direction = '+'
+                        pos = str(int(dat[3]) + tssPos)
+                        out.write('get from {} -{} to {} +{} direction {};\n'.format(pos, str(left), pos, str(right),direction ))
+                    else:
+                        direction = '-'
+                        pos = str(int(dat[3]) - tssPos)
+                        out.write('get from {} +{} to {} -{} direction {};\n'.format(pos, str(right), pos, str(left),direction ))   
+                elif left < 0 and right == 0:                  # left = -20 right = 0
+                    if dat[2] == 'forward':
+                        direction = '+'
+                        pos = str(int(dat[3]) - tssPos)
+                        out.write('get from {} {} to {} +{} direction {};\n'.format(pos, str(left), pos, str(1),direction ))
+                    else:
+                        direction = '-'
+                        pos = str(int(dat[3]) + tssPos)
+                        out.write('get from {} +{} to {} {} direction {};\n'.format(pos, str(1), pos, str(left) ,direction))
+                elif left == 0 and right > 0:                  # left = 0 right = +20
+                    if dat[2] == 'forward':
+                        direction = '+'
+                        pos = str(int(dat[3]) + tssPos)   
+                        out.write('get from {} -{} to {} +{} direction {};\n'.format(pos, str(1), pos, str(right),direction ))
+                    else:
+                        direction = '-'
+                        pos = str(int(dat[3]) - tssPos)
+                        out.write('get from {} +{} to {} -{} direction {};\n'.format(pos, str(right), pos, str(1) ,direction))
+                   
         out.close()
 
     # delete a previously created file

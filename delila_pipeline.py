@@ -149,9 +149,6 @@ Parameters
 g : str
     A genbank file for a genome.
 
-p : str
-    prefix used for naming output files.
-
 t : str
     Transcription start site information file.
 
@@ -160,16 +157,19 @@ t : str
     NC_007488.2     RSP_4025_19218  reverse 19218
 
 l : int
-    Left boundary relative to center of the site
+    Left boundary relative to center of the site, defaults to -10
 
 r : int
-    Right boundary relative to the center of the site
+    Right boundary relative to the center of the site, defaults to +10
+
+s : int
+    Site position, typically -10 or -35, defaults to -10
 
 Example
 -------
     usage:
 
-   delila_pipeline.py -g rhodo_genome.gbff -t TSS.txt -l 8  -r 5 -s 35
+   delila_pipeline.py -g rhodo_genome.gbff -t TSS.txt -l -8  -r +5 -s -10
         
 References
 ----------
@@ -193,6 +193,7 @@ General bacterial promoter positioning
 
 """
 import argparse        # command line args
+import glob
 import logging         
 import os
 import re              # regex 
@@ -200,7 +201,7 @@ import subprocess      # call external programs, delila's programs in this case
 import sys
 
 # external python scripts 
-import filter_TSS      
+#import filter_TSS      
 import merge_books     
 import merge_instructions 
 import rename_lib1 
@@ -1088,8 +1089,28 @@ class delilaPipe( object ):
         logger.info(result1)
         logger.info(result2)
 
+def cleanUp(self):
+    """
+    Organize and clean up the files produced by the pipeline.
+    """
+    # parameter directory and move all parameter files 
+
+    # intermediate files
+
+    pass
+
+def ps2pdf(self):
+    """
+    Call ps2pdf to convert the postscript logo files to PDFs.
+    """
+    # get list of all logo files
+    # then use subprocess to call ps2pdf 
+    for logo in glob.glob('*.logo'):
+        cmd = ['ps2pdf', logo ]
+        subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+
 def main():
-    usage ='%(prog)s -g genome.gnbk -t tss_file.txt -l +10 -r -10 -s 35'             
+    usage ='%(prog)s -g genome.gnbk -t tss_file.txt -l -10 -r +10 -s -35'             
     cmdparser = argparse.ArgumentParser(description="Delila pipeline to make sequence logo from Transcription start sites.",
                                         usage=usage, prog='delila_pipeline.py'  )                          
     cmdparser.add_argument('-g', '--genbank', action='store', dest='GENBANK',
@@ -1103,7 +1124,7 @@ def main():
     cmdparser.add_argument('-t', '--tss',  action='store', dest='TSS',  
                             help='TSS site information text file.)', metavar='')    
     cmdparser.add_argument('-r', '--right', action='store', dest='RIGHT', metavar='',
-                            help='Upper boundary from site, defaults to 10')
+                            help='Upper boundary from site, defaults to +10')
     cmdResults = vars(cmdparser.parse_args())
 
     # if no args print help
@@ -1120,14 +1141,14 @@ def main():
         print("    Create a sequence logo for Transcription Start sites using the Delila package.")
         print("")
         print("To Run:\n")
-        print("delila_pipeline.py -g genome.gnbk -t ecoli_tss_info.txt -l 10 -r 5 -s 35")
+        print("delila_pipeline.py -g genome.gnbk -t ecoli_tss_info.txt -l -10 -r +5 -s -35")
         print("")
         print("    -g genome genbank file ")
-        print("    -l left boundary relative to site")
-        print("    -s site, position relative Start site, i.e. -10, -35, assumed to be\n")
-        print("       upstream of transcription start site.")
+        print("    -l left boundary relative to site, defaults to -10")
+        print("    -s site, position relative Start site, i.e. -10 \n")
+        print("       would be upstream of transcription start site.")
         print("    -t transcription start site information file")
-        print("    -r right boundary relative to site")
+        print("    -r right boundary relative to site, defaults to +10")
         print("")
         print("    TSS file provides chromosome, name, strand, position information in a tab delimited format.")
         print("")
@@ -1168,16 +1189,33 @@ def main():
     # Get the left boundary value or set default
     if cmdResults['LEFT']:
         left = cmdResults['LEFT']
+        if left[:1] not in ['-','+']:
+            print('\n\tLeft boundary requires sign (+/-)\n')
+            cmdparser.print_help()
+            sys.exit(1)
     else:
         left = '-10'
+    
+    # Get the right boundary or set default
+    if cmdResults['RIGHT']:
+        right = cmdResults['RIGHT']
+        if right[:1] not in ['-', '+']:
+            print('\n\tRight boundary requires sign (+/-)\n')
+            cmdparser.print_help()
+            sys.exit(1)
+    else:
+        right = '+10'
 
     # Site location, typically -10 or -35 upstream of TSS site
+    # a sign is required
     if cmdResults['SITE'] is not None:                # position upstream from TSS to search  
         site = cmdResults['SITE']
-        if site.startswith('-'):
-            site = site[1:]
+        if site[:1] not in ['-', '+']:
+            print('\n\tSite requires a sign (+/-)\n')
+            cmdparser.print_help()
+            sys.exit(1)
     else:
-        site = '10'
+        site = '-10'
 
     if cmdResults['TSS'] is not None:                  # start site file
         tssFile = cmdResults['TSS'] 
@@ -1185,12 +1223,6 @@ def main():
         print('\n\tStart Site file missing')
         cmdparser.print_help()
         sys.exit(1)       
-
-    # Get the right boundary or set default
-    if cmdResults['RIGHT']:
-        right = cmdResults['RIGHT']
-    else:
-        right = '+10'
     
     # log program start
     logger.info("Running delila_pipeline ")
@@ -1266,7 +1298,7 @@ def main():
     pipe.runRi(book, 'cinst', 'rsdata', 'riplog' )
     pipe.runParseRI('list', 'rixyin', 'RI_out.txt')
     # split input TSS file by chromosome, pass site information
-    pipe.splitTSS('RI_out.txt', site)
+    #pipe.splitTSS('RI_out.txt', site)
 
     # MAKE IN INITIAL LOGO TO COMPARE WITH THE FINAL LOG
     pipe.runMAKELOGO('symvec', prefix + '-initial.logo')       # make logo
@@ -1275,7 +1307,7 @@ def main():
     ### REFINE THE LOGO BY REMOVING SITES WITH AN RI score 0 or less     
     #  Use the filtered/refined data set to run the pipeline again, 
     # creating the FINAL logo
-
+    
     if len(pipe.delilaBOOK) > 1:      
         logger.info('\nRunning removeRI_books.removeRI on MERGED_BOOK.txt\n')     
         riIDs = removeRI_books.parseRI('RI_out.txt')
@@ -1299,6 +1331,12 @@ def main():
         with open('instructions.list', 'r') as f:  # get the single instruction file name
             malignInst = f.readline().rstrip()
         f.close()
+
+        #riIDs = removeRI_books.parseRI('RI_out.txt')
+        #removeRI_books.removeRI('MERGED_BOOK.txt', riIDs)   # FIX FILE NAME OUTPUT IN REMOVERI_BOOKS AND INSTRUCTIONS
+
+        #logger.info('\nRunning removeRI_instructions.parseRI on MERGED_INSTRUCTIONS.txt\n')
+        #removeRI_instructions.removeRI('MERGED_INSTRUCTIONS.txt',riIDs)
         
         pipe.runMALIGN(malignBook, malignInst)
         pipe.runMALIN(malignInst)
