@@ -162,14 +162,11 @@ l : int
 r : int
     Right boundary relative to the center of the site, defaults to +10
 
-s : int
-    Site position, typically -10 or -35, defaults to -10
-
 Example
 -------
     usage:
 
-   delila_pipeline.py -g rhodo_genome.gbff -t TSS.txt -l -8  -r +5 -s -10
+   delila_pipeline.py -g rhodo_genome.gbff -t TSS.txt -l -8  -r +5
         
 References
 ----------
@@ -1110,8 +1107,8 @@ def ps2pdf(self):
         subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
 
 def main():
-    usage ='%(prog)s -g genome.gnbk -t tss_file.txt -l -10 -r +10 -s -35'             
-    cmdparser = argparse.ArgumentParser(description="Delila pipeline to make sequence logo from Transcription start sites.",
+    usage ='%(prog)s -g genome.gnbk -t tss_file.txt -l -10 -r +10'             
+    cmdparser = argparse.ArgumentParser(description="Delila pipeline to make sequence logo within left to right sequence boundaries.",
                                         usage=usage, prog='delila_pipeline.py'  )                          
     cmdparser.add_argument('-g', '--genbank', action='store', dest='GENBANK',
                             help='Genbank file')
@@ -1119,8 +1116,6 @@ def main():
                             help='Print script information to stdout') 
     cmdparser.add_argument('-l', '-left', action='store', dest='LEFT', metavar='',
                             help='Lower boundary from site, defaults to -10')
-    cmdparser.add_argument('-s', '--site', action='store', dest='SITE',
-                            help='Site type: -10,-35 defaults to -10', metavar='')
     cmdparser.add_argument('-t', '--tss',  action='store', dest='TSS',  
                             help='TSS site information text file.)', metavar='')    
     cmdparser.add_argument('-r', '--right', action='store', dest='RIGHT', metavar='',
@@ -1141,12 +1136,10 @@ def main():
         print("    Create a sequence logo for Transcription Start sites using the Delila package.")
         print("")
         print("To Run:\n")
-        print("delila_pipeline.py -g genome.gnbk -t ecoli_tss_info.txt -l -10 -r +5 -s -35")
+        print("delila_pipeline.py -g genome.gnbk -t ecoli_tss_info.txt -l -10 -r +5")
         print("")
         print("    -g genome genbank file ")
         print("    -l left boundary relative to site, defaults to -10")
-        print("    -s site, position relative Start site, i.e. -10 \n")
-        print("       would be upstream of transcription start site.")
         print("    -t transcription start site information file")
         print("    -r right boundary relative to site, defaults to +10")
         print("")
@@ -1206,17 +1199,6 @@ def main():
     else:
         right = '+10'
 
-    # Site location, typically -10 or -35 upstream of TSS site
-    # a sign is required
-    if cmdResults['SITE'] is not None:                # position upstream from TSS to search  
-        site = cmdResults['SITE']
-        if site[:1] not in ['-', '+']:
-            print('\n\tSite requires a sign (+/-)\n')
-            cmdparser.print_help()
-            sys.exit(1)
-    else:
-        site = '-10'
-
     if cmdResults['TSS'] is not None:                  # start site file
         tssFile = cmdResults['TSS'] 
     else:
@@ -1232,11 +1214,10 @@ def main():
     logger.info('Start Site file  : {}'.format(tssFile))
     logger.info('Left Bound       : {}'.format(left))
     logger.info('Right Bound      : {}'.format(right))
-    logger.info('Site             : {}\n'.format(site))
     logger.info('runMKDB, This creates a genbank file from fasta file.')
 
     # create delila object and get to work
-    pipe = delilaPipe(inFile, prefix, tssFile, left, right, site)
+    pipe = delilaPipe(inFile, prefix, tssFile, left, right)
     
     # converts GenBank and EMBL data base entries into a book of delila entries.
     pipe.makeDBBK()          
@@ -1245,7 +1226,7 @@ def main():
     pipe.runCATAL()
 
     # split input TSS file by chromosome, pass site information
-    pipe.splitTSS(pipe.tss, site)
+    pipe.splitTSS(pipe.tss)
 
     # Read instructions from file
     pipe.getInstructions()
@@ -1332,14 +1313,14 @@ def main():
             malignInst = f.readline().rstrip()
         f.close()
 
-        #riIDs = removeRI_books.parseRI('RI_out.txt')
-        #removeRI_books.removeRI('MERGED_BOOK.txt', riIDs)   # FIX FILE NAME OUTPUT IN REMOVERI_BOOKS AND INSTRUCTIONS
+        riIDs = removeRI_books.parseRI('RI_out.txt')
+        removeRI_books.removeRI(malignBook, riIDs)   # FIX FILE NAME OUTPUT IN REMOVERI_BOOKS AND INSTRUCTIONS
 
-        #logger.info('\nRunning removeRI_instructions.parseRI on MERGED_INSTRUCTIONS.txt\n')
-        #removeRI_instructions.removeRI('MERGED_INSTRUCTIONS.txt',riIDs)
+        logger.info('\nRunning removeRI_instructions.parseRI on MERGED_INSTRUCTIONS.txt\n')
+        removeRI_instructions.removeRI(malignInst ,riIDs)
         
-        pipe.runMALIGN(malignBook, malignInst)
-        pipe.runMALIN(malignInst)
+        pipe.runMALIGN('NEW_MERGED_BOOK.txt', 'NEW_MERGED_INSTRUCTIONS.txt')
+        pipe.runMALIN('NEW_MERGED_INSTRUCTIONS.txt')
     
     # Finally we can run delila on the malin results
     book = pipe.runDELILA('cinst')
