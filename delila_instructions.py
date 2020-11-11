@@ -174,8 +174,7 @@ def main():
                     else:
                         direction = '-'
                         pos = str(int(dat[3]) + tssPos) 
-                        out.write('get from {} +{} to {} {} direction {};\n'.format(pos, str(right), pos, str(left) ,direction)) 
-                
+                        out.write('get from {} +{} to {} {} direction {};\n'.format(pos, str(right), pos, str(left) ,direction))                                        
                 elif left < 0 and right < 0:                  # left = -20 right = -5
                     if dat[2] == 'forward':
                         direction = '+'
@@ -193,7 +192,25 @@ def main():
                     else:
                         direction = '-'
                         pos = str(int(dat[3]) - tssPos)
-                        out.write('get from {} +{} to {} -{} direction {};\n'.format(pos, str(left), pos, str(right),direction ))     
+                        out.write('get from {} +{} to {} -{} direction {};\n'.format(pos, str(right), pos, str(left),direction ))   
+                elif left < 0 and right == 0:                  # left = -20 right = 0
+                    if dat[2] == 'forward':
+                        direction = '+'
+                        pos = str(int(dat[3]) - tssPos)
+                        out.write('get from {} {} to {} +{} direction {};\n'.format(pos, str(left), pos, str(1),direction ))
+                    else:
+                        direction = '-'
+                        pos = str(int(dat[3]) + tssPos)
+                        out.write('get from {} +{} to {} {} direction {};\n'.format(pos, str(1), pos, str(left) ,direction))
+                elif left == 0 and right > 0:                  # left = 0 right = +20
+                    if dat[2] == 'forward':
+                        direction = '+'
+                        pos = str(int(dat[3]) + tssPos)   
+                        out.write('get from {} -{} to {} +{} direction {};\n'.format(pos, str(1), pos, str(right),direction ))
+                    else:
+                        direction = '-'
+                        pos = str(int(dat[3]) - tssPos)
+                        out.write('get from {} +{} to {} -{} direction {};\n'.format(pos, str(right), pos, str(1) ,direction))
                    
         out.close()
 
