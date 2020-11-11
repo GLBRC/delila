@@ -222,7 +222,7 @@ class delilaPipe( object ):
     """
     Methods and data structures for delila pipeline
     """
-    def __init__(self, genbank, prefix, tss, left, right, site):
+    def __init__(self, genbank, prefix, tss, left, right):
         """
         Set up delilaPipe object
 
@@ -238,9 +238,7 @@ class delilaPipe( object ):
             Integer defining the left bound relative to the central base of the site.
         right : int
             Integer defining the right bound relative to the central base of the site.
-        site : int
-            Base number of primary search site as in -10 ,or -35 upstream of TSS
-
+ 
         Returns
         -------
 
@@ -272,7 +270,6 @@ class delilaPipe( object ):
         self.lib2        = 'lib2'
         self.lib3        = 'lib3'
         self.prefix      = prefix
-        self.site        = site
         self.tss         = tss                 # Transcription Start Site information file name
         self.left        = left                # left bound number, +/-
         self.right       = right               # right bound number, +/-
@@ -294,7 +291,6 @@ class delilaPipe( object ):
         rep += 'cat1\n'
         rep += 'cat2\n'
         rep += 'cat3\n'   
-        rep += 'site {}\n'.format(self.site)
         rep += 'TSS File {}\n'.format(self.tss) 
         rep += 'left and right bounds {}  {} \n'.format(self.left, self.right)
         rep += 'instruction files: {} \n'.format('\t'.join(self.instructions))
@@ -390,7 +386,7 @@ class delilaPipe( object ):
         logger.info(result1)
         logger.info(result2)
 
-    def splitTSS(self, tss, site):
+    def splitTSS(self, tss):
         '''
         Break up the input transcription start site input file into delila 
         instruction files by chromosome. 
@@ -404,14 +400,12 @@ class delilaPipe( object ):
 
         Parameters
         ----------
-        site : int
-            position upstream from TSS to search, i.e. 10 (default) 
-            This will be subtracted from TSS position.  Assumption is
-            the user is always looking upstream of promoter.
+        tss : str
+            Site location file
 
         '''
         program = '/home/mplace/scripts/delila/delila_instructions.py'
-        cmd = [ program, '-f', tss, '-o', self.prefix, '-l', self.left, '-r', self.right, '-p', site ]
+        cmd = [ program, '-f', tss, '-o', self.prefix, '-l', self.left, '-r', self.right ]
         logger.info('Running splitTSS ')
         logger.info(' '.join(cmd))
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
@@ -501,7 +495,7 @@ class delilaPipe( object ):
         '''
         with open('malignp', 'w') as out:
             out.write('-5 +5\n')   # winleft, winright: left and right ends of window
-            out.write('-5 +5\n')   # shiftmin, shiftmax: minimum and maximum shift of aligned base
+            out.write('-1 +5\n')   # shiftmin, shiftmax: minimum and maximum shift of aligned base
             out.write('54321\n')   # iseed: integer random seed
             out.write('0\n')       # nranseq: number of random sequences, or 0 to use sequences in book
             out.write('2000\n')    # nshuffle: number of times to redo alignment after random shuffle
@@ -1278,8 +1272,6 @@ def main():
     # RUN Ri, then rerun malign, malign ugh!
     pipe.runRi(book, 'cinst', 'rsdata', 'riplog' )
     pipe.runParseRI('list', 'rixyin', 'RI_out.txt')
-    # split input TSS file by chromosome, pass site information
-    #pipe.splitTSS('RI_out.txt', site)
 
     # MAKE IN INITIAL LOGO TO COMPARE WITH THE FINAL LOG
     pipe.runMAKELOGO('symvec', prefix + '-initial.logo')       # make logo
