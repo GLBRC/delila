@@ -495,7 +495,7 @@ class delilaPipe( object ):
         '''
         with open('malignp', 'w') as out:
             out.write('-5 +5\n')   # winleft, winright: left and right ends of window
-            out.write('-1 +5\n')   # shiftmin, shiftmax: minimum and maximum shift of aligned base
+            out.write('-5 +5\n')   # shiftmin, shiftmax: minimum and maximum shift of aligned base
             out.write('54321\n')   # iseed: integer random seed
             out.write('0\n')       # nranseq: number of random sequences, or 0 to use sequences in book
             out.write('2000\n')    # nshuffle: number of times to redo alignment after random shuffle
@@ -1080,25 +1080,25 @@ class delilaPipe( object ):
         logger.info(result1)
         logger.info(result2)
 
-def cleanUp(self):
-    """
-    Organize and clean up the files produced by the pipeline.
-    """
-    # parameter directory and move all parameter files 
+    def cleanUp(self):
+        """
+        Organize and clean up the files produced by the pipeline.
+        """
+        # parameter directory and move all parameter files 
 
-    # intermediate files
+        # intermediate files
 
-    pass
+        pass
 
-def ps2pdf(self):
-    """
-    Call ps2pdf to convert the postscript logo files to PDFs.
-    """
-    # get list of all logo files
-    # then use subprocess to call ps2pdf 
-    for logo in glob.glob('*.logo'):
-        cmd = ['ps2pdf', logo ]
-        subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+    def ps2pdf(self):
+        """
+        Call ps2pdf to convert the postscript logo files to PDFs.
+        """
+        # get list of all logo files
+        # then use subprocess to call ps2pdf 
+        for logo in glob.glob('*.logo'):
+            cmd = ['ps2pdf', logo ]
+            subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
 
 def main():
     usage ='%(prog)s -g genome.gnbk -t tss_file.txt -l -10 -r +10'             
@@ -1111,7 +1111,7 @@ def main():
     cmdparser.add_argument('-l', '-left', action='store', dest='LEFT', metavar='',
                             help='Lower boundary from site, defaults to -10')
     cmdparser.add_argument('-t', '--tss',  action='store', dest='TSS',  
-                            help='TSS site information text file.)', metavar='')    
+                            help='Site information text file.', metavar='')    
     cmdparser.add_argument('-r', '--right', action='store', dest='RIGHT', metavar='',
                             help='Upper boundary from site, defaults to +10')
     cmdResults = vars(cmdparser.parse_args())
@@ -1134,7 +1134,7 @@ def main():
         print("")
         print("    -g genome genbank file ")
         print("    -l left boundary relative to site, defaults to -10")
-        print("    -t transcription start site information file")
+        print("    -t Site information file")
         print("    -r right boundary relative to site, defaults to +10")
         print("")
         print("    TSS file provides chromosome, name, strand, position information in a tab delimited format.")
@@ -1144,7 +1144,7 @@ def main():
         print("")
         print("Output :")
         print("")
-        print("    LOGO postscript file")
+        print("    LOGO postscript and pdf file")
         print("")
         print("")
         print("")
@@ -1154,20 +1154,24 @@ def main():
     prefix = ''
     # check the command line parameters
     # Do we have a genbank file
+    chromList = set()                                             # store a list of all chromosomes in genbank file
     if cmdResults['GENBANK'] is not None:
         inFile = cmdResults['GENBANK']                            # genbank file
         # need to capture the organism name from the genbank file
+        found = False
         with open(inFile, 'r') as f:
             for ln in f:
-                if ln.startswith('SOURCE'):                       # provides organism name       
+                if ln.startswith('SOURCE') and not found:                       # provides organism name       
                     prefix = ln.rstrip().split('E')[1].lstrip()   # remove all white space
                     species = prefix.split(' ')                   
                     abrv = species.pop(0)[0]                      # Get genus name's first letter 
                     name = abrv + '.' + species[0]                # looks like S.cerecisiae now
                     species[0] = name                             
-                    prefix = '-'.join(species)                    
-                    break
-
+                    prefix = '-'.join(species) 
+                    found = True
+                elif ln.startswith('VERSION'):
+                    ch = ln.rstrip().split()[1]
+                    chromList.add(ch)
     else:
         print('\n\t-g genbank file missing')
         cmdparser.print_help()
@@ -1195,6 +1199,25 @@ def main():
 
     if cmdResults['TSS'] is not None:                  # start site file
         tssFile = cmdResults['TSS'] 
+        # attempt to verify site file format
+        with open(tssFile, 'r') as f:
+            row = f.readline().rstrip().split('\t')
+            if len(row) != 4 or row[0] not in chromList:
+                if len(row) != 4:
+                    print('\n\tNot enough columns found, expecting 4, found: {}\n'.format(str(len(row))))
+                    print('\tMake sure file has 4 tab delimited columns\n')
+                    print('\tColumns should be:')
+                    print('\t1) Chromosome name, should equal the name in the VERSION line of the genbank file')
+                    print('\t2) Site identifier')
+                    print('\t3) Strand, forward or reverse')
+                    print('\t4) Base position, 1414\n')
+                    cmdparser.print_help()
+                    sys.exit(1)
+                if row[0] not in chromList:
+                    print('\n\tChromosome name does not match genbank file')
+                    print('\tChromosome should be the same as in the VERSION line of the genbank file\n')
+                    cmdparser.print_help()
+                    sys.exit(1)
     else:
         print('\n\tStart Site file missing')
         cmdparser.print_help()
@@ -1278,7 +1301,7 @@ def main():
     pipe.retrievePWM()
     
     ### REFINE THE LOGO BY REMOVING SITES WITH AN RI score 0 or less     
-    #  Use the filtered/refined data set to run the pipeline again, 
+    # Use the filtered/refined data set to run the pipeline again, 
     # creating the FINAL logo
     
     if len(pipe.delilaBOOK) > 1:      
@@ -1322,7 +1345,8 @@ def main():
     pipe.runRSEQ('cmp', 'encseq')
     pipe.runDALVEC('rsdata')
     pipe.runMAKELOGO('symvec', prefix + '.logo')       # Make Final logo
-    pipe.retrievePWM()    
+    pipe.retrievePWM()
+    pipe.ps2pdf()
     
 if __name__ == "__main__":
     main()
