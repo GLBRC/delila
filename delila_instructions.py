@@ -113,6 +113,12 @@ def main():
     else:
         right = +10    
 
+    # stupid check on Left & Right boundaries
+    if left == right:
+        print('\n\tError Left boundary equals Right, check boundaries\n')
+        cmdparser.print_help()
+        sys.exit(1)
+
     # today's date for a time stamp
     currDate = date.today().strftime("%Y/%m/%d")
     # dictionary to hold input data, as a dict of dicts
@@ -160,7 +166,7 @@ def main():
                         out.write('get from {} +{} to {} {} direction {};\n'.format(pos, str(right), pos, str(left) ,direction))                  
                 else:                  
                     if left < right:          
-                        if right == 0:
+                        if abs(right) < 5:
                             adjustedRight = '5'
                             pos = int(dat[3])
                         else:
@@ -173,10 +179,7 @@ def main():
                             out.write('get from {} {} to {} +{} direction {};\n'.format(pos, str(left), pos, adjustedRight,direction )) 
                         else:
                             direction = '-'
-                            out.write('get from {} +{} to {} {} direction {};\n'.format(pos, adjustedRight, pos, str(left) ,direction))          
-
-  
-                
+                            out.write('get from {} +{} to {} {} direction {};\n'.format(pos, adjustedRight, pos, str(left) ,direction))                         
                    
         out.close()
 
