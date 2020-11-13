@@ -1180,8 +1180,14 @@ def main():
     # Get the left boundary value or set default
     if cmdResults['LEFT']:
         left = cmdResults['LEFT']
+        # check for a sign
         if left[:1] not in ['-','+']:
             print('\n\tLeft boundary requires sign (+/-)\n')
+            cmdparser.print_help()
+            sys.exit(1)
+        # check that absolute value is at least 5
+        if abs(int(left)) < 5:
+            print('\n\tleft boundary needs to be at least +/-5\n')
             cmdparser.print_help()
             sys.exit(1)
     else:
@@ -1192,6 +1198,11 @@ def main():
         right = cmdResults['RIGHT']
         if right[:1] not in ['-', '+']:
             print('\n\tRight boundary requires sign (+/-)\n')
+            cmdparser.print_help()
+            sys.exit(1)
+        # check that absolute value is at least 5
+        if abs(int(right)) < 5:
+            print('\n\tright boundary needs to be at least +/- 5\n')
             cmdparser.print_help()
             sys.exit(1)
     else:
