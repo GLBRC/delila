@@ -1209,12 +1209,17 @@ def main():
         right = '+10'
 
     # check if boundary positions make sense, 
-    # left is always left postion of right 
-    # i.e. forward orientation only
+    # left should be < the right 
     check = [ int(left), int(right)]
     if not (all(check[i] <= check[i+1] for i in range(len(check)-1))):
         print('\n\tLeft and right boundaries must be in forward orientation')
         print('\te.g. left must be less than right\n')
+        cmdparser.print_help()
+        sys.exit(1)
+
+    # check that the boundaries are at least 10 positions apart
+    if abs(abs(int(left)) - abs(int(right))) < 10:
+        print('\n\tLeft and right boundaries should be at least 10 bp apart\n')
         cmdparser.print_help()
         sys.exit(1)
 
