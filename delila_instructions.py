@@ -29,9 +29,6 @@ l : int
 o : str
     Organism
 
-p : int
-    Position of the TSS site, generally upstream of gene start.
-
 r : int
     right boundary base position
 
@@ -47,7 +44,7 @@ Example
 -------
     usage:
 
-        delila_instructions.py -f input.txt -l -10 -o rhodo -p 10 -r 10
+        delila_instructions.py -f input.txt -l -10 -o rhodo  -r 10
 
 Output
 ------
@@ -73,13 +70,11 @@ def main():
     
     cmdparser = argparse.ArgumentParser(description="Split TSS file by chromosome.",
                                         usage='%(prog)s -f <TSS_site_file.txt> -l <int> -r <int>'  ,prog='delila_instructions.py'  )
-    cmdparser.add_argument('-l', '--left',  action='store', dest='LEFT',
-                            help='Left boundary base position', metavar='')
     cmdparser.add_argument('-f', '--file',  action='store', dest='FILE',
                             help='Text file, containing TSS sites', metavar='')
+    cmdparser.add_argument('-l', '--left',  action='store', dest='LEFT',
+                            help='Left boundary base position', metavar='')
     cmdparser.add_argument('-o', '--organism', action='store', dest='ORGANISM',help='Organism', metavar='')
-    cmdparser.add_argument('-p', '--position', action='store', dest='POS',
-                            help='Position of the TSS site, generally upstream of gene start.')
     cmdparser.add_argument('-r', '--right', action='store', dest='RIGHT',
                             help='Right boundary base position', metavar='')    
     cmdResults = vars(cmdparser.parse_args())
@@ -111,24 +106,18 @@ def main():
         print('\n\t-o organism not found')
         cmdparser.print_help()
         sys.exit(1)
-
-    # get the TSS position
-    if cmdResults['POS']:
-        tssPos = int(cmdResults['POS'])
-        if tssPos < 0:                            # remove the sign if neg
-            tssPos = -1 * tssPos
-    else:
-        print('\n\t -p tssPos not found')
-        cmdparser.print_help()
-        sys.exit(1)
-    
+   
     # get the right boundary base position
     if cmdResults['RIGHT']:
         right = int(cmdResults['RIGHT'])
     else:
         right = +10    
 
-    print(left, right, tssPos)
+    # stupid check on Left & Right boundaries
+    if left == right:
+        print('\n\tError Left boundary equals Right, check boundaries\n')
+        cmdparser.print_help()
+        sys.exit(1)
 
     # today's date for a time stamp
     currDate = date.today().strftime("%Y/%m/%d")
@@ -169,48 +158,28 @@ def main():
                 if left < 0 and right > 0:                    #  left = -10 right = +10
                     if dat[2] == 'forward':
                         direction = '+'
-                        pos = str(int(dat[3]) - tssPos)   
+                        pos = str(int(dat[3]))   
                         out.write('get from {} {} to {} +{} direction {};\n'.format(pos, str(left), pos, str(right),direction )) 
                     else:
                         direction = '-'
-                        pos = str(int(dat[3]) + tssPos) 
-                        out.write('get from {} +{} to {} {} direction {};\n'.format(pos, str(right), pos, str(left) ,direction))                                        
-                elif left < 0 and right < 0:                  # left = -20 right = -5
-                    if dat[2] == 'forward':
-                        direction = '+'
-                        pos = str(int(dat[3]) - tssPos)
-                        out.write('get from {} {} to {} +{} direction {};\n'.format(pos, str(left), pos, str(-1 * right),direction )) 
-                    else:
-                        direction = '-'
-                        pos = str(int(dat[3]) + tssPos)
-                        out.write('get from {} +{} to {} {} direction {};\n'.format(pos, str(-1* right), pos, str(left) ,direction))
-                elif left > 0 and right >0:                    # left = -5 right = +20                   
-                    if dat[2] == 'forward':
-                        direction = '+'
-                        pos = str(int(dat[3]) + tssPos)
-                        out.write('get from {} -{} to {} +{} direction {};\n'.format(pos, str(left), pos, str(right),direction ))
-                    else:
-                        direction = '-'
-                        pos = str(int(dat[3]) - tssPos)
-                        out.write('get from {} +{} to {} -{} direction {};\n'.format(pos, str(right), pos, str(left),direction ))   
-                elif left < 0 and right == 0:                  # left = -20 right = 0
-                    if dat[2] == 'forward':
-                        direction = '+'
-                        pos = str(int(dat[3]) - tssPos)
-                        out.write('get from {} {} to {} +{} direction {};\n'.format(pos, str(left), pos, str(1),direction ))
-                    else:
-                        direction = '-'
-                        pos = str(int(dat[3]) + tssPos)
-                        out.write('get from {} +{} to {} {} direction {};\n'.format(pos, str(1), pos, str(left) ,direction))
-                elif left == 0 and right > 0:                  # left = 0 right = +20
-                    if dat[2] == 'forward':
-                        direction = '+'
-                        pos = str(int(dat[3]) + tssPos)   
-                        out.write('get from {} -{} to {} +{} direction {};\n'.format(pos, str(1), pos, str(right),direction ))
-                    else:
-                        direction = '-'
-                        pos = str(int(dat[3]) - tssPos)
-                        out.write('get from {} +{} to {} -{} direction {};\n'.format(pos, str(right), pos, str(1) ,direction))
+                        pos = str(int(dat[3])) 
+                        out.write('get from {} +{} to {} {} direction {};\n'.format(pos, str(right), pos, str(left) ,direction))                  
+                else:                  
+                    if left < right:          
+                        if abs(right) < 5:
+                            adjustedRight = '5'
+                            pos = int(dat[3])
+                        else:
+                            adjustedRight = str(right)
+                            shift = int(dat[3]) - abs(right) # move position left, by distance of position - right
+                            pos   = shift - int(abs(abs(left) - abs(right))/2)   # shift original position distance to right - distance between left and right
+                        
+                        if dat[2] == 'forward':
+                            direction = '+'  
+                            out.write('get from {} {} to {} +{} direction {};\n'.format(pos, str(left), pos, adjustedRight,direction )) 
+                        else:
+                            direction = '-'
+                            out.write('get from {} +{} to {} {} direction {};\n'.format(pos, adjustedRight, pos, str(left) ,direction))                         
                    
         out.close()
 
