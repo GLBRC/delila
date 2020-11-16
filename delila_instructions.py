@@ -163,22 +163,36 @@ def main():
                     if dat[2] == 'forward':
                         direction = '+'
                         pos = str(int(dat[3]))   
-                        out.write('get from {} -{} to {} +{} direction {};\n'.format(pos, str(left), pos, str(right),direction )) 
+                        out.write('get from {} -{} to {} +{} direction {};\n'.format(pos, str(abs(left)), pos, str(right),direction )) 
                     else:
                         direction = '-'
                         pos = str(int(dat[3])) 
-                        out.write('get from {} +{} to {} -{} direction {};\n'.format(pos, str(right), pos, str(left) ,direction))                  
+                        out.write('get from {} +{} to {} -{} direction {};\n'.format(pos, str(right), pos, str(abs(left)) ,direction))                  
                 elif left < 0 and right <= 0:                 # shifts position to the left of the site, i.e. upstream
                     if right == 0:
                         shiftPos = int(dat[3]) - leftBoundary               # shift to the middle of window in the case of right boundary = zero 
                     else:
                         shiftPos = int(dat[3]) - (2*abs(right))
+
                     if dat[2] == 'forward':
                         direction = '+'
                         out.write('get from {} -{} to {} +{} direction {};\n'.format(shiftPos, leftBoundary, shiftPos, rightBoundary, direction)) 
                     else:
                         direction = '-'
-                        out.write('get from {} +{} to {} -{} direction {};\n'.format(shiftPos, rightBoundary, shiftPos, leftBoundary ,direction))    
+                        out.write('get from {} +{} to {} -{} direction {};\n'.format(shiftPos, rightBoundary, shiftPos, leftBoundary ,direction)) 
+                else:  # we have left >=0 and right >0
+                    if left == 0:
+                        shiftPos = int(dat[3]) + leftBoundary               # shift to the middle of window in the case of right boundary = zero   
+                    else:
+                        shiftPos = int(dat[3]) + (2*abs(left))
+
+                    if dat[2] == 'forward':
+                        direction = '+'
+                        out.write('get from {} -{} to {} +{} direction {};\n'.format(shiftPos, leftBoundary, shiftPos, rightBoundary, direction)) 
+                    else:
+                        direction = '-'
+                        out.write('get from {} +{} to {} -{} direction {};\n'.format(shiftPos, rightBoundary, shiftPos, leftBoundary ,direction))                     
+
                                              
                    
         out.close()
