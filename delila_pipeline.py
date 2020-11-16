@@ -1265,12 +1265,16 @@ def main():
         pipe.runDELILA( inst)   
     
     # write the list of generate books from runDELILA step to file
+    bookCount = 0
     with open('mybooks.txt', 'w') as out:
         for b in pipe.delilaBOOK:
-            out.write(b + '\n')    
-    
+            out.write(b + '\n') 
+            bookCount += 1   
+
+    logger.info('\nbookCount : {}\n'.format(str(bookCount)))
+
     # if there are multiple chromosomes, merge books and instructions
-    if len(pipe.delilaBOOK) > 1:       
+    if bookCount > 1:       
         # If more than one chromosome merge books, input is a text file listing the split books
         merge_books.mergeBook('mybooks.txt')
         # if more than one chromosome merge instruction file
@@ -1313,9 +1317,8 @@ def main():
         
     ### REFINE THE LOGO BY REMOVING SITES WITH AN RI score 0 or less     
     # Use the filtered/refined data set to run the pipeline again, 
-    # creating the FINAL logo
-    
-    if len(pipe.delilaBOOK) > 1:      
+    # creating the FINAL logo  
+    if bookCount > 1:      
         logger.info('\nRunning removeRI_books.removeRI on MERGED_BOOK.txt\n')     
         riIDs = removeRI_books.parseRI('RI_out.txt')
         removeRI_books.removeRI('MERGED_BOOK.txt', riIDs) 
