@@ -67,7 +67,7 @@ import os
 import sys
 
 def main():
-    
+    # set command line parameters
     cmdparser = argparse.ArgumentParser(description="Split TSS file by chromosome.",
                                         usage='%(prog)s -f <TSS_site_file.txt> -l <int> -r <int>'  ,prog='delila_instructions.py'  )
     cmdparser.add_argument('-f', '--file',  action='store', dest='FILE',
@@ -119,6 +119,10 @@ def main():
         cmdparser.print_help()
         sys.exit(1)
 
+    # Find the boundary to write to instruction file
+    leftBoundary = round(abs(abs(left) - abs(right))/2)
+    rightBoundary = abs(abs(left) - abs(right)) - leftBoundary
+    
     # today's date for a time stamp
     currDate = date.today().strftime("%Y/%m/%d")
     # dictionary to hold input data, as a dict of dicts
@@ -155,31 +159,27 @@ def main():
                 out.write('name \"{}\";\n'.format(dat[1]))    # each site's info is precedded by the site name 
                 
                 # handle the strandedness and write request to instruction file
-                if left < 0 and right > 0:                    #  left = -10 right = +10
+                if left < 0 and right > 0:                    #  left = -10 right = +10, directly uses the position given in the sites files.
                     if dat[2] == 'forward':
                         direction = '+'
                         pos = str(int(dat[3]))   
-                        out.write('get from {} {} to {} +{} direction {};\n'.format(pos, str(left), pos, str(right),direction )) 
+                        out.write('get from {} -{} to {} +{} direction {};\n'.format(pos, str(left), pos, str(right),direction )) 
                     else:
                         direction = '-'
                         pos = str(int(dat[3])) 
-                        out.write('get from {} +{} to {} {} direction {};\n'.format(pos, str(right), pos, str(left) ,direction))                  
-                else:                  
-                    if left < right:          
-                        if abs(right) < 5:
-                            adjustedRight = '5'
-                            pos = int(dat[3])
-                        else:
-                            adjustedRight = str(right)
-                            shift = int(dat[3]) - abs(right) # move position left, by distance of position - right
-                            pos   = shift - int(abs(abs(left) - abs(right))/2)   # shift original position distance to right - distance between left and right
-                        
-                        if dat[2] == 'forward':
-                            direction = '+'  
-                            out.write('get from {} {} to {} +{} direction {};\n'.format(pos, str(left), pos, adjustedRight,direction )) 
-                        else:
-                            direction = '-'
-                            out.write('get from {} +{} to {} {} direction {};\n'.format(pos, adjustedRight, pos, str(left) ,direction))                         
+                        out.write('get from {} +{} to {} -{} direction {};\n'.format(pos, str(right), pos, str(left) ,direction))                  
+                elif left < 0 and right <= 0:                 # shifts position to the left of the site, i.e. upstream
+                    if right == 0:
+                        shiftPos = int(dat[3]) - leftBoundary               # shift to the middle of window in the case of right boundary = zero 
+                    else:
+                        shiftPos = int(dat[3]) - (2*abs(right))
+                    if dat[2] == 'forward':
+                        direction = '+'
+                        out.write('get from {} -{} to {} +{} direction {};\n'.format(shiftPos, leftBoundary, shiftPos, rightBoundary, direction)) 
+                    else:
+                        direction = '-'
+                        out.write('get from {} +{} to {} -{} direction {};\n'.format(shiftPos, rightBoundary, shiftPos, leftBoundary ,direction))    
+                                             
                    
         out.close()
 

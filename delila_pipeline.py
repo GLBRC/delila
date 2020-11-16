@@ -273,6 +273,9 @@ class delilaPipe( object ):
         self.tss         = tss                 # Transcription Start Site information file name
         self.left        = left                # left bound number, +/-
         self.right       = right               # right bound number, +/-
+        # strip sign if present from left and right bounds, for the makelogo, rip files
+        self.leftBoundary = round(abs(abs(int(self.left)) - abs(int(self.right)))/2)     
+        self.rightBoundary = abs(abs(int(self.left)) - abs(int(self.right))) - self.leftBoundary
 
     def __repr__(self):
         '''
@@ -604,7 +607,7 @@ class delilaPipe( object ):
         '''
         with open('alistp', 'w') as out:
             out.write("6.64        version of alistp that this parameter file is designed for.\n")
-            out.write("-10 +10       From and To\n")  
+            out.write("-10 +10     From and To, allows a wide alignment, but only look at a portion\n")  
             out.write("pl          display control p: piece&coordinate of zero base; l: long name\n")
             out.write("p           p: paging, n: no paging\n")
             out.write("i           f: first base, i: inst, b: book alignment\n")
@@ -852,15 +855,8 @@ class delilaPipe( object ):
         '''
         Create a default parameter file to make a logo
         '''
-        # strip sign if present from left and right bounds
-        if self.left.startswith('-') or self.left.startswith('+'):
-            lft = self.left[1:]
-
-        if self.right.startswith('-') or self.right.startswith('+'):
-            rt = self.right[1:]
-
         with open('makelogop', 'w') as out:
-            out.write("-" + lft + " +" + rt + "\n") # sets the logo width
+            out.write("-" +  str(self.leftBoundary)  + " +" + str(self.rightBoundary) + "\n") # sets the logo width
             out.write("100\n")
             out.write("5.0 10.0\n")      # change the coordinate position
             out.write("0\n")
@@ -958,7 +954,7 @@ class delilaPipe( object ):
         with open('rip', 'w') as out:
             out.write('2.54\n')          # parameterversion
             out.write('"weight matrix"\n') # name of the weight matrix, here imaginatively named       
-            out.write('-10 +10\n')       # The FROM and TO over which to do the Ri calculation
+            out.write('-{} +{}\n'.format(self.leftBoundary, self.rightBoundary))   # The FROM and TO over which to do the Ri calculation
             out.write('1\n')             # defines the column of the values file to use
             out.write('a\n')             #  the lowest and highest Ri evaluation to report
             out.write('a\n')             # the lowest and highest Value evaluation to report
@@ -1169,7 +1165,7 @@ def main():
                     species[0] = name                             
                     prefix = '-'.join(species) 
                     found = True
-                elif ln.startswith('VERSION'):
+                elif ln.startswith('VERSION'):                    # get the chromosome name from genbank file
                     ch = ln.rstrip().split()[1]
                     chromList.add(ch)
     else:
@@ -1185,11 +1181,6 @@ def main():
             print('\n\tLeft boundary requires sign (+/-)\n')
             cmdparser.print_help()
             sys.exit(1)
-        # check that absolute value is at least 5
-        if abs(int(left)) < 5:
-            print('\n\tleft boundary needs to be at least +/-5\n')
-            cmdparser.print_help()
-            sys.exit(1)
     else:
         left = '-10'
     
@@ -1200,11 +1191,6 @@ def main():
             print('\n\tRight boundary requires sign (+/-)\n')
             cmdparser.print_help()
             sys.exit(1)
-        # check that absolute value is at least 5
-        if abs(int(right)) < 5:
-            print('\n\tright boundary needs to be at least +/- 5\n')
-            cmdparser.print_help()
-            sys.exit(1)
     else:
         right = '+10'
 
@@ -1212,16 +1198,16 @@ def main():
     # left should be < the right 
     check = [ int(left), int(right)]
     if not (all(check[i] <= check[i+1] for i in range(len(check)-1))):
-        print('\n\tLeft and right boundaries must be in forward orientation')
+        print('\n\tLeft and right boundaries must be in numeric order.')
         print('\te.g. left must be less than right\n')
         cmdparser.print_help()
         sys.exit(1)
 
     # check that the boundaries are at least 10 positions apart
-    if abs(abs(int(left)) - abs(int(right))) < 10:
-        print('\n\tLeft and right boundaries should be at least 10 bp apart\n')
-        cmdparser.print_help()
-        sys.exit(1)
+    #if abs(abs(int(left)) - abs(int(right))) < 10:
+    #    print('\n\tLeft and right boundaries should be at least 10 bp apart\n')
+    #    cmdparser.print_help()
+    #   sys.exit(1)
 
     if cmdResults['TSS'] is not None:                  # start site file
         tssFile = cmdResults['TSS'] 
@@ -1324,8 +1310,7 @@ def main():
 
     # MAKE IN INITIAL LOGO TO COMPARE WITH THE FINAL LOG
     pipe.runMAKELOGO('symvec', prefix + '-initial.logo')       # make logo
-    pipe.retrievePWM()
-    
+        
     ### REFINE THE LOGO BY REMOVING SITES WITH AN RI score 0 or less     
     # Use the filtered/refined data set to run the pipeline again, 
     # creating the FINAL logo
