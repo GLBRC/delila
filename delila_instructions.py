@@ -172,7 +172,7 @@ def main():
                     if right == 0:
                         shiftPos = int(dat[3]) - leftBoundary               # shift to the middle of window in the case of right boundary = zero 
                     else:
-                        shiftPos = int(dat[3]) - (2*abs(right))
+                        shiftPos = int(dat[3]) -  (abs(right) + rightBoundary)  
 
                     if dat[2] == 'forward':
                         direction = '+'
@@ -184,7 +184,7 @@ def main():
                     if left == 0:
                         shiftPos = int(dat[3]) + leftBoundary               # shift to the middle of window in the case of right boundary = zero   
                     else:
-                        shiftPos = int(dat[3]) + (2*abs(left))
+                        shiftPos = int(dat[3]) + (abs(left) + leftBoundary)
 
                     if dat[2] == 'forward':
                         direction = '+'
