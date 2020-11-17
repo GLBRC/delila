@@ -273,9 +273,14 @@ class delilaPipe( object ):
         self.tss         = tss                 # Transcription Start Site information file name
         self.left        = left                # left bound number, +/-
         self.right       = right               # right bound number, +/-
+
         # strip sign if present from left and right bounds, for the makelogo, rip files
-        self.leftBoundary = round(abs(abs(int(self.left)) - abs(int(self.right)))/2)     
-        self.rightBoundary = abs(abs(int(self.left)) - abs(int(self.right))) - self.leftBoundary
+        if int(self.left) < 0 and int(self.right) > 0:
+            self.leftBoundary = abs(int(self.left))
+            self.rightBoundary = abs(int(self.right))
+        else:
+            self.leftBoundary = round(abs(abs(int(self.left)) - abs(int(self.right)))/2)     
+            self.rightBoundary = abs(abs(int(self.left)) - abs(int(self.right))) - self.leftBoundary
 
     def __repr__(self):
         '''
