@@ -1,8 +1,8 @@
 #!/home/mplace/anaconda3.7/bin/python
 """delila_pipeline.py
 
-Create a sequence logo for Transcription Start sites using the Delila package.
-Script now works with single or multiple chromsomes.
+Create a sequence logo for user defined sites using the Delila package.
+Supports single or multiple chromosomes.
 
 Notes
 ----- 
@@ -10,7 +10,7 @@ Notes
 The programs used in this pipeline have been converted from Pascal to C, by
 Oliver Giramma.  They were then modified to use command line arguments.
 
-(From the Delila Documentation)
+(From the Delila Documentation, http://users.fred.net/tds/lab/software.html)
 
 DELILA stands for DEoxyribnucleaic-acid LIbrary LAnguage.
 
@@ -43,26 +43,27 @@ Delila positioning, bounds will be set by LEFT and RIGHT.
 scenario 1:
 Left = -10 
 Right = +10 
-TSS at position 100, then the bounds are Left = position 90, Right = position 110
+Site position 100, then the bounds are Left = position 90, Right = position 110
+cmd: delila_pipeline.py -g genome.gbff -l -20 -r +10 -t sites_for_delila.txt
 
-scenario 2:
+scenario 2, looking for the -10 position upstream from a transcription start site position.
 Left = -20
-Right = -5
-TSS at position 100,  Left = position 80, Right = position 95
+Right = 0
+Site at position 100,  Left = position 80, Right = position 100
+cmd: delila_pipeline.py -g enome.gbff -l -20 -r 0 -t sites_for_delila.txt
 
-scenario 3:
+
+scenario 3, looking for the -35 position upstream from a transcription start site
 Left = +5
 Right = +25
 TSS at position 100, Left = position 105, Right = position 125
-
-Method
-------
 
 Delila is a modular set of programs which produce results that feed into the next
 program.  It is highly configurable using parameter files.  The delila programs
 used are listed below with general descripbtions.
 
-(From the Delila Documentation)
+Delila programs used to make logo (descriptions from the Delila documentation)
+------------------------------------------------------------------------------
 
 dbbk: Convert GenBank flat file format to Delila format, which is called a `book'
 (db = database, bk = book). This produces an 'l1' file which contains the book.
@@ -136,13 +137,37 @@ rseq: Compute Rsequence for each position in the aligned book, make an rsdata fi
 dalvec: Convert the rsdata file into a symvec file, which the next program
 can use to make the logo. 
 
-makelogo: Finally! Make the sequence logo! 
+ri: The program determines the individual informations of the sites in the book
+    as aligned by the instructions, according to the frequency table given in
+    the rsdata file.  The program calculates the Ri(b,l) table:
 
-rf: Once you have computed the information content of your binding site, 
-compute Rfrequency. You will need to know how big the genome is 
-(or the total number of binding positions availble to the recognizer)
-and the number of binding sites in that region.
+       Ri(b,l) := 2 - (- log2( f(b,l)))
+
+    and sums this up for each sequence.  Ri is defined so that the average of
+    the Ri's for a set of sequences is Rsequence. 
+
+makelogo: Finally! Make the sequence logo! 
     
+Method
+------
+
+1) dbbk    -- convert genbank file into a delila book
+2) catal   -- create catalogue and library files
+3) delila  -- extract a subset of sequences to examine, store in a book
+4) malign  -- alignment of the sequences that has the lowest uncertainty
+5) malin   -- select malign's best alignment
+6) delila  -- create a new book from best alignment
+7) alist   -- make an aligned listing of sequences
+8) encode  -- convert the book/inst into 0 and 1's
+9) comp    -- counts the number of each oligonucleotide
+10) rseq   -- compute Rsequence
+11) dalvec -- convert the rsdata file into a symvec file
+12) ri     -- calculate site information
+13) make initial logo -- for comparison to the final logo
+13) filter -- remove sites that ri identified as <= 0 information
+14) repeat steps 3 through 11
+15) make final logo 
+
 Parameters
 ----------
 
@@ -197,8 +222,7 @@ import re              # regex
 import subprocess      # call external programs, delila's programs in this case 
 import sys
 
-# external python scripts 
-#import filter_TSS      
+# external python scripts    
 import merge_books     
 import merge_instructions 
 import rename_lib1 
@@ -242,19 +266,23 @@ class delilaPipe( object ):
         Returns
         -------
 
-        delilaPipe object
+        delilaPipe object which can be used to access the following:
 
-        gnbk            Delila book, result of running makeDBBK
-        dbbkChanges     Changes recored from makeDBBK
+        gnbk            delila book, result of running makeDBBK
+        catalp          parameter file for catal
+        dbbkChanges     changes recored from makeDBBK
         l1              l1 is output of makeDBBK
         l2,l3           empty files required by Delila
-        lib1,lib2,lib3  
-        cat1,cat2,cat3
-        instructions     A list of instruction files, one for each chromosome
-        delilaBook       List of books from the Delila program output
+        lib1,lib2,lib3  delila library file names
+        cat1,cat2,cat3  catalog file names 
+        instructions    list of instruction files, one for each chromosome
+        delilaBook      list of books from the Delila program output
+        tss             sites input file
+        left,right      input left and right window around site
+        leftBoundary    calculated left boundary
+        rightBoundary   calculated right boundary
 
         """
-
         self.cat1        = 'cat1'              # cat1, cat2, cat3 required by delila, only cat1 has info
         self.cat2        = 'cat2'
         self.cat3        = 'cat3'
@@ -371,6 +399,9 @@ class delilaPipe( object ):
 
         Need to create 3 empty files for delila catal
         l2, l3, catalp
+
+        catal -f parameters.txt
+
         '''
         # create l2
         with open('l2', 'w') as l2:
@@ -382,8 +413,8 @@ class delilaPipe( object ):
         if not os.path.exists(self.catalParams):
             self.catalParameters()
 
-        program = pdir + 'catal'
-        cmd = [program , '-f', self.catalParams ]
+        program = pdir + 'catal'                         # path to catal
+        cmd = [program , '-f', self.catalParams ]        # set up command
         logger.info("Running catal ")
         logger.info(' '.join(cmd))
         # run catal
@@ -412,7 +443,7 @@ class delilaPipe( object ):
             Site location file
 
         '''
-        program = '/home/mplace/scripts/delila/delila_instructions.py'
+        program = scriptDir + 'delila_instructions.py'
         cmd = [ program, '-f', tss, '-o', self.prefix, '-l', self.left, '-r', self.right ]
         logger.info('Running splitTSS ')
         logger.info(' '.join(cmd))
@@ -566,7 +597,7 @@ class delilaPipe( object ):
     def createMalinp(self):
         '''
         Create the malin parameter file. (NOT FOR MALIGN)
-        Output a text file called malignp, used as input to malign.
+        Output a text file called malinp, used as input to malin.
         '''
         with open('malinp', 'w') as out:
             out.write('1.14\n') # Program version number, warn user if too old
@@ -637,6 +668,12 @@ class delilaPipe( object ):
 
         alist  -b book.txt -i cinst -p alistp
 
+        Output:
+        list: the aligned listing
+        clist:the aligned listing, in PostScript color.  Paging is ALWAYS done
+              to this file, using the page parameter. 
+        output: messages to user
+
         Parameters
         ----------
         book : str
@@ -706,6 +743,10 @@ class delilaPipe( object ):
             cinst file from malin
         encodep : str
             encode parameter file
+
+        Output:
+        encseq: the encoded sequences 
+
         '''
         self.makeENCODEp()
         # set up encode
@@ -738,6 +779,11 @@ class delilaPipe( object ):
             Delila book
         compp : str
             comp parameter file
+
+        Output:
+        cmp: the composition, determined for mononucleotides up to 
+             oligonucleotides of length "compmax"
+
         '''
         with open("compp", 'w') as f:
             pass
@@ -777,6 +823,11 @@ class delilaPipe( object ):
             Composition from the comp program.
         encseq : str
             Output of the encode program.
+        
+        Output:
+        rsdata: a display of the information content of each position  
+                of the sequences, with the sampling error variance.
+
         ''' 
         # set up rseq
         program = pdir + 'rseq'
@@ -804,6 +855,7 @@ class delilaPipe( object ):
         ----------
         rsdata : str
             Data file from rseq program
+        
         '''
         if not os.path.exists('dalvcep'):
             with open('dalvecp', 'w') as f:
@@ -872,10 +924,10 @@ class delilaPipe( object ):
             out.write("bt 2 2\n")        # display the side bar on both sides of the logo
             out.write("no show\n")
             out.write("no outline\n")
-            out.write("caps\n")
+            out.write("caps\n")          # show capital letters
             out.write("14\n")
             out.write("1\n")
-            out.write("1.0\n")
+            out.write("1.0\n")           # line separation relative to the barheight
             out.write("n\n")
             out.write("1\n")
             out.write("1\n")
@@ -1030,12 +1082,13 @@ class delilaPipe( object ):
         logger.info(result1)
         logger.info(result2)     
             
+    '''
     def updateTssPositions(self, data, prefix):
-        '''
+        
         Need to update positions for TSS sites, based on merged chromosome positions.
         The original TSS site position will be added to the start of the merged chromosome
         position.
-        '''
+        
         results = []
         # open and process tss site file
         with open(self.tss, 'r') as tss:
@@ -1052,6 +1105,7 @@ class delilaPipe( object ):
             for site in results:
                 outLine = '\t'.join([str(x) for x in site])
                 out.write( '{}\n'.format(outLine))
+    '''
 
     def runParseRI(self, malign_list, rixyin, out ):
         '''
@@ -1110,11 +1164,11 @@ def main():
     cmdparser.add_argument('-i', '--info', action='store_true', dest='INFO',
                             help='Print script information to stdout') 
     cmdparser.add_argument('-l', '-left', action='store', dest='LEFT', metavar='',
-                            help='Lower boundary from site, defaults to -10')
+                            help='Left (upstream) boundary from site, defaults to -10')
     cmdparser.add_argument('-t', '--tss',  action='store', dest='TSS',  
                             help='Site information text file.', metavar='')    
     cmdparser.add_argument('-r', '--right', action='store', dest='RIGHT', metavar='',
-                            help='Upper boundary from site, defaults to +10')
+                            help='Upper (downstream) boundary from site, defaults to +10')
     cmdResults = vars(cmdparser.parse_args())
 
     # if no args print help
@@ -1128,14 +1182,14 @@ def main():
         print("")
         print("    Program: delila_pipline.py ")
         print("")
-        print("    Create a sequence logo for Transcription Start sites using the Delila package.")
+        print("    Create a sequence logo for sequence sites using the Delila package.")
         print("")
         print("To Run:\n")
-        print("delila_pipeline.py -g genome.gnbk -t ecoli_tss_info.txt -l -10 -r +5")
+        print("delila_pipeline.py -g genome.gnbk -t sites_info.txt -l -10 -r +5")
         print("")
         print("    -g genome genbank file ")
         print("    -l left boundary relative to site, defaults to -10")
-        print("    -t Site information file")
+        print("    -t site information file")
         print("    -r right boundary relative to site, defaults to +10")
         print("")
         print("    TSS file provides chromosome, name, strand, position information in a tab delimited format.")
@@ -1145,7 +1199,9 @@ def main():
         print("")
         print("Output :")
         print("")
-        print("    LOGO postscript and pdf file")
+        print("    Logo postscript file") 
+        print("    Logo pdf ")
+        print("    position weight matrix file ")
         print("")
         print("")
         print("")
@@ -1162,7 +1218,7 @@ def main():
         found = False
         with open(inFile, 'r') as f:
             for ln in f:
-                if ln.startswith('SOURCE') and not found:                       # provides organism name       
+                if ln.startswith('SOURCE') and not found:         # provides organism name       
                     prefix = ln.rstrip().split('E')[1].lstrip()   # remove all white space
                     species = prefix.split(' ')                   
                     abrv = species.pop(0)[0]                      # Get genus name's first letter 
@@ -1170,7 +1226,7 @@ def main():
                     species[0] = name                             
                     prefix = '-'.join(species) 
                     found = True
-                elif ln.startswith('VERSION'):                    # get the chromosome name from genbank file
+                elif ln.startswith('VERSION'):                    # get the chromosome name(s) from genbank file
                     ch = ln.rstrip().split()[1]
                     chromList.add(ch)
     else:
@@ -1182,7 +1238,7 @@ def main():
     if cmdResults['LEFT']:
         left = cmdResults['LEFT']
         # check for a sign
-        if left[:1] not in ['-','+']:
+        if left != '0' and left[:1] not in ['-','+']:
             print('\n\tLeft boundary requires sign (+/-)\n')
             cmdparser.print_help()
             sys.exit(1)
@@ -1192,7 +1248,7 @@ def main():
     # Get the right boundary or set default
     if cmdResults['RIGHT']:
         right = cmdResults['RIGHT']
-        if right[:1] not in ['-', '+']:
+        if right != '0' and right[:1] not in ['-', '+']:
             print('\n\tRight boundary requires sign (+/-)\n')
             cmdparser.print_help()
             sys.exit(1)
@@ -1247,8 +1303,7 @@ def main():
     logger.info('Organism Name    : {}'.format(prefix))
     logger.info('Start Site file  : {}'.format(tssFile))
     logger.info('Left Bound       : {}'.format(left))
-    logger.info('Right Bound      : {}'.format(right))
-    logger.info('runMKDB, This creates a genbank file from fasta file.')
+    logger.info('Right Bound      : {}\n'.format(right))
 
     # create delila object and get to work
     pipe = delilaPipe(inFile, prefix, tssFile, left, right)
