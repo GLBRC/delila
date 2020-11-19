@@ -1155,6 +1155,21 @@ _TEXT *fin, *fout;
   }
 }
 
+void usage() {
+  printf("\n");
+  printf(" dbbk: GenBank file to delila book conversion program \n");
+  printf("\n");
+  printf( "parameters: \n");
+  printf("\n  dbbk -f genome.gnbk  -c changes.txt -o output.txt\n\n");
+  printf("  -f Genome genbank file\n");
+  printf("  -i file name, report base changes made by dbbk due to base ambiguity \n");
+  printf("  -o message file name, report dbbk message to user\n");
+  printf("\n");
+  printf("  version %4.2f\n", version);
+  exit(EXIT_SUCCESS);
+}
+
+
 int main(int argc, Char **argv)
 {
   extern char *optarg;
@@ -1167,7 +1182,6 @@ int main(int argc, Char **argv)
 	char *fName = "filename.txt";
   char *change = "outputChanges.txt";
   char *outFile = "output.txt";
-	static char usage[] = "usage: %s -f genome.gnbk -c changes.txt -o output.txt\n";
 
 /* Process command line arguments  */
 while ((c = getopt(argc, argv, "f:c:o:")) != -1)
@@ -1191,26 +1205,26 @@ while ((c = getopt(argc, argv, "f:c:o:")) != -1)
   /* Is the Output file name present */  
 	if (oflag == 0) {	/* -o was mandatory */ 
 		fprintf(stderr, "%s: missing -o option\n", argv[0]);
-		fprintf(stderr, usage, argv[0]);
+		usage();
 		exit(1);
 	} 
 
   /* Input file genbank file */
   if (fflag == 0) { /* -f was mandatory */        
 		fprintf(stderr, "%s: missing -f option\n", argv[0]);
-		fprintf(stderr, usage, argv[0]);
+		usage();
 		exit(1);
   } 
 
   /* Change file name  */  
   if (cflag == 0) { 
     fprintf(stderr, "%s: missing -c option really\n", argv[0]);
-		fprintf(stderr, usage, argv[0]);
+		usage();
 		exit(1);
     } 
 
   if (err) {
-		fprintf(stderr, usage, argv[0]);
+		usage();
 		exit(1);
 	}
 
