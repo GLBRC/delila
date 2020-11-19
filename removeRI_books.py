@@ -72,7 +72,7 @@ def removeRI(inFile, riIDs):
     counter = 1
 
 
-    with open(inFile, 'r') as f, open('NEW_MERGED_BOOK.txt','w') as out:
+    with open(inFile, 'r') as f, open('NEW_MERGED_book.txt','w') as out:
         # gather header information
         for ln in range(10):
             out.write(f.readline())                   
