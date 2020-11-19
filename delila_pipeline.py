@@ -218,6 +218,7 @@ import argparse        # command line args
 import glob
 import logging         
 import os
+from posix import listdir
 import re              # regex 
 import subprocess      # call external programs, delila's programs in this case 
 import sys
@@ -232,7 +233,7 @@ import removeRI_instructions
 # program home directory
 # pdir = '/home/glbrc.org/mplace/scripts/delila/src/'
 scriptDir = '/home/mplace/scripts/delila/'
-pdir = '/home/mplace/scripts/delila/src/'
+pdir = scriptDir + 'src/'
 
 # set up log file configuration
 logging.basicConfig(filename='delila_pipeline.log', format='%(asctime)s %(message)s',
@@ -1139,11 +1140,58 @@ class delilaPipe( object ):
         """
         Organize and clean up the files produced by the pipeline.
         """
-        # parameter directory and move all parameter files 
+        cwd = os.getcwd() + '/'
 
-        # intermediate files
+        if not os.path.exists('parameters'):
+            os.mkdir('parameters')
+        # move parameter file
+        [ os.rename( cwd + par, cwd + 'parameters/' +  par) for par in os.listdir(cwd) if par.endswith('p') ]
+        
+        if not os.path.exists('other'):
+            os.mkdir('other')
+        # move cat1,cat2,cat3
+        for cat in os.listdir():
+            if re.match('cat\d',cat):
+                os.rename(cwd + cat, cwd + 'other/' + cat)
+        # move lib1,lib2,lib3
+        for lib in os.listdir():
+            if re.match('lib\d',lib):
+                os.rename(cwd + lib, cwd + 'other/' + lib)
+        # move l1,l2,l3
+        for l in os.listdir():
+            if re.match('l\d',l):
+                os.rename(cwd + l, cwd + 'other/' + l)        
+        # move books to book dir
+        if not os.path.exists('books'):
+            os.mkdir('books')
+        [ os.rename(cwd + bk, cwd + 'books/' + bk) for bk in os.listdir(cwd) if bk.endswith('_book.txt') ]
+        # remove listing files 
+        [ os.remove(cwd + listing) for listing in os.listdir(cwd) if listing.endswith('_listing.txt') ]
+        # move instruction files
+        if not os.path.exists('instructions'):
+            os.mkdir('instructions')
+        [ os.rename(cwd + inst, cwd + 'instructions/' + inst) for inst in os.listdir(cwd) if inst.endswith('inst') ]
+        os.rename(cwd + 'MERGED_INSTRUCTIONS.txt', cwd + 'instructions/' + 'MERGED_INSTRUCTIONS.txt')
+        os.rename(cwd + 'NEW_MERGED_INSTRUCTIONS.txt', cwd + 'instructions/' + 'NEW_MERGED_INSTRUCTIONS.txt')
 
-        pass
+        # move files to the other dir
+        os.rename(cwd + 'New_lib1.txt',cwd + 'other/' + 'New_lib1.txt' )
+        os.rename(cwd + 'optalign',cwd + 'other/' + 'optalign' )
+        os.rename(cwd + 'malignxyin',cwd + 'other/' + 'malignxyin' )
+        os.rename(cwd + 'encseq',cwd + 'other/' + 'encseq' )
+        os.rename(cwd + 'rixyin',cwd + 'other/' + 'rixyin' )
+        os.rename(cwd + 'riplog',cwd + 'other/' + 'riplog' )
+        os.rename(cwd + 'ribl',cwd + 'other/' + 'ribl' )
+        os.rename(cwd + 'humcat', cwd + 'other/' + 'humcat')
+        os.rename(cwd + 'symvec', cwd + 'other/' + 'symvec')       
+        
+        # list files to remove
+        removalList = [ 'malign_list_organized.txt', 'ri_results_organized.txt', 'RI_out.txt', 'uncert',
+        'wave', 'values', 'catin', 'namelist', 'namebook', 'list', 'colors', 'clist','avalues', 'marks',
+        'instructions.list', 'mybooks.txt','distribution' ]
+        # remove files
+        for f in removalList:
+            os.remove(cwd + f)       
 
     def ps2pdf(self):
         """
@@ -1264,12 +1312,6 @@ def main():
         cmdparser.print_help()
         sys.exit(1)
 
-    # check that the boundaries are at least 10 positions apart
-    #if abs(abs(int(left)) - abs(int(right))) < 10:
-    #    print('\n\tLeft and right boundaries should be at least 10 bp apart\n')
-    #    cmdparser.print_help()
-    #   sys.exit(1)
-
     if cmdResults['TSS'] is not None:                  # start site file
         tssFile = cmdResults['TSS'] 
         # attempt to verify site file format
@@ -1344,7 +1386,7 @@ def main():
         rename_lib1.newLib('lib1')
         rename_lib1.moveLib('lib1')
         # now run malign on the book and instruction files  
-        pipe.runMALIGN('MERGED_BOOK.txt', 'MERGED_INSTRUCTIONS.txt')
+        pipe.runMALIGN('MERGED_book.txt', 'MERGED_INSTRUCTIONS.txt')
         # run malin on the malign results   
         pipe.runMALIN('MERGED_INSTRUCTIONS.txt')
         # run catal again prior to running delila  
@@ -1379,15 +1421,15 @@ def main():
     # Use the filtered/refined data set to run the pipeline again, 
     # creating the FINAL logo  
     if bookCount > 1:      
-        logger.info('\nRunning removeRI_books.removeRI on MERGED_BOOK.txt\n')     
+        logger.info('\nRunning removeRI_books.removeRI on MERGED_book.txt\n')     
         riIDs = removeRI_books.parseRI('RI_out.txt')
-        removeRI_books.removeRI('MERGED_BOOK.txt', riIDs) 
+        removeRI_books.removeRI('MERGED_book.txt', riIDs) 
 
         logger.info('\nRunning removeRI_instructions.parseRI on MERGED_INSTRUCTIONS.txt\n')
         removeRI_instructions.removeRI('MERGED_INSTRUCTIONS.txt',riIDs)
 
         # now run malign on the book and instruction files  
-        pipe.runMALIGN('NEW_MERGED_BOOK.txt', 'NEW_MERGED_INSTRUCTIONS.txt')
+        pipe.runMALIGN('NEW_MERGED_book.txt', 'NEW_MERGED_INSTRUCTIONS.txt')
         # run malin on the malign results   
         pipe.runMALIN('NEW_MERGED_INSTRUCTIONS.txt')
         
@@ -1408,7 +1450,7 @@ def main():
         logger.info('\nRunning removeRI_instructions.parseRI on MERGED_INSTRUCTIONS.txt\n')
         removeRI_instructions.removeRI(malignInst ,riIDs)
         
-        pipe.runMALIGN('NEW_MERGED_BOOK.txt', 'NEW_MERGED_INSTRUCTIONS.txt')
+        pipe.runMALIGN('NEW_MERGED_book.txt', 'NEW_MERGED_INSTRUCTIONS.txt')
         pipe.runMALIN('NEW_MERGED_INSTRUCTIONS.txt')
     
     # Finally we can run delila on the malin results
@@ -1421,6 +1463,7 @@ def main():
     pipe.runMAKELOGO('symvec', prefix + '.logo')       # Make Final logo
     pipe.retrievePWM()
     pipe.ps2pdf()
+    pipe.cleanUp()
     
 if __name__ == "__main__":
     main()
