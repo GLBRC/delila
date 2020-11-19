@@ -485,7 +485,7 @@ Static long fatal;
 /*fields involved in piece info.  see constants */
 Static long pfield;
 
-/* the number of blanks to get to the beginning of the data fields in humcat *   /
+/* the number of blanks to get to the beginning of the data fields in humcat */
 Static long todatafield;
 
 /* the genetic map range, read by mapbegend */
@@ -3367,6 +3367,30 @@ _TEXT *newl3, *humcat, *catin, *fout;
   fprintf(fout->f, " see humcat.\n");
 }
 
+void usage() {
+  printf("\n");
+  printf(" catal: program checks all the input libraries for correct structure\n");
+  printf("\n");
+  printf( "parameters: \n");
+  printf("\n  catal -f parameter file\n\n");
+  printf("  -f parameter file\n");
+  printf("   Text file, formatted as follows:\n");
+  printf("\tl1=l1:\n");
+  printf("\tl2=l2\n");
+  printf("\tl3=l3\n");
+  printf("\tcat1=cat1\n");
+  printf("\tcat2=cat2\n");
+  printf("\tcat3=cat3\n");
+  printf("\thumcat=humcat\n");
+  printf("\tcatin=catin\n");
+  printf("\tlib1=lib1\n");
+  printf("\tlib2=lib2\n");
+  printf("\tlib3=lib3\n");
+  printf("\tcatalp=catalp\n");  
+  printf("\n");
+  printf("  version %4.2f\n", version);
+  exit(EXIT_SUCCESS);
+}
 
 int main(int argc, Char **argv)
 {
@@ -3378,7 +3402,6 @@ int main(int argc, Char **argv)
 	int fflag=0;     // file flag 
   char *param;    // 
 	char *fName;
-  static char usage[] = "usage: %s -f <parameter file>\n";
 
   /* Process command line arguments  */
   while ((c = getopt(argc, argv, "f:")) != -1)
@@ -3395,9 +3418,14 @@ int main(int argc, Char **argv)
   /* Is the input parameter file name present */  
 	if (fflag == 0) {	/* -f was mandatory */ 
 		fprintf(stderr, "%s: missing -f parameter file\n", argv[0]);
-		fprintf(stderr, usage, argv[0]);
+		usage();
 		exit(1);
 	} 
+  /* If no command line arguments, print help */ 
+  if (err) {
+		usage();
+		exit(1);
+	}
 	
 	// Open input file
 	FILE *fp = fopen(fName, "r");
