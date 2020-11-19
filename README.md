@@ -1,5 +1,40 @@
 delila_pipeline.py
 
+Quick Start
+-----------
+
+Prior to running delila set scriptDir = the directory where the delila code is located
+in the delila_pipeline.py
+
+    scriptDir = '/home/<userName>/bin/delila/'
+
+    For each c file the p2c.h #include will have to be changed,
+    currently it is: #include </home/mplace/bin/p2c/src/p2c.h>
+    this should be changed to reflex the location of p2c.h
+
+To Create a logo you need to provide the following:
+
+    1) genbank file for your genome of interest 
+    2) sites file which is tab delimited with columns: 
+        
+        chromosome name : must match the chromosome names in genbank file
+        name : unique identifier for site
+        strand :  forward or reverse 
+        position :  base pair position of site
+
+    example:
+    NC_007493.2     RSP_4324_1682   forward 1682
+
+    where NC_007493.2 is a R.sphaeroides chromosome name
+    RSP_4324_1682 is the name
+    forward is the strand 
+    1682 is the base position of the site
+
+To run delila and create a logo:
+
+    delila_pipeline.py -g rhodo_genome.gbff -l -45 -r -25 -t rhodo_sites_for_delila.txt
+    
+
 DESCRIPTION
     Create a sequence logo for user defined sites using the Delila package.
     Supports single or multiple chromosomes.
@@ -43,19 +78,22 @@ DESCRIPTION
     scenario 1:
     Left = -10 
     Right = +10 
+    site example:
     Site position 100, then the bounds are Left = position 90, Right = position 110
     cmd: delila_pipeline.py -g genome.gbff -l -20 -r +10 -t sites_for_delila.txt
     
     scenario 2, looking for the -10 position upstream from a transcription start site position.
     Left = -20
     Right = 0
-    Site at position 100,  Left = position 80, Right = position 100
+    site example:
+    TSS at position 100,  Left = position 80, Right = position 100
     cmd: delila_pipeline.py -g enome.gbff -l -20 -r 0 -t sites_for_delila.txt
     
     
     scenario 3, looking for the -35 position upstream from a transcription start site
     Left = +5
     Right = +25
+    site example:
     TSS at position 100, Left = position 105, Right = position 125
     
     Delila is a modular set of programs which produce results that feed into the next
@@ -76,7 +114,8 @@ DESCRIPTION
     This will produce six files: lib1, lib2, lib3 and cat1, cat2, cat3. These make 
     up the library used by Delila in the next step.
     
-    delila: Extract fragments of sequences from a library of sequences and create 
+    delila:
+    Extract fragments of sequences from a library of sequences and create 
     a subset, a book. This is the core of the Delila system. You give Delila 
     instructions (inst file) and those are used to create the subset desired. 
     For a logo, generally one makes instructions that look like this:
@@ -122,7 +161,6 @@ DESCRIPTION
     running this program does not affect the inst or book files, so can't
     affect later steps. The program is controled by a file `alistp', which 
     stands for alist-parameters. 
-
 
     encode:
     Convert the book/inst into 0 and 1's. This is historically the way
@@ -177,7 +215,7 @@ DESCRIPTION
     12) ri     -- calculate site information
     13) make initial logo -- for comparison to the final logo
     13) filter -- remove sites that ri identified as <= 0 information
-    14) repeat steps 3 through 11
+    14) repeat steps 3 through 11 with filtered sites
     15) make final logo 
     
     Parameters
@@ -219,29 +257,23 @@ DESCRIPTION
     Larry Gold, Nucleic Acids Research, Volume 12, 11 Jan 1984, Pages 129-140,
     doi: 10.1093/nar/12.1part1.129
 
-    https://www.ncbi.nlm.nih.gov/Sitemap/samplerecord.html
+    GenBank Flat File format information :  https://www.ncbi.nlm.nih.gov/Sitemap/samplerecord.html
     
-    General bacterial promoter positioning
     
-      <-- upstream                                            downstream -->
-    5'-XXXXXXXPPPPPPXXXXXXPPPPPPXXXXGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGXXXX-3'
-               -35       -10       Gene to be transcribed
-
-
 Translating and Compiling Delila Programs with P2C
 --------------------------------------------------
 The original delila Pascal code is available here : users.fred.net/tds/lab/delila.html
 
 The Delila programs can be automatically translated from Pascal to C using
-David Gillespie's p2c translater. They then can be compiled by the gcc compiler.
+David Gillespie's p2c translater. The resulting c code can be compiled by the gcc compiler.
 This was done for the following programs: alist, catal, comp, dalvec, dbbk, delila, encode,
 makelogo, malign, malin, mkdb, ri, rseq
 
 See  http://users.fred.net/tds/lab/pascalp2c.html for original help,  
 instructions below are adapted from those instructions.
 
-To translate
-------------
+To translate (Pascal to C)
+--------------------------
 
 Obtain the current version of p2c from  
 (https://github.com/FranklinChen/p2c) or 
@@ -260,8 +292,8 @@ control file: .p2crc In your home directory (Linux operating system) you will ne
 
 You may get a warning about "SYSTEM" which you can ignore.
 
-To Compile
-----------
+To Compile C code
+-----------------
 
 1) You will need to get the libraries from the p2c package and compile them on your machine.
 2) You will need the p2c.h file. This can be stored in /usr/local/include in a directory 
@@ -269,7 +301,7 @@ To Compile
 3) You will need several /usr/local/lib files. Put the files into /usr/local/lib/p2c.
    These are in the files picked up by -L/usr/local/lib flag for gcc, below.
 
-If you put your p2c /home/<userName>/bin/p2c/src/   and make sure to include
+If you put p2c /home/<userName>/bin/p2c/src/   and make sure to include
 the following headers in the c code:
 
 #include <getopt.h>  /* getopt API */
@@ -279,12 +311,7 @@ the following headers in the c code:
 
 Then dbbk.c will compile with the following command using gcc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0
 
-gcc  dbbk.c -o dbbk  -I/home/mplace/bin/p2c/src -L /home/mplace/bin/p2c/src -lm -lp2c
-
-
-
-
-
+gcc  dbbk.c -o dbbk  -I/home/<userName>/bin/p2c/src -L /home/<userName>/bin/p2c/src -lm -lp2c
 
 
 
