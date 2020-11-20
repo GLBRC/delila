@@ -401,7 +401,7 @@ typedef struct orgkey {
 /* chromosome key */
 typedef struct chrkey {
   header hea;
-  double mapbeg; /* number of genetic map beginning /
+  double mapbeg; /* number of genetic map beginning*/
   double mapend; /* number of genetic map ending */ 
 } chrkey;
 
