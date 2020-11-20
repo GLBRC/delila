@@ -1,10 +1,8 @@
-delila_pipeline.py
-
 Quick Start
 -----------
 
-Prior to running delila you will need to define the script directory by editing the
-scriptDir varible in the delila_pipeline.py file.
+    Prior to running delila you will need to define the script directory by editing the
+    scriptDir varible in the delila_pipeline.py file.
 
     scriptDir = '/home/<userName>/bin/delila/'
     or wherever you have put it.
@@ -13,31 +11,31 @@ scriptDir varible in the delila_pipeline.py file.
 Compile C code
 -----------------
 
-1) You will need to get the libraries from the p2c package and compile them on your machine.
-2) You will need the p2c.h file. This can be stored in /usr/local/include in a directory
-   (or a directory of your choice) called 'p2c', which is the location given in the 
-   -I flag for gcc, below.
-3) You will need several /usr/local/lib files. Put the files into /usr/local/lib/p2c.
-   (or a directory of your choice)
-   These are in the files picked up by -L/usr/local/lib flag for gcc, below.
+    1) You will need to get the libraries from the p2c package and compile them on your machine.
+    2) You will need the p2c.h file. This can be stored in /usr/local/include in a directory
+    (or a directory of your choice) called 'p2c', which is the location given in the 
+    -I flag for gcc, below.
+    3) You will need several /usr/local/lib files. Put the files into /usr/local/lib/p2c.
+    (or a directory of your choice)
+    These are in the files picked up by -L/usr/local/lib flag for gcc, below.
 
-If you put p2c /home/<userName>/bin/p2c/src/   and make sure to change the path in
-the following header in the c code:
+    If you put p2c /home/<userName>/bin/p2c/src/   and make sure to change the path in
+    the following header in the c code:
 
-#include </home/<userName/bin/p2c/src/p2c.h>
+    #include </home/<userName/bin/p2c/src/p2c.h>
 
-Then run the Makefile in the src directory.
+    Then run the Makefile in the src directory.
 
-cd src
-make
+    cd src
+    make
 
-This code has been compiled with gcc 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04), but any 
-relatively recent gcc compiler should work.
+    This code has been compiled with gcc 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04), but any 
+    relatively recent gcc compiler should work.
 
-To compile individual files, here is an example with dbbk.c: 
+    To compile individual files, here is an example with dbbk.c: 
 
-gcc  dbbk.c -o dbbk  -I/home/<userName>/bin/p2c/src -L /home/<userName>/bin/p2c/src -lm -lp2c
- 
+    gcc  dbbk.c -o dbbk  -I/home/<userName>/bin/p2c/src -L /home/<userName>/bin/p2c/src -lm -lp2c
+    
 Create Logo
 -----------
 
