@@ -260,6 +260,56 @@ DESCRIPTION
     doi: 10.1093/nar/12.1part1.129
 
     GenBank Flat File format information :  https://www.ncbi.nlm.nih.gov/Sitemap/samplerecord.html
+
+Python Scripts
+--------------
+
+Program: delila_pipline.py 
+
+    Create a sequence logo for sequence sites using the Delila package.
+
+    The original delila site: http://users.fred.net/tds/lab/software.html
+
+To Run:
+
+delila_pipeline.py -g genome.gnbk -t sites_info.txt -l -10 -r +5
+
+    -g genome genbank file 
+    -l left boundary relative to site, defaults to -10
+    -t site information file
+    -r right boundary relative to site, defaults to +10
+
+    Site information file provides chromosome, name, strand, position in a tab delimited format.
+
+	 NC_007488.2     RSP_4039_1700   forward 1700
+	 NC_007488.2     RSP_4025_19218  reverse 19218
+
+Output :
+
+    Logo postscript file
+    Logo pdf 
+    position weight matrix file 
+
+Program: delila_instructions.py
+
+    Writes delila instruction files.  If multiple chromosomes are present, these will be split
+    into separate files.  Called by delila_pipeline.py
+
+To Run:
+
+delila_instructions.py -f <TSS_site_file.txt> -l <int> -r <int>
+
+Split TSS file by chromosome.
+
+optional arguments:
+  -h, --help        show this help message and exit
+  -f , --file       Text file, containing TSS sites
+  -l , --left       Left boundary base position
+  -o , --organism   Organism
+  -r , --right      Right boundary base position
+
+
+
     
     
 Translating and Compiling Delila Programs with P2C

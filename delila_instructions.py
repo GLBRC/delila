@@ -1,17 +1,12 @@
 #!/home/mplace/anaconda3.7/bin/python
 """delila_instructions.py
 
-Split input Transcription Start site file by chromosome.
-
-Notes
------ 
-
-Delila only handles one chromosome at a time.   
+Writes delila instruction files.
 
 Method
 ------
 
-Read TSS file line by line.  Parse each line identifying the chromosome.
+Read Site file line by line.  Parse each line identifying the chromosome.
 Write each chromosome's lines to a new file, named by chromosomeName_TSS.txt.
     
 Parameters

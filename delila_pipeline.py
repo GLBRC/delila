@@ -1204,11 +1204,11 @@ class delilaPipe( object ):
             subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
 
 def main():
-    usage ='%(prog)s -g genome.gnbk -t tss_file.txt -l -10 -r +10'             
-    cmdparser = argparse.ArgumentParser(description="Delila pipeline to make sequence logo within left to right sequence boundaries.",
+    usage ='%(prog)s -g genome.gnbk -t sire_file.txt -l -10 -r +10'             
+    cmdparser = argparse.ArgumentParser(description="Delila pipeline constructs a sequence logo around a site.",
                                         usage=usage, prog='delila_pipeline.py'  )                          
     cmdparser.add_argument('-g', '--genbank', action='store', dest='GENBANK',
-                            help='Genbank file')
+                            help='Genbank file', metavar='')
     cmdparser.add_argument('-i', '--info', action='store_true', dest='INFO',
                             help='Print script information to stdout') 
     cmdparser.add_argument('-l', '-left', action='store', dest='LEFT', metavar='',
@@ -1232,6 +1232,8 @@ def main():
         print("")
         print("    Create a sequence logo for sequence sites using the Delila package.")
         print("")
+        print("    The original delila site: http://users.fred.net/tds/lab/software.html")
+        print("")
         print("To Run:\n")
         print("delila_pipeline.py -g genome.gnbk -t sites_info.txt -l -10 -r +5")
         print("")
@@ -1240,7 +1242,7 @@ def main():
         print("    -t site information file")
         print("    -r right boundary relative to site, defaults to +10")
         print("")
-        print("    TSS file provides chromosome, name, strand, position information in a tab delimited format.")
+        print("    Site information file provides chromosome, name, strand, position in a tab delimited format.")
         print("")
         print("\t NC_007488.2     RSP_4039_1700   forward 1700")
         print("\t NC_007488.2     RSP_4025_19218  reverse 19218")
@@ -1250,7 +1252,6 @@ def main():
         print("    Logo postscript file") 
         print("    Logo pdf ")
         print("    position weight matrix file ")
-        print("")
         print("")
         print("")
         print("For help contact:  bioinformaticshelp@glbrc.wisc.edu\n")
