@@ -1171,11 +1171,15 @@ class delilaPipe( object ):
         if not os.path.exists('instructions'):
             os.mkdir('instructions')
         [ os.rename(cwd + inst, cwd + 'instructions/' + inst) for inst in os.listdir(cwd) if inst.endswith('inst') ]
-        os.rename(cwd + 'MERGED_INSTRUCTIONS.txt', cwd + 'instructions/' + 'MERGED_INSTRUCTIONS.txt')
+        
+        if os.path.exists('MERGED_INSTRUCTIONS.txt'):
+            os.rename(cwd + 'MERGED_INSTRUCTIONS.txt', cwd + 'instructions/' + 'MERGED_INSTRUCTIONS.txt')
+        
         os.rename(cwd + 'NEW_MERGED_INSTRUCTIONS.txt', cwd + 'instructions/' + 'NEW_MERGED_INSTRUCTIONS.txt')
 
         # move files to the other dir
-        os.rename(cwd + 'New_lib1.txt',cwd + 'other/' + 'New_lib1.txt' )
+        if os.path.exists('New_lib1.txt'):
+            os.rename(cwd + 'New_lib1.txt',cwd + 'other/' + 'New_lib1.txt' )
         os.rename(cwd + 'optalign',cwd + 'other/' + 'optalign' )
         os.rename(cwd + 'malignxyin',cwd + 'other/' + 'malignxyin' )
         os.rename(cwd + 'encseq',cwd + 'other/' + 'encseq' )
@@ -1204,7 +1208,7 @@ class delilaPipe( object ):
             subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
 
 def main():
-    usage ='%(prog)s -g genome.gnbk -t sire_file.txt -l -10 -r +10'             
+    usage ='%(prog)s -g genome.gnbk -t site_file.txt -l -10 -r +10'             
     cmdparser = argparse.ArgumentParser(description="Delila pipeline constructs a sequence logo around a site.",
                                         usage=usage, prog='delila_pipeline.py'  )                          
     cmdparser.add_argument('-g', '--genbank', action='store', dest='GENBANK',
