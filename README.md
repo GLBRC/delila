@@ -292,7 +292,7 @@ References
 Python Scripts
 --------------
 
-    delila_pipline.py 
+    delila_pipline.py  -- Primary script, runs delila
 
     Create a sequence logo for sequence sites using the Delila package.
 
@@ -324,7 +324,7 @@ Python Scripts
     into separate files.  Called by delila_pipeline.py
 
 
-The following scripts are part of the pipeline
+Other scripts which are part of the pipeline
 ----------------------------------------------
 
     delila_instructions.py -f <TSS_site_file.txt> -l <int> -r <int>
@@ -397,8 +397,8 @@ The following scripts are part of the pipeline
     optional arguments:
     -h, --help  show this help message and exit
 
-scripts not in the pipeline
----------------------------
+script not in pipeline 
+----------------------
 
     filter_TSS.py 
 
@@ -448,29 +448,3 @@ To translate (Pascal to C)
         StructFiles 1
 
     You may get a warning about "SYSTEM" which you can ignore.
-
-To Compile C code
------------------
-
-    1) You will need to get the libraries from the p2c package and compile them on your machine.
-    2) You will need the p2c.h file. This can be stored in /usr/local/include in a directory 
-    called 'p2c', which is the location given in the -I flag for gcc, below.
-    3) You will need several /usr/local/lib files. Put the files into /usr/local/lib/p2c.
-    These are in the files picked up by -L/usr/local/lib flag for gcc, below.
-
-    If you put p2c /home/<userName>/bin/p2c/src/   and make sure to include
-    the following headers in the c code:
-
-    #include <getopt.h>  /* getopt API */
-    #include <stdio.h> /* printf */
-    #include <stdlib.h>
-    #include </home/<userName/bin/p2c/src/p2c.h>
-
-    Then dbbk.c will compile with the following command using gcc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0
-
-    gcc  dbbk.c -o dbbk  -I/home/<userName>/bin/p2c/src -L /home/<userName>/bin/p2c/src -lm -lp2c
-
-
-
-
-
