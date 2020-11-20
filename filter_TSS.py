@@ -91,10 +91,10 @@ def filterSites(inFile, baseNum):
 
 def main():
     
-    cmdparser = argparse.ArgumentParser(description="Filter TSS file by number of bases overlap, file MUST BE SORTED.",
-                                        usage='%(prog)s -f <TSS_site_file.txt> -n <int>'  ,prog='filter_TSS.py'  )
+    cmdparser = argparse.ArgumentParser(description="Remove sites with x number of bases overlap, file MUST BE SORTED.",
+                                        usage='%(prog)s -f <site_file.txt> -n <int>'  ,prog='filter_TSS.py'  )
     cmdparser.add_argument('-f', '--file',  action='store', dest='FILE',
-                            help='Text file, containing TSS sites', metavar='')
+                            help='Text file, containing sites', metavar='')
     cmdparser.add_argument('-n', '--number', action='store', dest='NUM',help='Number of base overlap, default(15)', metavar='') 
     cmdResults = vars(cmdparser.parse_args())
         
