@@ -3,11 +3,13 @@ delila_pipeline.py
 Quick Start
 -----------
 
-Prior to running delila set scriptDir = the directory where the delila code is located
-in the delila_pipeline.py
+Prior to running delila you will need to define the script directory by editing the
+scriptDir varible in the delila_pipeline.py file.
 
     scriptDir = '/home/<userName>/bin/delila/'
+    or where ever you have put it.
 
+    
     For each c file the p2c.h #include will have to be changed,
     currently it is: #include </home/mplace/bin/p2c/src/p2c.h>
     this should be changed to reflex the location of p2c.h
