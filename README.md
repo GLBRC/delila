@@ -39,7 +39,7 @@ Compile C code
 Create Logo
 -----------
 
-You need to provide the following:
+    You need to provide the following:
 
     1) genbank file for your genome of interest 
     2) sites file which is tab delimited with columns: 
@@ -57,12 +57,14 @@ You need to provide the following:
     forward is the strand 
     1682 is the base position of the site
 
-To run delila and create a logo:
+    To run delila and create a logo:
 
     delila_pipeline.py -g rhodo_genome.gbff -l -45 -r -25 -t rhodo_sites_for_delila.txt
     
 
 DESCRIPTION
+-----------
+
     Create a sequence logo for user defined sites using the Delila package.
     Supports single or multiple chromosomes.
     
@@ -270,8 +272,9 @@ DESCRIPTION
     
        delila_pipeline.py -g rhodo_genome.gbff -t TSS.txt -l -8  -r +5
 
-   References
-    ----------
+References
+----------
+
     
     http://users.fred.net/tds/lab/delila.html
     
@@ -289,15 +292,15 @@ DESCRIPTION
 Python Scripts
 --------------
 
-delila_pipline.py 
+    delila_pipline.py 
 
     Create a sequence logo for sequence sites using the Delila package.
 
     The original delila site: http://users.fred.net/tds/lab/software.html
 
-To Run:
+    To Run:
 
-delila_pipeline.py -g genome.gnbk -t sites_info.txt -l -10 -r +5
+    delila_pipeline.py -g genome.gnbk -t sites_info.txt -l -10 -r +5
 
     -g genome genbank file 
     -l left boundary relative to site, defaults to -10
@@ -309,13 +312,13 @@ delila_pipeline.py -g genome.gnbk -t sites_info.txt -l -10 -r +5
 	 NC_007488.2     RSP_4039_1700   forward 1700
 	 NC_007488.2     RSP_4025_19218  reverse 19218
 
-Output :
+    Primary output :
 
     Logo postscript file
     Logo pdf 
     position weight matrix file 
 
-delila_instructions.py
+    delila_instructions.py
 
     Writes delila instruction files.  If multiple chromosomes are present, these will be split
     into separate files.  Called by delila_pipeline.py
@@ -323,147 +326,149 @@ delila_instructions.py
 
 The following scripts are part of the pipeline
 ----------------------------------------------
-delila_instructions.py -f <TSS_site_file.txt> -l <int> -r <int>
 
-Split TSS file by chromosome.
+    delila_instructions.py -f <TSS_site_file.txt> -l <int> -r <int>
 
-optional arguments:
-  -h, --help        show this help message and exit
-  -f , --file       Text file, containing TSS sites
-  -l , --left       Left boundary base position
-  -o , --organism   Organism
-  -r , --right      Right boundary base position
+    Split TSS file by chromosome.
 
-
-
-merge_books.py -f <input.txt>
-
-Merge Delila chromosome book files.
-
-optional arguments:
-  -h, --help    show this help message and exit
-  -f , --file   delila book file to parse.
+    optional arguments:
+    -h, --help        show this help message and exit
+    -f , --file       Text file, containing TSS sites
+    -l , --left       Left boundary base position
+    -o , --organism   Organism
+    -r , --right      Right boundary base position
 
 
-merge_instructions.py -f <input.txt>
 
-Merge Delila instruction files.
+    merge_books.py -f <input.txt>
 
-optional arguments:
-  -h, --help    show this help message and exit
-  -f , --file   List of delila instruction files to parse.
+    Merge Delila chromosome book files.
 
-
-organizing_ri_delila_results.py -f <fastq file list.txt> [optional args: -a -r -d -ref ]
-
-Removal of sites with negative Ri values in Delila.
-
-optional arguments:
-  -h, --help           show this help message and exit
-  -l , --malign_list   malign_list file from Delila pipeline.
-  -r , --rixyin_file   Rixyin results file from Ri in the Delila pipeline
-  -d, --detail         Print a more detailed description of program.
-  -o , --output        Output file name. Default is
-                       "positive_Ri_updated_locations.txt".
+    optional arguments:
+    -h, --help    show this help message and exit
+    -f , --file   delila book file to parse.
 
 
-removeRI_books.py -f <input.txt> -r <RI_out.txt>
+    merge_instructions.py -f <input.txt>
 
-Filter book file by ri score.
+    Merge Delila instruction files.
 
-optional arguments:
-  -h, --help    show this help message and exit
-  -f , --file   Merged delila book file to parse.
-  -r , --ri     RI_out.txt file
+    optional arguments:
+    -h, --help    show this help message and exit
+    -f , --file   List of delila instruction files to parse.
+
+    organizing_ri_delila_results.py -f <fastq file list.txt> [optional args: -a -r -d -ref ]
+
+    Removal of sites with negative Ri values in Delila.
+
+    optional arguments:
+    -h, --help           show this help message and exit
+    -l , --malign_list   malign_list file from Delila pipeline.
+    -r , --rixyin_file   Rixyin results file from Ri in the Delila pipeline
+    -d, --detail         Print a more detailed description of program.
+    -o , --output        Output file name. Default is
+                        "positive_Ri_updated_locations.txt".
 
 
-removeRI_instructions.py -f <input.txt> -r <RI_out.txt>
+    removeRI_books.py -f <input.txt> -r <RI_out.txt>
 
-Filter instructions file by ri score.
+    Filter book file by ri score.
 
-optional arguments:
-  -h, --help    show this help message and exit
-  -f , --file   Merged instructions file to parse.
-  -r , --ri     RI_out.txt file
+    optional arguments:
+    -h, --help    show this help message and exit
+    -f , --file   Merged delila book file to parse.
+    -r , --ri     RI_out.txt file
 
 
-rename_lib1.py 
+    removeRI_instructions.py -f <input.txt> -r <RI_out.txt>
 
-Rename chromosome & piece tags in lib1 file.
+    Filter instructions file by ri score.
 
-optional arguments:
-  -h, --help  show this help message and exit
+    optional arguments:
+    -h, --help    show this help message and exit
+    -f , --file   Merged instructions file to parse.
+    -r , --ri     RI_out.txt file
+
+
+    rename_lib1.py 
+
+    Rename chromosome & piece tags in lib1 file.
+
+    optional arguments:
+    -h, --help  show this help message and exit
 
 scripts not in the pipeline
 ---------------------------
-filter_TSS.py 
 
-Not part of the pipeline, but can be used prior to running delila_pipeline.py
-to remove overlapping sites.
+    filter_TSS.py 
 
-To Run:
+    Not part of the pipeline, but can be used prior to running delila_pipeline.py
+    to remove overlapping sites.
 
-filter_TSS.py -f <site_file.txt> -n <int>
+    To Run:
 
-Remove sites with x number of bases overlap, file MUST BE SORTED.
+    filter_TSS.py -f <site_file.txt> -n <int>
 
-optional arguments:
-  -h, --help      show this help message and exit
-  -f , --file     Text file, containing sites
-  -n , --number   Number of base overlap, default(15)
+    Remove sites with x number of bases overlap, file MUST BE SORTED.
+
+    optional arguments:
+    -h, --help      show this help message and exit
+    -f , --file     Text file, containing sites
+    -n , --number   Number of base overlap, default(15)
+
 
 Translating and Compiling Delila Programs with P2C
 --------------------------------------------------
-The original delila Pascal code is available here : users.fred.net/tds/lab/delila.html
+    The original delila Pascal code is available here : users.fred.net/tds/lab/delila.html
 
-The Delila programs can be automatically translated from Pascal to C using
-David Gillespie's p2c translater. The resulting c code can be compiled by the gcc compiler.
-This was done for the following programs: alist, catal, comp, dalvec, dbbk, delila, encode,
-makelogo, malign, malin, mkdb, ri, rseq
+    The Delila programs can be automatically translated from Pascal to C using
+    David Gillespie's p2c translater. The resulting c code can be compiled by the gcc compiler.
+    This was done for the following programs: alist, catal, comp, dalvec, dbbk, delila, encode,
+    makelogo, malign, malin, mkdb, ri, rseq
 
-See  http://users.fred.net/tds/lab/pascalp2c.html for original help,  
-instructions below are adapted from those instructions.
+    See  http://users.fred.net/tds/lab/pascalp2c.html for original help,  
+    instructions below are adapted from those instructions.
 
 To translate (Pascal to C)
 --------------------------
 
-Obtain the current version of p2c from  
-(https://github.com/FranklinChen/p2c) or 
-(https://www.gsp.com/cgi-bin/man.cgi?section=1&topic=p2c)
+    Obtain the current version of p2c from  
+    (https://github.com/FranklinChen/p2c) or 
+    (https://www.gsp.com/cgi-bin/man.cgi?section=1&topic=p2c)
 
-You will need three files:
+    You will need three files:
 
-include file: p2c.h
-pascal library: p2clib.c
-control file: .p2crc In your home directory (Linux operating system) you will need to have a
-              control file for p2c (it's called .p2crc) with following lines:
-  
-    LiteralFiles 2
-    NestedComments 2
-    StructFiles 1
+    include file: p2c.h
+    pascal library: p2clib.c
+    control file: .p2crc In your home directory (Linux operating system) you will need to have a
+                control file for p2c (it's called .p2crc) with following lines:
+    
+        LiteralFiles 2
+        NestedComments 2
+        StructFiles 1
 
-You may get a warning about "SYSTEM" which you can ignore.
+    You may get a warning about "SYSTEM" which you can ignore.
 
 To Compile C code
 -----------------
 
-1) You will need to get the libraries from the p2c package and compile them on your machine.
-2) You will need the p2c.h file. This can be stored in /usr/local/include in a directory 
-   called 'p2c', which is the location given in the -I flag for gcc, below.
-3) You will need several /usr/local/lib files. Put the files into /usr/local/lib/p2c.
-   These are in the files picked up by -L/usr/local/lib flag for gcc, below.
+    1) You will need to get the libraries from the p2c package and compile them on your machine.
+    2) You will need the p2c.h file. This can be stored in /usr/local/include in a directory 
+    called 'p2c', which is the location given in the -I flag for gcc, below.
+    3) You will need several /usr/local/lib files. Put the files into /usr/local/lib/p2c.
+    These are in the files picked up by -L/usr/local/lib flag for gcc, below.
 
-If you put p2c /home/<userName>/bin/p2c/src/   and make sure to include
-the following headers in the c code:
+    If you put p2c /home/<userName>/bin/p2c/src/   and make sure to include
+    the following headers in the c code:
 
-#include <getopt.h>  /* getopt API */
-#include <stdio.h> /* printf */
-#include <stdlib.h>
-#include </home/<userName/bin/p2c/src/p2c.h>
+    #include <getopt.h>  /* getopt API */
+    #include <stdio.h> /* printf */
+    #include <stdlib.h>
+    #include </home/<userName/bin/p2c/src/p2c.h>
 
-Then dbbk.c will compile with the following command using gcc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0
+    Then dbbk.c will compile with the following command using gcc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0
 
-gcc  dbbk.c -o dbbk  -I/home/<userName>/bin/p2c/src -L /home/<userName>/bin/p2c/src -lm -lp2c
+    gcc  dbbk.c -o dbbk  -I/home/<userName>/bin/p2c/src -L /home/<userName>/bin/p2c/src -lm -lp2c
 
 
 
