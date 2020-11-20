@@ -7,14 +7,41 @@ Prior to running delila you will need to define the script directory by editing 
 scriptDir varible in the delila_pipeline.py file.
 
     scriptDir = '/home/<userName>/bin/delila/'
-    or where ever you have put it.
+    or wherever you have put it.
 
     
-    For each c file the p2c.h #include will have to be changed,
-    currently it is: #include </home/mplace/bin/p2c/src/p2c.h>
-    this should be changed to reflex the location of p2c.h
+Compile C code
+-----------------
 
-To Create a logo you need to provide the following:
+1) You will need to get the libraries from the p2c package and compile them on your machine.
+2) You will need the p2c.h file. This can be stored in /usr/local/include in a directory
+   (or a directory of your choice) called 'p2c', which is the location given in the 
+   -I flag for gcc, below.
+3) You will need several /usr/local/lib files. Put the files into /usr/local/lib/p2c.
+   (or a directory of your choice)
+   These are in the files picked up by -L/usr/local/lib flag for gcc, below.
+
+If you put p2c /home/<userName>/bin/p2c/src/   and make sure to change the path in
+the following header in the c code:
+
+#include </home/<userName/bin/p2c/src/p2c.h>
+
+Then run the Makefile in the src directory.
+
+cd src
+make
+
+This code has been compiled with gcc 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04), but any 
+relatively recent gcc compiler should work.
+
+To compile individual files, here is an example with dbbk.c: 
+
+gcc  dbbk.c -o dbbk  -I/home/<userName>/bin/p2c/src -L /home/<userName>/bin/p2c/src -lm -lp2c
+ 
+Create Logo
+-----------
+
+You need to provide the following:
 
     1) genbank file for your genome of interest 
     2) sites file which is tab delimited with columns: 
@@ -264,7 +291,7 @@ DESCRIPTION
 Python Scripts
 --------------
 
-Program: delila_pipline.py 
+delila_pipline.py 
 
     Create a sequence logo for sequence sites using the Delila package.
 
@@ -290,13 +317,14 @@ Output :
     Logo pdf 
     position weight matrix file 
 
-Program: delila_instructions.py
+delila_instructions.py
 
     Writes delila instruction files.  If multiple chromosomes are present, these will be split
     into separate files.  Called by delila_pipeline.py
 
-To Run:
 
+The following scripts are part of the pipeline
+----------------------------------------------
 delila_instructions.py -f <TSS_site_file.txt> -l <int> -r <int>
 
 Split TSS file by chromosome.
@@ -310,8 +338,82 @@ optional arguments:
 
 
 
-    
-    
+merge_books.py -f <input.txt>
+
+Merge Delila chromosome book files.
+
+optional arguments:
+  -h, --help    show this help message and exit
+  -f , --file   delila book file to parse.
+
+
+merge_instructions.py -f <input.txt>
+
+Merge Delila instruction files.
+
+optional arguments:
+  -h, --help    show this help message and exit
+  -f , --file   List of delila instruction files to parse.
+
+
+organizing_ri_delila_results.py -f <fastq file list.txt> [optional args: -a -r -d -ref ]
+
+Removal of sites with negative Ri values in Delila.
+
+optional arguments:
+  -h, --help           show this help message and exit
+  -l , --malign_list   malign_list file from Delila pipeline.
+  -r , --rixyin_file   Rixyin results file from Ri in the Delila pipeline
+  -d, --detail         Print a more detailed description of program.
+  -o , --output        Output file name. Default is
+                       "positive_Ri_updated_locations.txt".
+
+
+removeRI_books.py -f <input.txt> -r <RI_out.txt>
+
+Filter book file by ri score.
+
+optional arguments:
+  -h, --help    show this help message and exit
+  -f , --file   Merged delila book file to parse.
+  -r , --ri     RI_out.txt file
+
+
+removeRI_instructions.py -f <input.txt> -r <RI_out.txt>
+
+Filter instructions file by ri score.
+
+optional arguments:
+  -h, --help    show this help message and exit
+  -f , --file   Merged instructions file to parse.
+  -r , --ri     RI_out.txt file
+
+
+rename_lib1.py 
+
+Rename chromosome & piece tags in lib1 file.
+
+optional arguments:
+  -h, --help  show this help message and exit
+
+scripts not in the pipeline
+---------------------------
+filter_TSS.py 
+
+Not part of the pipeline, but can be used prior to running delila_pipeline.py
+to remove overlapping sites.
+
+To Run:
+
+filter_TSS.py -f <site_file.txt> -n <int>
+
+Remove sites with x number of bases overlap, file MUST BE SORTED.
+
+optional arguments:
+  -h, --help      show this help message and exit
+  -f , --file     Text file, containing sites
+  -n , --number   Number of base overlap, default(15)
+
 Translating and Compiling Delila Programs with P2C
 --------------------------------------------------
 The original delila Pascal code is available here : users.fred.net/tds/lab/delila.html
