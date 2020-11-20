@@ -4,6 +4,7 @@
 # This code has been converted from Pascal to C using p2c.
 # The conversion is not perfect for each program warnings
 # are generated, the -w flag turns off these warnings.
+# The warnings do not seem to impact the running of the programs.
 # 
 SHELL = /bin/bash
 CC = gcc
