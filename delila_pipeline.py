@@ -538,7 +538,7 @@ class delilaPipe( object ):
             out.write('-5 +5\n')   # shiftmin, shiftmax: minimum and maximum shift of aligned base
             out.write('54321\n')   # iseed: integer random seed
             out.write('0\n')       # nranseq: number of random sequences, or 0 to use sequences in book
-            out.write('2000\n')    # nshuffle: number of times to redo alignment after random shuffle
+            out.write('1000\n')    # nshuffle: number of times to redo alignment after random shuffle
             out.write('0\n')       # ifpaired: 1 for pairs of complementary sequences for symmetric site
             out.write('-1\n')      # standout: -1 no, 0 limited, 1 full standard output
             out.write('-1\n')      # npassout: output H and alignment every npassout passes
@@ -1187,7 +1187,10 @@ class delilaPipe( object ):
         os.rename(cwd + 'riplog',cwd + 'other/' + 'riplog' )
         os.rename(cwd + 'ribl',cwd + 'other/' + 'ribl' )
         os.rename(cwd + 'humcat', cwd + 'other/' + 'humcat')
-        os.rename(cwd + 'symvec', cwd + 'other/' + 'symvec')       
+        os.rename(cwd + 'symvec', cwd + 'other/' + 'symvec')      
+        os.rename(cwd + 'rsdata', cwd + 'other/' + 'rsdata') 
+        for chg in glob.glob('*_changes.txt'):
+            os.rename(cwd + chg, cwd + 'other/' + chg)
         
         # list files to remove
         removalList = [ 'malign_list_organized.txt', 'ri_results_organized.txt', 'RI_out.txt', 'uncert',
@@ -1421,7 +1424,7 @@ def main():
 
     # MAKE IN INITIAL LOGO TO COMPARE WITH THE FINAL LOG
     pipe.runMAKELOGO('symvec', prefix + '-initial.logo')       # make logo
-        
+    '''    
     ### REFINE THE LOGO BY REMOVING SITES WITH AN RI score 0 or less     
     # Use the filtered/refined data set to run the pipeline again, 
     # creating the FINAL logo  
@@ -1465,10 +1468,11 @@ def main():
     pipe.runCOMP(book, 'compp')
     pipe.runRSEQ('cmp', 'encseq')
     pipe.runDALVEC('rsdata')
-    pipe.runMAKELOGO('symvec', prefix + '.logo')       # Make Final logo
+    pipe.runMAKELOGO('symvec', prefix + '-FINAL.logo')       # Make Final logo
+    '''
     pipe.retrievePWM()
     pipe.ps2pdf()
-    pipe.cleanUp()
+    #pipe.cleanUp()
     
 if __name__ == "__main__":
     main()
