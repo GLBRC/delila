@@ -154,42 +154,15 @@ def main():
                 out.write('name \"{}\";\n'.format(dat[1]))    # each site's info is precedded by the site name 
                 
                 # handle the strandedness and write request to instruction file
-                if left < 0 and right > 0:                    #  left = -10 right = +10, directly uses the position given in the sites files.
-                    if dat[2] == 'forward':
-                        direction = '+'
-                        pos = str(int(dat[3]))   
-                        out.write('get from {} -{} to {} +{} direction {};\n'.format(pos, str(abs(left)), pos, str(right),direction )) 
-                    else:
-                        direction = '-'
-                        pos = str(int(dat[3])) 
-                        out.write('get from {} +{} to {} -{} direction {};\n'.format(pos, str(right), pos, str(abs(left)) ,direction))                  
-                elif left < 0 and right <= 0:                 # shifts position to the left of the site, i.e. upstream
-                    if right == 0:
-                        shiftPos = int(dat[3]) - leftBoundary               # shift to the middle of window in the case of right boundary = zero 
-                    else:
-                        shiftPos = int(dat[3]) -  (abs(right) + rightBoundary)  
-
-                    if dat[2] == 'forward':
-                        direction = '+'
-                        out.write('get from {} -{} to {} +{} direction {};\n'.format(shiftPos, leftBoundary, shiftPos, rightBoundary, direction)) 
-                    else:
-                        direction = '-'
-                        out.write('get from {} +{} to {} -{} direction {};\n'.format(shiftPos, rightBoundary, shiftPos, leftBoundary ,direction)) 
-                else:  # we have left >=0 and right >0
-                    if left == 0:
-                        shiftPos = int(dat[3]) + leftBoundary               # shift to the middle of window in the case of right boundary = zero   
-                    else:
-                        shiftPos = int(dat[3]) + (abs(left) + leftBoundary)
-
-                    if dat[2] == 'forward':
-                        direction = '+'
-                        out.write('get from {} -{} to {} +{} direction {};\n'.format(shiftPos, leftBoundary, shiftPos, rightBoundary, direction)) 
-                    else:
-                        direction = '-'
-                        out.write('get from {} +{} to {} -{} direction {};\n'.format(shiftPos, rightBoundary, shiftPos, leftBoundary ,direction))                     
-
-                                             
-                   
+                # left = -10 right = +10, directly uses the position given in the sites files.
+                if dat[2] == 'forward':
+                    direction = '+'
+                    pos = str(int(dat[3]))   
+                    out.write('get from {} -{} to {} +{} direction {};\n'.format(pos, str(abs(left)), pos, str(right),direction )) 
+                else:
+                    direction = '-'
+                    pos = str(int(dat[3])) 
+                    out.write('get from {} +{} to {} -{} direction {};\n'.format(pos, str(right), pos, str(abs(left)) ,direction))                  
         out.close()
 
     # delete a previously created file
