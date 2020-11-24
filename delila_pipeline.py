@@ -280,14 +280,11 @@ class delilaPipe( object ):
         delilaBook      list of books from the Delila program output
         tss             sites input file
         left,right      input left and right window around site
-        leftBoundary    calculated left boundary
-        rightBoundary   calculated right boundary
-
         """
         self.cat1        = 'cat1'              # cat1, cat2, cat3 required by delila, only cat1 has info
         self.cat2        = 'cat2'
         self.cat3        = 'cat3'
-        self.catalParams = 'catalp'
+        self.catalParams = 'catalparameters'
         self.dbbkChanges = prefix + '_' + 'dbbk_changes.txt'  # record seq changes from dbbk
         self.delilaBOOK  = []                  # list of books, Output of Delila program  
         self.gnbk        = genbank             # genbank file, the primary input file
@@ -302,14 +299,6 @@ class delilaPipe( object ):
         self.tss         = tss                 # Transcription Start Site information file name
         self.left        = left                # left bound number, +/-
         self.right       = right               # right bound number, +/-
-
-        # strip sign if present from left and right bounds, for the makelogo, rip files
-        if int(self.left) < 0 and int(self.right) > 0:
-            self.leftBoundary = abs(int(self.left))
-            self.rightBoundary = abs(int(self.right))
-        else:
-            self.leftBoundary = round(abs(abs(int(self.left)) - abs(int(self.right)))/2)     
-            self.rightBoundary = abs(abs(int(self.left)) - abs(int(self.right))) - self.leftBoundary
 
     def __repr__(self):
         '''
@@ -372,7 +361,7 @@ class delilaPipe( object ):
         '''
         Write catal parameters file
         '''
-        with open('catalp', 'w') as out:
+        with open('catalparameters', 'w') as out:
             out.write('l1=l1\n')
             out.write('l2=l2\n')
             out.write('l3=l3\n')
@@ -413,6 +402,10 @@ class delilaPipe( object ):
         # create catal parameters file
         if not os.path.exists(self.catalParams):
             self.catalParameters()
+        
+        with open('catalp','w') as catalout:
+            pass
+        catalout.close()
 
         program = pdir + 'catal'                         # path to catal
         cmd = [program , '-f', self.catalParams ]        # set up command
@@ -580,6 +573,7 @@ class delilaPipe( object ):
         '''
         # check if malignp parameter file exists
         if not os.path.exists('malignp'):
+            logger.info('\nCreating malignp ')
             self.createMalignp()
 
         # set up malign
@@ -914,7 +908,7 @@ class delilaPipe( object ):
         Create a default parameter file to make a logo
         '''
         with open('makelogop', 'w') as out:
-            out.write("-" +  str(self.leftBoundary)  + " +" + str(self.rightBoundary) + "\n") # sets the logo width
+            out.write(str(self.left)  + str(self.right) + "\n") # sets the logo width
             out.write("100\n")
             out.write("5.0 10.0\n")      # change the coordinate position
             out.write("0\n")
@@ -1012,7 +1006,7 @@ class delilaPipe( object ):
         with open('rip', 'w') as out:
             out.write('2.54\n')          # parameterversion
             out.write('"weight matrix"\n') # name of the weight matrix, here imaginatively named       
-            out.write('-{} +{}\n'.format(self.leftBoundary, self.rightBoundary))   # The FROM and TO over which to do the Ri calculation
+            out.write('{} {}\n'.format(self.left, self.right))   # The FROM and TO over which to do the Ri calculation
             out.write('1\n')             # defines the column of the values file to use
             out.write('a\n')             #  the lowest and highest Ri evaluation to report
             out.write('a\n')             # the lowest and highest Value evaluation to report
@@ -1044,7 +1038,6 @@ class delilaPipe( object ):
         scan program.
 
         ri -b R.sphaeroides-2.4.1_cinst_book.txt -i cinst -r rsdata -v values -o ri_inst.out -p rip -w wave
-
 
         Parameters
         ----------
@@ -1083,31 +1076,6 @@ class delilaPipe( object ):
         logger.info(result1)
         logger.info(result2)     
             
-    '''
-    def updateTssPositions(self, data, prefix):
-        
-        Need to update positions for TSS sites, based on merged chromosome positions.
-        The original TSS site position will be added to the start of the merged chromosome
-        position.
-        
-        results = []
-        # open and process tss site file
-        with open(self.tss, 'r') as tss:
-            for ln in tss:
-                dat = ln.rstrip().split('\t')
-                newPos = int(dat[3]) + data.chrInfo[dat[0]]['start']  # add start position
-                dat[0] = prefix
-                dat[3] = newPos
-                results.append(dat)
-        # save the original file
-        os.rename(self.tss, self.tss + '-ORIGINAL' )
-        # write the new tss file
-        with open(self.tss, 'w') as out:
-            for site in results:
-                outLine = '\t'.join([str(x) for x in site])
-                out.write( '{}\n'.format(outLine))
-    '''
-
     def runParseRI(self, malign_list, rixyin, out ):
         '''
         Script to organize the Delila outputs of Malign_list and Ri Results and
@@ -1195,10 +1163,10 @@ class delilaPipe( object ):
         # list files to remove
         removalList = [ 'malign_list_organized.txt', 'ri_results_organized.txt', 'RI_out.txt', 'uncert',
         'wave', 'values', 'catin', 'namelist', 'namebook', 'list', 'colors', 'clist','avalues', 'marks',
-        'instructions.list', 'mybooks.txt','distribution' ]
+        'instructions.list', 'mybooks.txt','distribution', 'catalparameters' ]
         # remove files
         for f in removalList:
-            os.remove(cwd + f)       
+            os.rename(cwd + f, cwd + 'other/' + f)       
 
     def ps2pdf(self):
         """
@@ -1211,7 +1179,7 @@ class delilaPipe( object ):
             subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
 
 def main():
-    usage ='%(prog)s -g genome.gnbk -t site_file.txt -l -10 -r +10'             
+    usage ='%(prog)s -g genome.gnbk -t site_file.txt -l -10 -r +10 '             
     cmdparser = argparse.ArgumentParser(description="Delila pipeline constructs a sequence logo around a site.",
                                         usage=usage, prog='delila_pipeline.py'  )                          
     cmdparser.add_argument('-g', '--genbank', action='store', dest='GENBANK',
@@ -1418,13 +1386,12 @@ def main():
     pipe.runCOMP(book, 'compp')
     pipe.runRSEQ('cmp', 'encseq')
     pipe.runDALVEC('rsdata')
+    # MAKE IN INITIAL LOGO TO COMPARE WITH THE FINAL LOG
+    pipe.runMAKELOGO('symvec', prefix + '-initial.logo')       # make logo
     # RUN Ri, then rerun malign, malign ugh!
     pipe.runRi(book, 'cinst', 'rsdata', 'riplog' )
     pipe.runParseRI('list', 'rixyin', 'RI_out.txt')
-
-    # MAKE IN INITIAL LOGO TO COMPARE WITH THE FINAL LOG
-    pipe.runMAKELOGO('symvec', prefix + '-initial.logo')       # make logo
-    '''    
+     
     ### REFINE THE LOGO BY REMOVING SITES WITH AN RI score 0 or less     
     # Use the filtered/refined data set to run the pipeline again, 
     # creating the FINAL logo  
@@ -1469,10 +1436,10 @@ def main():
     pipe.runRSEQ('cmp', 'encseq')
     pipe.runDALVEC('rsdata')
     pipe.runMAKELOGO('symvec', prefix + '-FINAL.logo')       # Make Final logo
-    '''
+
     pipe.retrievePWM()
     pipe.ps2pdf()
-    #pipe.cleanUp()
+    pipe.cleanUp()
     
 if __name__ == "__main__":
     main()
