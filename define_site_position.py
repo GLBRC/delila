@@ -64,13 +64,19 @@ def shiftSites(inFile, baseNum):
     # open and parse tss file
     with open(inFile, 'r') as f:
         for line in f:
-            fixedPosition = 0
-            site = line.rstrip().split('\t')
-            position = int(site[3])
-            if site[2] == 'forward':
-                fixedPosition = position - abs(baseNum)
+            fixedPosition = 0                         # clear fixedPosition each time
+            site = line.rstrip().split('\t')          
+            position = int(site[3])                   # last value is the position
+            if baseNum < 0:                           # move positions upsteam 
+                if site[2] == 'forward':                  
+                    fixedPosition = position - abs(baseNum)   
+                else:
+                    fixedPosition = position + abs(baseNum)
             else:
-                fixedPosition = position + abs(baseNum)
+                if site[2] == 'forward':             # move positions downstream     
+                    fixedPosition = position + abs(baseNum)   # move 
+                else:
+                    fixedPosition = position - abs(baseNum)               
 
             site[-1] = str(fixedPosition)
             outLine = '\t'.join(site)
