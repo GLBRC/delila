@@ -527,11 +527,11 @@ class delilaPipe( object ):
         Output a text file called malignp, used as input to malign.
         '''
         with open('malignp', 'w') as out:
-            out.write('-5 +5\n')   # winleft, winright: left and right ends of window
-            out.write('-5 +5\n')   # shiftmin, shiftmax: minimum and maximum shift of aligned base
+            out.write('-3 +3\n')   # winleft, winright: left and right ends of window
+            out.write('-3 +3\n')   # shiftmin, shiftmax: minimum and maximum shift of aligned base
             out.write('54321\n')   # iseed: integer random seed
             out.write('0\n')       # nranseq: number of random sequences, or 0 to use sequences in book
-            out.write('1000\n')    # nshuffle: number of times to redo alignment after random shuffle
+            out.write('2000\n')    # nshuffle: number of times to redo alignment after random shuffle
             out.write('0\n')       # ifpaired: 1 for pairs of complementary sequences for symmetric site
             out.write('-1\n')      # standout: -1 no, 0 limited, 1 full standard output
             out.write('-1\n')      # npassout: output H and alignment every npassout passes
@@ -1440,6 +1440,7 @@ def main():
     pipe.retrievePWM()
     pipe.ps2pdf()
     pipe.cleanUp()
+    
     
 if __name__ == "__main__":
     main()
