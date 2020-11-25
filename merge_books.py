@@ -20,7 +20,7 @@ Parameters
 ----------
 
 f : str
-    A text file with each line representing a TSS site.
+    A text file with a list of books to merge.
 
 
 Example
