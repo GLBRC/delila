@@ -287,6 +287,11 @@ class delilaPipe( object ):
         self.sites         = sites                 # Transcription Start Site information file name
         self.left        = left                # left bound number, +/-
         self.right       = right               # right bound number, +/-
+        # Set shift parameter which is used in malignp, 
+        # set the shiftmin, shiftmax and winleft, winright to the smallest boundary value
+        tmpLeft          = int(self.left)
+        tmpRight         = int(self.right)
+        self.shift       = abs(tmpLeft) if abs(tmpLeft) < abs(tmpRight) else abs(tmpRight)
 
     def __repr__(self):
         '''
@@ -514,8 +519,8 @@ class delilaPipe( object ):
         Output a text file called malignp, used as input to malign.
         '''
         with open('malignp', 'w') as out:
-            out.write('-3 +3\n')   # winleft, winright: left and right ends of window
-            out.write('-3 +3\n')   # shiftmin, shiftmax: minimum and maximum shift of aligned base
+            out.write('-{} +{}\n'.format(self.shift, self.shift))   # winleft, winright: left and right ends of window
+            out.write('-{} +{}\n'.format(self.shift, self.shift))   # shiftmin, shiftmax: minimum and maximum shift of aligned base
             out.write('54321\n')   # iseed: integer random seed
             out.write('0\n')       # nranseq: number of random sequences, or 0 to use sequences in book
             out.write('2000\n')    # nshuffle: number of times to redo alignment after random shuffle
