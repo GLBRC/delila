@@ -139,12 +139,12 @@ def main():
     # write results working with one chromosome at a time
     for chrom in data.keys():
         # create output file name
-        outName = chrom + '_TSS.inst'
+        outName = chrom + '_sites.inst'
         instructions.append(outName)
         # open output file for writing
         with open(outName, 'w') as out:
             # each instruction file requires a 4 line header    
-            out.write('title \"{} -10 elements TSS sites version 1.0 {}  {}\";\n'.format(organism, outName, currDate));
+            out.write('title \"{} sites version 1.0 {}  {}\";\n'.format(organism, outName, currDate));
             out.write('organism {};\n'.format(organism))
             out.write('chromosome {};\n'.format(organism))
             out.write('piece {};\n'.format(chrom))
