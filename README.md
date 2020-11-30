@@ -421,14 +421,14 @@ Other scripts which are part of the pipeline
 script not in pipeline 
 ----------------------
 
-    filter_TSS.py 
+    filter_sites.py 
 
     Not part of the pipeline, but can be used prior to running delila_pipeline.py
     to remove overlapping sites.
 
     To Run:
 
-    filter_TSS.py -f <site_file.txt> -n <int>
+    filter_sites.py -f <site_file.txt> -n <int>
 
     Remove sites with x number of bases overlap, file MUST BE SORTED.
 
