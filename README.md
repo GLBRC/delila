@@ -4,22 +4,30 @@ Quick Start
     Prior to running delila you will need to define the script directory by editing the
     scriptDir varible in the delila_pipeline.py file.
 
-    scriptDir = '/home/<userName>/bin/delila/'
-    or wherever you have put it.
+    scriptDir = '/home/<userName>/bin/delila/' or wherever it is located.
 
+    Script assumes ps2pdf is installed
     
 Compile C code
------------------
+--------------
+
+    The Delila programs can be automatically translated from Pascal to C using
+    David Gillespie's p2c translater. The resulting c code can be compiled by the gcc compiler.
+    This was done for the following programs: alist, catal, comp, dalvec, dbbk, delila, encode,
+    makelogo, malign, malin, mkdb, ri, rseq
+
+    See  http://users.fred.net/tds/lab/pascalp2c.html for original help,  
+    instructions below are adapted from those instructions.
+
 
     1) You will need to get the libraries from the p2c package and compile them on your machine.
-    2) You will need the p2c.h file. This can be stored in /usr/local/include in a directory
-    (or a directory of your choice) called 'p2c', which is the location given in the 
-    -I flag for gcc, below.
-    3) You will need several /usr/local/lib files. Put the files into /usr/local/lib/p2c.
-    (or a directory of your choice)
-    These are in the files picked up by -L/usr/local/lib flag for gcc, below.
+       Note the installation directory as you will need the p2c.h file for use with the -I flag
+       for gcc, see command below. 
 
-    If you put p2c /home/<userName>/bin/p2c/src/   and make sure to change the path in
+       You will also need several of the lib files. These are in the files picked up by 
+       -L/usr/local/lib flag for gcc, see command below.
+
+    Where ever you put p2c, i.e. /home/<userName>/bin/p2c/src/  make sure to change the path in
     the following header in the c code:
 
     #include </home/<userName/bin/p2c/src/p2c.h>
@@ -61,6 +69,19 @@ Create Logo
 
     delila_pipeline.py -g rhodo_genome.gbff -l -45 -r -25 -t rhodo_sites_for_delila.txt
     
+Running Individual Delila programs
+----------------------------------
+
+    It is possible to run each C program on it's own outside of the pipeline.
+    To show a programs help, just run the program without any parameters.
+    This is not recommended as the pipeline aims to reduce the complexity of
+    Delila programs.  If you desire to do this, read the help for each 
+    program and refer to the original delila website for detailed information.
+
+    Note only the following delila programs are available in this repository:
+    
+    alist, catal, comp, dalvec, dbbk, delila, encode,makelogo, malign, malin, mkdb, ri, rseq
+    ----------------------------------------------------------------------------------------
 
 DESCRIPTION
 -----------
@@ -417,20 +438,10 @@ script not in pipeline
     -n , --number   Number of base overlap, default(15)
 
 
-Translating and Compiling Delila Programs with P2C
---------------------------------------------------
-    The original delila Pascal code is available here : users.fred.net/tds/lab/delila.html
-
-    The Delila programs can be automatically translated from Pascal to C using
-    David Gillespie's p2c translater. The resulting c code can be compiled by the gcc compiler.
-    This was done for the following programs: alist, catal, comp, dalvec, dbbk, delila, encode,
-    makelogo, malign, malin, mkdb, ri, rseq
-
-    See  http://users.fred.net/tds/lab/pascalp2c.html for original help,  
-    instructions below are adapted from those instructions.
-
 To translate (Pascal to C)
 --------------------------
+
+    The original delila Pascal code is available here : users.fred.net/tds/lab/delila.html
 
     Obtain the current version of p2c from  
     (https://github.com/FranklinChen/p2c) or 
