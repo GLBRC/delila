@@ -13,7 +13,7 @@ Parameters
 ----------
 
 f : str
-    A text file with each line representing a TSS site.
+    A text file with each line representing a Site.
 
 h : str
     show help message and exit
@@ -56,12 +56,12 @@ def shiftSites(inFile, baseNum):
     Parameters
     ----------
     inFile : str
-        Input TSS file, text file
+        Input Sites file, text file
     baseNum : int
         Number of bases to shift.
         
     '''
-    # open and parse tss file
+    # open and parse Sites file
     with open(inFile, 'r') as f:
         for line in f:
             fixedPosition = 0                         # clear fixedPosition each time
@@ -86,7 +86,7 @@ def shiftSites(inFile, baseNum):
 def main():
     
     cmdparser = argparse.ArgumentParser(description="Shift sites by x number of bases.",
-                                        usage='%(prog)s -f <site_file.txt> -n <int>'  ,prog='filter_TSS.py'  )
+                                        usage='%(prog)s -f <site_file.txt> -n <int>'  ,prog='filter_Sites.py'  )
     cmdparser.add_argument('-f', '--file',  action='store', dest='FILE',
                             help='Text file, containing sites', metavar='')
     cmdparser.add_argument('-n', '--number', action='store', dest='NUM',help='Number of base to shift (negative = upstream)', metavar='') 
@@ -98,7 +98,7 @@ def main():
         cmdparser.print_help()
         sys.exit(1)
 
-    # get the input tss site file
+    # get the input sites file
     if cmdResults['FILE'] is not None:
         inFile = cmdResults['FILE']  
     else:
