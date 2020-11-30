@@ -8,7 +8,7 @@ Notes
 ----- 
 
 The programs used in this pipeline have been converted from Pascal to C, by
-Oliver Giramma.  They were then modified to use command line arguments.
+Oliver Giramma.  They were then modified to use C command line arguments.
 
 (From the Delila Documentation, http://users.fred.net/tds/lab/software.html)
 
@@ -38,25 +38,13 @@ all of it is implemented. There are also tutorials on building Delila libraries
 and using Delila instructions. 
 
 Understanding Left and Right boundaries:
-Delila positioning, bounds will be set by LEFT and RIGHT.
+Delila positioning, bounds will be set by -l (Left) and -r (Right) of the defined site
+in the sites file.
 
-scenario 1:
 Left = -10 
 Right = +10 
-Site position 100, then the bounds are Left = position 90, Right = position 110
-cmd: delila_pipeline.py -g genome.gbff -l -20 -r +10 -t sites_for_delila.txt
-
-scenario 2, looking for the -10 position upstream from a transcription start site position.
-Left = -20
-Right = 0
-Site at position 100,  Left = position 80, Right = position 100
-cmd: delila_pipeline.py -g enome.gbff -l -20 -r 0 -t sites_for_delila.txt
-
-
-scenario 3, looking for the -35 position upstream from a transcription start site
-Left = +5
-Right = +25
-TSS at position 100, Left = position 105, Right = position 125
+Site position  = 100, then the bounds are Left = position 90, Right = position 110
+cmd: delila_pipeline.py -g genome.gbff -l -20 -r +10 -s sites_for_delila.txt
 
 Delila is a modular set of programs which produce results that feed into the next
 program.  It is highly configurable using parameter files.  The delila programs
@@ -175,7 +163,7 @@ g : str
     A genbank file for a genome.
 
 t : str
-    Transcription start site information file.
+    site information file.
 
     NC_007488.2     RSP_4039_1700   forward 1700
     NC_007488.2     RSP_4037_3543   forward 3543
@@ -191,7 +179,7 @@ Example
 -------
     usage:
 
-   delila_pipeline.py -g rhodo_genome.gbff -t TSS.txt -l -8  -r +5
+   delila_pipeline.py -g rhodo_genome.gbff -s sites.txt -l -8  -r +5
         
 References
 ----------
@@ -247,7 +235,7 @@ class delilaPipe( object ):
     """
     Methods and data structures for delila pipeline
     """
-    def __init__(self, genbank, prefix, tss, left, right):
+    def __init__(self, genbank, prefix, sites, left, right):
         """
         Set up delilaPipe object
 
@@ -257,8 +245,8 @@ class delilaPipe( object ):
             Genbank file
         prefix : str
             Prefix string used to name output files
-        tss : str
-            Transciption Start Site file name
+        sites : str
+            Site file name
         left : int
             Integer defining the left bound relative to the central base of the site.
         right : int
@@ -278,7 +266,7 @@ class delilaPipe( object ):
         cat1,cat2,cat3  catalog file names 
         instructions    list of instruction files, one for each chromosome
         delilaBook      list of books from the Delila program output
-        tss             sites input file
+        sites             sites input file
         left,right      input left and right window around site
         """
         self.cat1        = 'cat1'              # cat1, cat2, cat3 required by delila, only cat1 has info
@@ -296,7 +284,7 @@ class delilaPipe( object ):
         self.lib2        = 'lib2'
         self.lib3        = 'lib3'
         self.prefix      = prefix
-        self.tss         = tss                 # Transcription Start Site information file name
+        self.sites         = sites                 # Transcription Start Site information file name
         self.left        = left                # left bound number, +/-
         self.right       = right               # right bound number, +/-
 
@@ -317,7 +305,7 @@ class delilaPipe( object ):
         rep += 'cat1\n'
         rep += 'cat2\n'
         rep += 'cat3\n'   
-        rep += 'TSS File {}\n'.format(self.tss) 
+        rep += 'Site File {}\n'.format(self.sites) 
         rep += 'left and right bounds {}  {} \n'.format(self.left, self.right)
         rep += 'instruction files: {} \n'.format('\t'.join(self.instructions))
         return rep 
@@ -337,7 +325,7 @@ class delilaPipe( object ):
 
         -f is a genome genbank file
         -c output file, reports base changes due to base ambiguity 
-           i.e. bases Not GATC
+           i.e. bases Not in the set {G,A,T,C}
         -o output file, delila book 
 
         '''
@@ -387,8 +375,7 @@ class delilaPipe( object ):
         catal expects a file named: l1 this is a symbolic link to the dbbk
         produced earlier in the pipeline.
 
-        Need to create 3 empty files for delila catal
-        l2, l3, catalp
+        Need to create 3 empty files for delila catal : l2, l3, catalp
 
         catal -f parameters.txt
 
@@ -419,7 +406,7 @@ class delilaPipe( object ):
         logger.info(result1)
         logger.info(result2)
 
-    def splitTSS(self, tss):
+    def splitSites(self, sites):
         '''
         Break up the input transcription start site input file into delila 
         instruction files by chromosome. 
@@ -433,13 +420,13 @@ class delilaPipe( object ):
 
         Parameters
         ----------
-        tss : str
+        sites : str
             Site location file
 
         '''
         program = scriptDir + 'delila_instructions.py'
-        cmd = [ program, '-f', tss, '-o', self.prefix, '-l', self.left, '-r', self.right ]
-        logger.info('Running splitTSS ')
+        cmd = [ program, '-f', sites, '-o', self.prefix, '-l', self.left, '-r', self.right ]
+        logger.info('Running splitSites ')
         logger.info(' '.join(cmd))
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         result1 = output[0].decode('utf-8')
@@ -487,10 +474,10 @@ class delilaPipe( object ):
         
         lib1: the first library from which to obtain sequences
         cat1: the first catalogue, corresponding to lib1
-        lib2: the second library
-        cat2: the second catalogue, corresponding to lib2
-        lib3: the third library
-        cat3: the third catalogue, corresponding to lib3
+        lib2: the second library, EMPTY
+        cat2: the second catalogue, corresponding to lib2, EMPTY
+        lib3: the third library, EMPTY
+        cat3: the third catalogue, corresponding to lib3, EMPTY
 
         Parameters
         ----------
@@ -514,7 +501,7 @@ class delilaPipe( object ):
         logger.info(result2)
 
         # rename temporary output files 
-        chrom = re.sub('_TSS.inst', '', inst)
+        chrom = re.sub('_sites.inst', '', inst)
         os.rename(book, self.prefix + '_' + chrom + '_' + 'book.txt' )
         book = self.prefix + '_' + chrom + '_' + 'book.txt'
         os.rename(listing, self.prefix + '_' + chrom + '_' + 'listing.txt')
@@ -609,7 +596,7 @@ class delilaPipe( object ):
         inst file it keeps the organism and chromosome information (along with all
         comments) so it is better than the "bestinst" file created by malign!
 
-        malin -a optalign -i NC_007493.2_TSS.inst -o optinst -p malinp 
+        malin -a optalign -i NC_007493.2_sites.inst -o optinst -p malinp 
 
         Parameters
         ----------
@@ -687,11 +674,11 @@ class delilaPipe( object ):
 
         # create the alistp parameter file
         self.makeALISTp()
-
+        # create empty file namebook
         with open("namebook", 'w') as f:
             pass
         f.close()
-
+        # create empty file namelist
         with open("namelist", 'w') as f:
             pass
         f.close()
@@ -852,6 +839,7 @@ class delilaPipe( object ):
             Data file from rseq program
         
         '''
+        # create empty parameter file
         if not os.path.exists('dalvcep'):
             with open('dalvecp', 'w') as f:
                 pass
@@ -962,7 +950,7 @@ class delilaPipe( object ):
         # check if the user has provided a wave file if not make one
         if not os.path.exists('colors'):
             self.makeColors()
-
+        # create empty marks file
         with open("marks", 'w') as f:
             pass
         f.close()            
@@ -1140,6 +1128,7 @@ class delilaPipe( object ):
             os.mkdir('instructions')
         [ os.rename(cwd + inst, cwd + 'instructions/' + inst) for inst in os.listdir(cwd) if inst.endswith('inst') ]
         
+        # move instructions files
         if os.path.exists('MERGED_INSTRUCTIONS.txt'):
             os.rename(cwd + 'MERGED_INSTRUCTIONS.txt', cwd + 'instructions/' + 'MERGED_INSTRUCTIONS.txt')
         
@@ -1179,7 +1168,7 @@ class delilaPipe( object ):
             subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
 
 def main():
-    usage ='%(prog)s -g genome.gnbk -t site_file.txt -l -10 -r +10 '             
+    usage ='%(prog)s -g genome.gnbk -s site_file.txt -l -10 -r +10 '             
     cmdparser = argparse.ArgumentParser(description="Delila pipeline constructs a sequence logo around a site.",
                                         usage=usage, prog='delila_pipeline.py'  )                          
     cmdparser.add_argument('-g', '--genbank', action='store', dest='GENBANK',
@@ -1188,7 +1177,7 @@ def main():
                             help='Print script information to stdout') 
     cmdparser.add_argument('-l', '-left', action='store', dest='LEFT', metavar='',
                             help='Left (upstream) boundary from site, defaults to -10')
-    cmdparser.add_argument('-t', '--tss',  action='store', dest='TSS',  
+    cmdparser.add_argument('-s', '--sites',  action='store', dest='SITES',  
                             help='Site information text file.', metavar='')    
     cmdparser.add_argument('-r', '--right', action='store', dest='RIGHT', metavar='',
                             help='Upper (downstream) boundary from site, defaults to +10')
@@ -1210,11 +1199,11 @@ def main():
         print("    The original delila site: http://users.fred.net/tds/lab/software.html")
         print("")
         print("To Run:\n")
-        print("delila_pipeline.py -g genome.gnbk -t sites_info.txt -l -10 -r +5")
+        print("delila_pipeline.py -g genome.gnbk -s sites_info.txt -l -10 -r +5")
         print("")
         print("    -g genome genbank file ")
         print("    -l left boundary relative to site, defaults to -10")
-        print("    -t site information file")
+        print("    -s site information file")
         print("    -r right boundary relative to site, defaults to +10")
         print("")
         print("    Site information file provides chromosome, name, strand, position in a tab delimited format.")
@@ -1288,10 +1277,10 @@ def main():
         cmdparser.print_help()
         sys.exit(1)
 
-    if cmdResults['TSS'] is not None:                  # start site file
-        tssFile = cmdResults['TSS'] 
+    if cmdResults['SITES'] is not None:                  # start site file
+        sitesFile = cmdResults['SITES'] 
         # attempt to verify site file format
-        with open(tssFile, 'r') as f:
+        with open(sitesFile, 'r') as f:
             row = f.readline().rstrip().split('\t')
             if len(row) != 4 or row[0] not in chromList:
                 if len(row) != 4:
@@ -1319,12 +1308,12 @@ def main():
     logger.info('Working Directory: ' + os.getcwd())
     logger.info('Input file       : {}'.format(inFile))
     logger.info('Organism Name    : {}'.format(prefix))
-    logger.info('Start Site file  : {}'.format(tssFile))
+    logger.info('Start Site file  : {}'.format(sitesFile))
     logger.info('Left Bound       : {}'.format(left))
     logger.info('Right Bound      : {}\n'.format(right))
 
     # create delila object and get to work
-    pipe = delilaPipe(inFile, prefix, tssFile, left, right)
+    pipe = delilaPipe(inFile, prefix, sitesFile, left, right)
     
     # converts GenBank and EMBL data base entries into a book of delila entries.
     pipe.makeDBBK()          
@@ -1332,8 +1321,8 @@ def main():
     # The catalogue program checks all the input libraries for correct structure.
     pipe.runCATAL()
 
-    # split input TSS file by chromosome, pass site information
-    pipe.splitTSS(pipe.tss)
+    # split input Sites file by chromosome, pass site information
+    pipe.splitSites(pipe.sites)
 
     # Read instructions from file
     pipe.getInstructions()
