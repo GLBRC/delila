@@ -1237,12 +1237,9 @@ def main():
         with open(inFile, 'r') as f:
             for ln in f:
                 if ln.startswith('SOURCE') and not found:         # provides organism name       
-                    prefix = ln.rstrip().split('E')[1].lstrip()   # remove all white space
-                    species = prefix.split(' ')                   
+                    species = ln.rstrip().split(' ')[6:]          # remove all white space            
                     abrv = species.pop(0)[0]                      # Get genus name's first letter 
-                    name = abrv + '.' + species[0]                # looks like S.cerecisiae now
-                    species[0] = name                             
-                    prefix = '-'.join(species) 
+                    prefix = abrv + '.' + '-'.join(species)       
                     found = True
                 elif ln.startswith('VERSION'):                    # get the chromosome name(s) from genbank file
                     ch = ln.rstrip().split()[1]
