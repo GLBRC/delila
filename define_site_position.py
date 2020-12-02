@@ -6,7 +6,7 @@ Shift the position up or downstream for a sites file by a user defined number of
 Method
 ------
 
-Read TSS file line by line.  Parse each line and shift
+Read sites file line by line.  Parse each line and shift
 the position by +/- value taking account of the strand.
     
 Parameters
