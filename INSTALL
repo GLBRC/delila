@@ -1,0 +1,78 @@
+Set up
+------
+
+    Prior to running delila you will need to define the script directory by editing the
+    scriptDir varible in the delila_pipeline.py file.
+
+    scriptDir = '/home/<userName>/bin/delila/' or wherever it is located.
+
+    Script assumes ps2pdf is installed
+
+Compile C code
+--------------
+
+    The Delila programs can be automatically translated from Pascal to C using
+    David Gillespie's p2c translater. The resulting c code can be compiled by the gcc compiler.
+    This was done for the following programs: 
+    
+    alist
+    catal
+    comp
+    dalvec
+    dbbk
+    delila
+    encode
+    makelogo
+    malign
+    malin 
+    mkdb
+    ri
+    rseq
+
+    See  http://users.fred.net/tds/lab/pascalp2c.html for original help,  
+    instructions below are adapted from those instructions.
+
+
+    1) You will need to get the libraries from the p2c package and compile them on your machine.
+       Note the installation directory as you will need the p2c.h file for use with the -I flag
+       for gcc, and several of the lib files for the -L/usr/local/lib flag for gcc, see command below.
+
+    make sure to change the path in the following header in the c code:
+
+    #include </home/<userName/bin/p2c/src/p2c.h>
+
+    Then run the Makefile in the src directory.
+
+    cd src
+    make
+
+    This code has been compiled with gcc 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04), but any 
+    relatively recent gcc compiler should work.
+
+    To compile individual files, here is an example with dbbk.c: 
+
+    gcc  dbbk.c -o dbbk  -I/home/<userName>/bin/p2c/src -L /home/<userName>/bin/p2c/src -lm -lp2c
+    
+To translate (Pascal to C)
+--------------------------
+
+    The original delila Pascal code is available here : users.fred.net/tds/lab/delila.html
+
+    Obtain the current version of p2c from  
+    (https://github.com/FranklinChen/p2c) or 
+    (https://www.gsp.com/cgi-bin/man.cgi?section=1&topic=p2c)
+
+    You will need three files:
+
+    include file: p2c.h
+    pascal library: p2clib.c
+    control file: .p2crc In your home directory (Linux operating system) you will need to have a
+                control file for p2c (it's called .p2crc) with following lines:
+    
+        LiteralFiles 2
+        NestedComments 2
+        StructFiles 1
+
+    You may get a warning about "SYSTEM" which you can ignore.
+
+
