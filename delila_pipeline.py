@@ -219,7 +219,6 @@ import removeRI_books
 import removeRI_instructions
 
 # program home directory
-# pdir = '/home/glbrc.org/mplace/scripts/delila/src/'
 scriptDir = '/home/mplace/scripts/delila/'
 pdir = scriptDir + 'src/'
 
