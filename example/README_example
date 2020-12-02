@@ -1,0 +1,25 @@
+This directory contains an example use case for running delila_pipeline.py
+
+Input files:
+    
+    1) Rsphaeroides_GenBank.gbff
+    2) Location_File_Example.txt
+
+    Set Left = -10 and Right = +10 
+
+    command:
+
+    delila_pipeline.py -g Rsphaeroides_GenBank.gbff -s Location_File_Example.txt  -l -10 -r +10 
+
+    This will produce 2 logo files:
+
+    R.sphaeroides-2.4.1-initial.logo.pdf   -- logo prior to filter sites with no information
+    R.sphaeroides-2.4.1-FINAL.logo.pdf     -- Final logo, the height of the nucleotides is higher
+                                              than the initial logo, indicating the removal of
+                                              low information sites.
+
+    Other files of potential interest:
+
+    R.sphaeroides-2.4.1_PWM.txt  -- position weight matrix
+
+
