@@ -1,50 +1,47 @@
-Quick Start
+Delila-PY
 -----------
+    Delila-PY is a pipeline to make it quick and easy to run various Delila software packages
+    in order to construct a binding site logo.
 
-    Prior to running delila you will need to define the script directory by editing the
-    scriptDir varible in the delila_pipeline.py file.
+    Delila-PY uses programs developed in the lab of Tom Schneider and more information can be
+    found at his website:  http://users.fred.net/tds/lab/
 
-    scriptDir = '/home/<userName>/bin/delila/' or wherever it is located.
+    Delila-PY uses standard (often default) values and allows the user to quickly process a
+    file consisting of genomic locations to identify a potential logo. To use the pipeline
+    directly, a few steps are required before you can begin:
+
+    	1) The script directory must be manually chaged within the program
+
+        Define the script directory by editing the "scriptDir" varible in the delila_pipeline.py file.
+
+        scriptDir = '/home/<userName>/bin/delila/' or wherever it is located.
+
+    	2) The required programs must be compilied from Pascal to C:
+    		- alist
+    		- catal
+    		- comp
+    		- dalvec
+    		- dbbk
+    		- delila
+    		- encode
+    		- makelogo
+    		- malign
+    		- malin
+    		- mkdb
+    		- ri
+    		- rseq
+    	3) The required GenBank file must be downloaded from NCBI and the genomic location file
+    	must be constructed as indicated below
+
+    We have provided example files in the Git repository as a guide both to how to run the Delila-PY
+    and the format of the required files. The example files represent genomic coordiates for binding
+    sites of the transcription factor FnrL from the bacterium *Rhodobacter sphaeroides*.
+    	- Location_File_Example.txt is the genmoic location example file
+    	- Rsphaeroides_GenBank.gbff is the *R. sphaeroides* GenBank file from NCBI
 
     Script assumes ps2pdf is installed
-    
-Compile C code
---------------
 
-    The Delila programs can be automatically translated from Pascal to C using
-    David Gillespie's p2c translater. The resulting c code can be compiled by the gcc compiler.
-    This was done for the following programs: alist, catal, comp, dalvec, dbbk, delila, encode,
-    makelogo, malign, malin, mkdb, ri, rseq
-
-    See  http://users.fred.net/tds/lab/pascalp2c.html for original help,  
-    instructions below are adapted from those instructions.
-
-
-    1) You will need to get the libraries from the p2c package and compile them on your machine.
-       Note the installation directory as you will need the p2c.h file for use with the -I flag
-       for gcc, see command below. 
-
-       You will also need several of the lib files. These are in the files picked up by 
-       -L/usr/local/lib flag for gcc, see command below.
-
-    Where ever you put p2c, i.e. /home/<userName>/bin/p2c/src/  make sure to change the path in
-    the following header in the c code:
-
-    #include </home/<userName/bin/p2c/src/p2c.h>
-
-    Then run the Makefile in the src directory.
-
-    cd src
-    make
-
-    This code has been compiled with gcc 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04), but any 
-    relatively recent gcc compiler should work.
-
-    To compile individual files, here is an example with dbbk.c: 
-
-    gcc  dbbk.c -o dbbk  -I/home/<userName>/bin/p2c/src -L /home/<userName>/bin/p2c/src -lm -lp2c
-    
-Create Logo
+Create logo
 -----------
 
     You need to provide the following:
@@ -58,22 +55,22 @@ Create Logo
         position :  base pair position of site
 
     example:
-    NC_007493.2     RSP_4324_1682   forward 1682
+    NC_007493.2   site_1   forward   409225
 
     where NC_007493.2 is a R.sphaeroides chromosome name
-    RSP_4324_1682 is the name
+    site_1 is the name
     forward is the strand 
-    1682 is the base position of the site
+    409225 is the base position of the site
 
     To run delila and create a logo:
 
-    delila_pipeline.py -g rhodo_genome.gbff -l -45 -r -25 -t rhodo_sites_for_delila.txt
+    delila_pipeline.py -g Rsphaeroides_GenBank.gbff -l -10 -r -10 -s Location_File_Example.txt
     
-Running Individual Delila programs
+Running individual Delila programs
 ----------------------------------
 
     It is possible to run each C program on it's own outside of the pipeline.
-    To show a programs help, just run the program without any parameters.
+    To show a program's help, just run the program without any parameters.
     This is not recommended as the pipeline aims to reduce the complexity of
     Delila programs.  If you desire to do this, read the help for each 
     program and refer to the original delila website for detailed information.
@@ -83,7 +80,7 @@ Running Individual Delila programs
     alist, catal, comp, dalvec, dbbk, delila, encode,makelogo, malign, malin, mkdb, ri, rseq
     ----------------------------------------------------------------------------------------
 
-DESCRIPTION
+Description of Delila programs and pipeline
 -----------
 
     Create a sequence logo for user defined sites using the Delila package.
@@ -274,12 +271,12 @@ DESCRIPTION
     g : str
         A genbank file for a genome.
     
-    t : str
+    s : str
         Transcription start site information file.
     
-        NC_007488.2     RSP_4039_1700   forward 1700
-        NC_007488.2     RSP_4037_3543   forward 3543
-        NC_007488.2     RSP_4025_19218  reverse 19218
+        NC_007488.2	site_24	forward	24419
+        NC_007490.2	site_25	forward	51745
+        NC_007494.2	site_23	reverse	78076
     
     l : int
         Left boundary relative to center of the site, defaults to -10
@@ -291,11 +288,10 @@ DESCRIPTION
     -------
         usage:
     
-       delila_pipeline.py -g rhodo_genome.gbff -t TSS.txt -l -8  -r +5
+       delila_pipeline.py -g Rsphaeroides_GenBank.gbff -s Location_File_Example.txt -l -10  -r +10
 
 References
 ----------
-
     
     http://users.fred.net/tds/lab/delila.html
     
@@ -310,7 +306,9 @@ References
 
     GenBank Flat File format information :  https://www.ncbi.nlm.nih.gov/Sitemap/samplerecord.html
 
-Python Scripts
+    Source of *R. sphaeroides* binding locations : Dufour YS, Kiley PJ, Donohue TJ. 2010. Reconstruction of the core and extended regulons of global transcription factors. PLoS Genet 6:e1001027.
+
+Primary pipeline script
 --------------
 
     delila_pipline.py  -- Primary script, runs delila
@@ -321,17 +319,17 @@ Python Scripts
 
     To Run:
 
-    delila_pipeline.py -g genome.gnbk -t sites_info.txt -l -10 -r +5
+    delila_pipeline.py -g Rsphaeroides_GenBank.gbff -s Location_File_Example.txt -l -10 -r +10
 
     -g genome genbank file 
     -l left boundary relative to site, defaults to -10
-    -t site information file
+    -s site information file
     -r right boundary relative to site, defaults to +10
 
     Site information file provides chromosome, name, strand, position in a tab delimited format.
 
-	 NC_007488.2     RSP_4039_1700   forward 1700
-	 NC_007488.2     RSP_4025_19218  reverse 19218
+	 NC_007488.2	site_24	forward	24419
+         NC_007490.2	site_25	forward	51745
 
     Primary output :
 
@@ -353,11 +351,11 @@ Other scripts which are part of the pipeline
     Split TSS file by chromosome.
 
     optional arguments:
-    -h, --help        show this help message and exit
-    -f , --file       Text file, containing TSS sites
-    -l , --left       Left boundary base position
-    -o , --organism   Organism
-    -r , --right      Right boundary base position
+    -h, --help       Show this help message and exit
+    -f, --file       Text file, containing TSS sites
+    -l, --left       Left boundary base position
+    -o, --organism   Organism
+    -r, --right      Right boundary base position
 
 
 
@@ -366,8 +364,8 @@ Other scripts which are part of the pipeline
     Merge Delila chromosome book files.
 
     optional arguments:
-    -h, --help    show this help message and exit
-    -f , --file   delila book file to parse.
+    -h, --help   Show this help message and exit
+    -f, --file   Delila book file to parse.
 
 
     merge_instructions.py -f <input.txt>
@@ -375,19 +373,19 @@ Other scripts which are part of the pipeline
     Merge Delila instruction files.
 
     optional arguments:
-    -h, --help    show this help message and exit
-    -f , --file   List of delila instruction files to parse.
+    -h, --help   Show this help message and exit
+    -f, --file   List of delila instruction files to parse.
 
     organizing_ri_delila_results.py -f <fastq file list.txt> [optional args: -a -r -d -ref ]
 
     Removal of sites with negative Ri values in Delila.
 
     optional arguments:
-    -h, --help           show this help message and exit
-    -l , --malign_list   malign_list file from Delila pipeline.
-    -r , --rixyin_file   Rixyin results file from Ri in the Delila pipeline
-    -d, --detail         Print a more detailed description of program.
-    -o , --output        Output file name. Default is
+    -h, --help          Show this help message and exit
+    -l, --malign_list   Malign_list file from Delila pipeline.
+    -r, --rixyin_file   Rixyin results file from Ri in the Delila pipeline
+    -d, --detail        Print a more detailed description of program.
+    -o, --output        Output file name. Default is
                         "positive_Ri_updated_locations.txt".
 
 
@@ -396,9 +394,9 @@ Other scripts which are part of the pipeline
     Filter book file by ri score.
 
     optional arguments:
-    -h, --help    show this help message and exit
-    -f , --file   Merged delila book file to parse.
-    -r , --ri     RI_out.txt file
+    -h, --help   Show this help message and exit
+    -f, --file   Merged delila book file to parse.
+    -r, --ri     RI_out.txt file
 
 
     removeRI_instructions.py -f <input.txt> -r <RI_out.txt>
@@ -406,9 +404,9 @@ Other scripts which are part of the pipeline
     Filter instructions file by ri score.
 
     optional arguments:
-    -h, --help    show this help message and exit
-    -f , --file   Merged instructions file to parse.
-    -r , --ri     RI_out.txt file
+    -h, --help   Show this help message and exit
+    -f, --file   Merged instructions file to parse.
+    -r, --ri     RI_out.txt file
 
 
     rename_lib1.py 
@@ -418,8 +416,8 @@ Other scripts which are part of the pipeline
     optional arguments:
     -h, --help  show this help message and exit
 
-script not in pipeline 
-----------------------
+Useful Python scripts not in pipeline 
+-------------------------------------
 
     filter_sites.py 
 
@@ -432,30 +430,39 @@ script not in pipeline
 
     Remove sites with x number of bases overlap, file MUST BE SORTED.
 
-    optional arguments:
+    arguments:
+    -h, --help     Show this help message and exit
+    -f, --file     Text file, containing sites
+    -n, --number   Number of base overlap, default(15)
+
+
+    define_site_position.py
+
+    filter_Sites.py -f <site_file.txt> -n <int>
+
+    Read sites file line by line.  Parse each line and shift
+    the position by +/- value taking account of the strand.
+            
+    arguments:
     -h, --help      show this help message and exit
     -f , --file     Text file, containing sites
-    -n , --number   Number of base overlap, default(15)
+    -n , --number   Number of base to shift (negative = upstream)
 
+    example input file:
 
-To translate (Pascal to C)
---------------------------
+        NC_007488.2     RSP_4039_1700   forward 1700
+        NC_007488.2     RSP_4038_2627   forward 2627
 
-    The original delila Pascal code is available here : users.fred.net/tds/lab/delila.html
+    usage:
 
-    Obtain the current version of p2c from  
-    (https://github.com/FranklinChen/p2c) or 
-    (https://www.gsp.com/cgi-bin/man.cgi?section=1&topic=p2c)
+        define_site_position.py -f input.txt -n -10  
 
-    You will need three files:
+        This results in a site file of the same format as the input.
+        All sites shifted upstream by 10 bases.
 
-    include file: p2c.h
-    pascal library: p2clib.c
-    control file: .p2crc In your home directory (Linux operating system) you will need to have a
-                control file for p2c (it's called .p2crc) with following lines:
-    
-        LiteralFiles 2
-        NestedComments 2
-        StructFiles 1
+        alternatively:
 
-    You may get a warning about "SYSTEM" which you can ignore.
+        define_site_position.py -f input.txt -n 10
+
+        This results in a site file of the same format as the input.
+        All sites shifted downstream by 10 bases.
