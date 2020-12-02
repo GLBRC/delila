@@ -1,4 +1,4 @@
-#!/home/mplace/anaconda3.7/bin/python
+#!/usr/bin/env python
 """define_site_position.py
 
 Shift the position up or downstream for a sites file by a user defined number of bases.

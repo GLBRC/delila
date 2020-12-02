@@ -1,4 +1,4 @@
-#!/home/mplace/anaconda3.7/bin/python
+#!/usr/bin/env python
 """removeRI_instructions.py
 
 Retain sites with RI greater than 0 from Merged instructions file.

@@ -1,4 +1,4 @@
-#!/home/mplace/anaconda3.7/bin/python
+#!/usr/bin/env python
 """delila_pipeline.py
 
 Create a sequence logo for user defined sites using the Delila package.

@@ -1,4 +1,4 @@
-#!/home/mplace/anaconda3.7/bin/python
+#!/usr/bin/env python
 """rename_lib1.py
 
 Rename chromosome and piece tags in original lib1 for working with multiple chromosomes.

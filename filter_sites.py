@@ -1,7 +1,7 @@
-#!/home/mplace/anaconda3.7/bin/python
-"""filter_TSS.py
+#!/usr/bin/env python
+"""filter_sites.py
 
-Remove TSS site within user defined number of bases of each other.
+Remove sites within user defined number of bases of each other.
 
 Notes
 ----- 
@@ -11,14 +11,14 @@ Assumes the sites are sorted by chromosome and then by position low to high.
 Method
 ------
 
-Read TSS file line by line.  Parse each line identifying the chromosome
+Read site file line by line.  Parse each line identifying the chromosome
 and check the next position for "x" base overlap.
     
 Parameters
 ----------
 
 f : str
-    A text file with each line representing a TSS site.
+    A text file with each line representing a site.
 
 h : str
     show help message and exit
@@ -37,12 +37,12 @@ Example
 -------
     usage:
 
-        filter_TSS.py -f input.txt -n 10  
+        filter_sites.py -f input.txt -n 10  
 
 Output
 ------
 
-A TSS site text file of the same format as the input. 
+A site text file of the same format as the input. 
 All sites within "X" bases of each other removed.
 
 """
@@ -52,12 +52,12 @@ import sys
 
 def filterSites(inFile, baseNum):
     '''
-    Filter TSS sites within "X" bases.
+    Filter sites within "X" bases.
 
     Parameters
     ----------
     inFile : str
-        Input TSS file, text file
+        Input site file, text file
     baseNum : int
         Number of bases to use as filter, i.e. if site A is within baseNum remove site.
         

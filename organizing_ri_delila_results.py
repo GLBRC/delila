@@ -1,8 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Oct 16 10:48:47 2020
+#!/usr/bin/env python
 
+"""
 Script to organize the Delila outputs of Malign_list and Ri Results and write
 them to files.
 
@@ -13,7 +11,7 @@ retain ONLY those that have a positive (>0) Ri value from RIXYIN file.
 
 The surviving genes will be formatted into a file to use in the delila_instructions.py script.
 
-@author: kevinmyers
+@author: kevin myers
 """
 import argparse
 import sys

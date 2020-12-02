@@ -1,4 +1,4 @@
-#!/home/mplace/anaconda3.7/bin/python
+#!/usr/bin/env python
 """delila_instructions.py
 
 Writes delila instruction files.

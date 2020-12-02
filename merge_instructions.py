@@ -1,4 +1,4 @@
-#!/home/mplace/anaconda3.7/bin/python
+#!/usr/bin/env python
 """merge_books.py
 
 Merge delila instruction files to handle multiple chromosomes.
@@ -20,7 +20,7 @@ Parameters
 ----------
 
 f : str
-    A text file with each line representing a TSS site.
+    A text file with each line representing a site.
 
 
 Example

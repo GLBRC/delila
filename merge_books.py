@@ -1,4 +1,4 @@
-#!/home/mplace/anaconda3.7/bin/python
+#!/usr/bin/env python
 """merge_books.py
 
 Merge delila book files to handle multiple chromosomes.
