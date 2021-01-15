@@ -1,3 +1,96 @@
+Docker Image
+------------
+    A Delila Docker image has been created for ease of use.
+    
+    Delila Docker image:  https://hub.docker.com/r/glbrc/delila
+
+    1) Install Docker
+
+        https://docs.docker.com/engine/install/
+
+        Test your Docker installation:
+
+        `sudo docker run hello-world`
+
+        You should see something like:
+
+        Hello from Docker!
+        This message shows that your installation appears to be working correctly....
+
+    2) Pull Docker image:
+
+        `sudo docker pull glbrc/delila`
+
+       You should see something like:
+
+        Using default tag: latest
+        latest: Pulling from glbrc/delila
+        da7391352a9b: Pull complete 
+        14428a6d4bcd: Pull complete 
+        2c2d948710f2: Pull complete 
+        6e574971b428: Pull complete 
+        98ae9b1c7d2a: Pull complete 
+        400a97ff91ed: Pull complete 
+        Digest: sha256:f865911122576824ebe331d0faf8989a4371350db8a9ff4121f4fb9342b37ea2
+        Status: Downloaded newer image for glbrc/delila:latest
+        docker.io/glbrc/delila:latest
+
+        CONCERNING SUDO:
+
+        If you don't want to use sudo everytime you run docker, follow the instructions
+        here: Linux post-installation setup, https://docs.docker.com/engine/install/,
+        Note this has sercurity implications, you should be aware of: 
+        https://docs.docker.com/engine/security/#docker-daemon-attack-surface                          
+
+
+    3) List your Docker images to make sure it was downloaded.
+
+        `sudo docker images`
+        
+        REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+        glbrc/delila        latest              90845438bd28        6 days ago          620MB
+        hello-world         latest              bf756fb1ae65        12 months ago       13.3kB
+
+    4) Run the glbrc/delila image example.
+
+        `sudo docker run -it glbrc/delila`
+        
+        This will start the container.  You should see a command line prompt, something
+        like:
+
+        root@aaab660630ab:/#
+
+        run `ls`  -- this will show the directory structure
+
+        bin  boot  dev  etc  home  lib  lib32  lib64  libx32  media  mnt  opt ....
+
+        `cd /opt/delila/example`
+        
+        Run Delila using the example files:
+
+        ../delila_pipeline.py -g Rsphaeroides_GenBank.gbff -s Location_File_Example.txt  -l -10 -r +10
+
+    
+        This will produce the following files & directories:
+
+        R.sphaeroides-2.4.1-initial.logo 
+        delila_pipeline.log
+        R.sphaeroides-2.4.1_PWM.txt
+        R.sphaeroides-2.4.1-FINAL.logo
+        R.sphaeroides-2.4.1-initial.logo.pdf
+        R.sphaeroides-2.4.1-FINAL.logo.pdf
+        directories:
+        parameters/
+        other/
+        instructions/
+        books/
+
+    5) Copy files to host system 
+
+
+
+
+
 Delila-PY
 -----------
     Delila-PY is a pipeline to make it quick and easy to run various Delila software packages
