@@ -1,6 +1,6 @@
-Docker Image
+Delila Docker Image
 ------------
-    A Delila Docker image has been created for ease of use.
+    A Delila Docker image has been created for cross-platform use.
     
     Delila Docker image:  https://hub.docker.com/r/glbrc/delila
 
@@ -15,13 +15,14 @@ Docker Image
         You should see something like:
 
         Hello from Docker!
-        This message shows that your installation appears to be working correctly....
+        This message shows that your installation appears to be working correctly 
+        ...
 
     2) Pull Docker image:
 
         `sudo docker pull glbrc/delila`
 
-       You should see something like:
+        You should see something like:
 
         Using default tag: latest
         latest: Pulling from glbrc/delila
@@ -42,21 +43,60 @@ Docker Image
         Note this has sercurity implications, you should be aware of: 
         https://docs.docker.com/engine/security/#docker-daemon-attack-surface                          
 
-
-    3) List your Docker images to make sure it was downloaded.
+    3) List Docker images to make sure it Delila was downloaded.
 
         `sudo docker images`
-        
+       glbrc/delila 
         REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
         glbrc/delila        latest              90845438bd28        6 days ago          620MB
         hello-world         latest              bf756fb1ae65        12 months ago       13.3kB
 
-    4) Run the glbrc/delila image example.
+        You will see the hello-world image listed because you tested the docker install right!
 
-        `sudo docker run -it glbrc/delila`
+    4) Run the Delila example (Highly Recommended)
+
+        `sudo docker run -dit -P --name delila -v /home/user/test/delila/container-data:/opt/delila/example/container-data  glbrc/delila`
+           
+            -dit is `d` for detached mode,  `it` makes bash available in a pseudo terminal.
+            -P reports ports to the host.
+            –name give the container a name, (Optional)
+            -v attach a volume for sharing data with host system
+
+                the path prior to the ":" is the directory path on your host machine, where
+                you can your delila input files, they will be visible in the container.
+                In this case this is:
+                
+                    "/home/user/test/delila/container-data"  if this doesn't exit it will be created
+                
+                The second directory path (after the ":") is working directory within the 
+                docker container, in this case: 
+                
+                    "/opt/delila/example/container-data"
+
+            glbrc/delila is the image used for the container
+
+
+        After running the docker run command you should see a container ID written in
+        the terminal. It will look something like:
+
+        22d098e7b4cacdc346f5cadaea561a0f2d9f7bcb1833b301c603c598b409a355
+
+        check that the container is running:
+
+        `sudo docker ps -a` 
+
+        CONTAINER ID     IMAGE         COMMAND     CREATED          STATUS         PORTS   NAMES
+        22d098e7b4ca   glbrc/delila   "/bin/bash"  42 seconds ago   Up 41 seconds          delila
+
+        Access the container by running at least the first 4 characters of the Container ID:
+
+        `sudo docker attach 22d098` 
         
-        This will start the container.  You should see a command line prompt, something
-        like:
+            OR
+
+        `sudo docker attach delila`
+        
+        You will see a command line prompt, something like:
 
         root@aaab660630ab:/#
 
@@ -69,7 +109,6 @@ Docker Image
         Run Delila using the example files:
 
         ../delila_pipeline.py -g Rsphaeroides_GenBank.gbff -s Location_File_Example.txt  -l -10 -r +10
-
     
         This will produce the following files & directories:
 
@@ -84,11 +123,30 @@ Docker Image
         other/
         instructions/
         books/
+   
+       You may detach from a running container and leave it running by: 
+       entering `^P^Q` and reattach with:
 
-    5) Copy files to host system 
+       `sudo docker start delila`   assuming you named the contain delila
+       `sudo docker attach delila`
+
+    5) To run your own data 
+
+        Create a working directory for your data on the host system.
+        
+        mkdir mywork
+
+        copy your delila input files into mywork/
+
+        Start your delila container (detached mode)
+        `sudo docker run -dit -P --name delila -v /home/user/test/mywork:/opt/delila/example/container-data  glbrc/delila`
+
+        `sudo docker attach delila`
+
+        ../delila_pipeline.py -g Rsphaeroides_GenBank.gbff -s Location_File_Example.txt  -l -10 -r +10
 
 
-
+        The results file will be placed on the host system, in /home/user/test/mywork
 
 
 Delila-PY
