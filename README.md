@@ -124,7 +124,7 @@ Here is a step by step guide to running the Delila-PY Docker image for analysis
 
     After running the docker run command you should see a container ID written in the terminal.
     
-    It will look something like the following (the actualy digits and letters may be different):
+    It will look something like the following (the actual digits and letters may be different):
 
         22d098e7b4cacdc346f5cadaea561a0f2d9f7bcb1833b301c603c598b409a355
 
