@@ -1,28 +1,69 @@
-Delila Docker Image
+Delila-PY
+-----------
+Delila-PY is a custom pipeline to make it quick and easy to run various Delila software packages in order to construct a binding site logo.
+
+Delila-PY uses programs developed in the lab of Tom Schneider and more information can be found at his website:  http://users.fred.net/tds/lab/
+
+Delila-PY uses standard (often default) values and allows the user to quickly and reproducibly process a file consisting of genomic locations to identify a potential logo.
+
+You can download and compile the individual programs and run the Python script or you can use the Docker Delila-PY image.
+
+Either way, Delila-PY requires two files:
+
+1) genbank file for your genome of interest (obtained from NCBI)
+2) sites file which is tab delimited with columns: 
+        
+        chromosome name : must match the chromosome names in genbank file
+        name : unique identifier for site
+        strand :  forward or reverse 
+        position :  base pair position of site
+
+        example:
+        NC_007493.2   site_1   forward   409225
+
+        where
+        NC_007493.2 is a R.sphaeroides chromosome name
+        site_1 is the name
+        forward is the strand 
+        409225 is the base position of the site
+
+The following command can be used to run Delila-PY:
+
+        delila_pipeline.py -g Rsphaeroides_GenBank.gbff -l -10 -r -10 -s Location_File_Example.txt
+
+        where 
+        -g indicates the genbank file
+        -s indicates the sites file
+        -l is the distance upstream to use as a boundary
+        -r is the distance downstream to use as a boundary
+
+Delila-PY Docker Image
 ------------
-    A Delila Docker image has been created for cross-platform use.
+The easiest way to use Delila-PY is to download and run the Docker image. This allows the usere to run the pipeline without the need to install and compile all the individual programs and with minimal programming experience. Further, the Delila Docker image can be used across varios computing platforms.
     
-    Delila Docker image:  https://hub.docker.com/r/glbrc/delila
+You can download the Delila-PY Docker image here:  https://hub.docker.com/r/glbrc/delila
 
-    1) Install Docker
+Here is a step by step guide to running the Delila-PY Docker image for analysis
 
-        https://docs.docker.com/engine/install/
+1) Install Docker
 
-        Test your Docker installation:
+    https://docs.docker.com/engine/install/
 
-        `sudo docker run hello-world`
+    Test your Docker installation:
 
-        You should see something like:
+        sudo docker run hello-world
+
+    You should see something like:
 
         Hello from Docker!
         This message shows that your installation appears to be working correctly 
         ...
 
-    2) Pull Docker image:
+2) Pull the Delila-PY Docker image with this command:
 
-        `sudo docker pull glbrc/delila`
+        sudo docker pull glbrc/delila
 
-        You should see something like:
+    You should see something like the following in your Terminal window:
 
         Using default tag: latest
         latest: Pulling from glbrc/delila
@@ -36,81 +77,93 @@ Delila Docker Image
         Status: Downloaded newer image for glbrc/delila:latest
         docker.io/glbrc/delila:latest
 
-        CONCERNING SUDO:
+  NOTE CONCERNING THE USE OF SUDO:
 
-        If you don't want to use sudo everytime you run docker, follow the instructions
-        here: Linux post-installation setup, https://docs.docker.com/engine/install/,
-        Note this has sercurity implications, you should be aware of: 
-        https://docs.docker.com/engine/security/#docker-daemon-attack-surface                          
+  If you don't want to use sudo everytime you run a Docker command, follow the instructions here:  https://docs.docker.com/engine/install/
+  Note this has sercurity implications, you should be aware of:  https://docs.docker.com/engine/security/#docker-daemon-attack-surface                          
 
-    3) List Docker images to make sure it Delila was downloaded.
+3) List Docker images to make sure Delila-PY was downloaded using the following command:
 
-        `sudo docker images`
-       glbrc/delila 
+        sudo docker images
+        glbrc/delila 
         REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
         glbrc/delila        latest              90845438bd28        6 days ago          620MB
         hello-world         latest              bf756fb1ae65        12 months ago       13.3kB
 
-        You will see the hello-world image listed because you tested the docker install right!
+    You will see the hello-world image listed because you tested the docker install right!
 
-    4) Run the Delila example (Highly Recommended)
+4) It's highly recommended that you run the Delila-PY using the provided example files to ensure everything is working correctly.
+    
+    In the terminal, type the following command to make it possible to share data between the Docker environment and your local machine:
 
-        `sudo docker run -dit -P --name delila -v /home/user/test/delila/container-data:/opt/delila/example/container-data  glbrc/delila`
+        sudo docker run -dit -P --name delila -v /home/user/test/delila/container-data:/opt/delila/example/container-data  glbrc/delila
            
-            -dit is `d` for detached mode,  `it` makes bash available in a pseudo terminal.
-            -P reports ports to the host.
-            –name give the container a name, (Optional)
-            -v attach a volume for sharing data with host system
+    -dit is `d` for detached mode,  `it` makes bash available in a pseudo terminal.
 
-                the path prior to the ":" is the directory path on your host machine, where
-                you can your delila input files, they will be visible in the container.
-                In this case this is:
+    -P reports ports to the host.
+    
+    –name give the container a name, (Optional)
+    
+    -v attach a volume for sharing data with host system
+
+    The first directory path (prior to the ":") is the directory path on your local machine, where you can your Delila-PY input files (see below), they will be visible in the Docker container and can be used.
+    
+    In this example this path is:
                 
-                    "/home/user/test/delila/container-data"  if this doesn't exit it will be created
+        "/home/user/test/delila/container-data"
+        
+    if this doesn't exit it will be created
                 
-                The second directory path (after the ":") is working directory within the 
-                docker container, in this case: 
-                
-                    "/opt/delila/example/container-data"
+    The second directory path (after the ":") is working directory within the docker container. 
+    
+    In this example the path is:   
 
-            glbrc/delila is the image used for the container
+        "/opt/delila/example/container-data"
 
+    glbrc/delila is the image used for the container
 
-        After running the docker run command you should see a container ID written in
-        the terminal. It will look something like:
+    After running the docker run command you should see a container ID written in the terminal.
+    
+    It will look something like the following (the actualy digits and letters may be different):
 
         22d098e7b4cacdc346f5cadaea561a0f2d9f7bcb1833b301c603c598b409a355
 
-        check that the container is running:
+    Check that the container is running using the following command:
 
-        `sudo docker ps -a` 
+        sudo docker ps -a
+
+    And you should see something like this, which lists the Docker images that are running:
 
         CONTAINER ID     IMAGE         COMMAND     CREATED          STATUS         PORTS   NAMES
         22d098e7b4ca   glbrc/delila   "/bin/bash"  42 seconds ago   Up 41 seconds          delila
 
-        Access the container by running at least the first 4 characters of the Container ID:
+    To run Delila-PY, you must first access the container by typing at least the first 4 characters of the Container ID using the following command:
 
-        `sudo docker attach 22d098` 
+        sudo docker attach 22d098
         
-            OR
+    Alternatively, you can use the following command and indicate the name of the image:
 
-        `sudo docker attach delila`
+        sudo docker attach delila
         
-        You will see a command line prompt, something like:
+    You will see a new command line prompt in your Terminal that should look similar to this (the digits and letters may be different):
 
         root@aaab660630ab:/#
 
-        run `ls`  -- this will show the directory structure
+    Your Terminal is now pointing to the Delila-PY Docker image.
+    
+    You can run `ls` to show the directory structure of the image, which should look something like this:
 
         bin  boot  dev  etc  home  lib  lib32  lib64  libx32  media  mnt  opt ....
 
-        `cd /opt/delila/example`
+    Navigate to the folder containing the example files to run with Delila-PY using the following command:
+
+        cd /opt/delila/example
         
-        Run Delila using the example files:
+    Finally, we can run Delila using the example files using the following command:
 
         ../delila_pipeline.py -g Rsphaeroides_GenBank.gbff -s Location_File_Example.txt  -l -10 -r +10
     
-        This will produce the following files & directories:
+    This will produce the following files & directories:
 
         R.sphaeroides-2.4.1-initial.logo 
         delila_pipeline.log
@@ -124,65 +177,59 @@ Delila Docker Image
         instructions/
         books/
    
-       You may detach from a running container and leave it running by: 
-       entering `^P^Q` and reattach with:
+    You may detach from a running container and leave it running by entering `^P^Q` and reattach with:
 
-       `sudo docker start delila`   assuming you named the contain delila
-       `sudo docker attach delila`
+       sudo docker start delila
+       sudo docker attach delila
 
-    5) To run your own data 
+5) Once you have verified that the Delila-PY runs successfully with the included example files, you can run Delila-PY with your own files 
 
-        Create a working directory for your data on the host system.
+    Create a working directory for your data on the local system using the following command.
         
         mkdir mywork
 
-        copy your delila input files into mywork/
+    Then you can copy the input files into the newly created mywork either in the GUI or with `mv` command in the Terminal
 
-        Start your delila container (detached mode)
-        `sudo docker run -dit -P --name delila -v /home/user/test/mywork:/opt/delila/example/container-data  glbrc/delila`
+    Once coppied, you can start the Delila-PY container using detached mode as above using the following commands:
 
-        `sudo docker attach delila`
+        sudo docker run -dit -P --name delila -v /home/user/test/mywork:/opt/delila/example/container-data  glbrc/delila
 
-        ../delila_pipeline.py -g Rsphaeroides_GenBank.gbff -s Location_File_Example.txt  -l -10 -r +10
+        sudo docker attach delila
+
+    Finally, you can run the Delila-PY
+
+        ../delila_pipeline.py -g GenBank_File.gbff -s Location_File.txt  -l -10 -r +10
+    
+    The results file will be placed on the host system, in /home/user/test/mywork
 
 
-        The results file will be placed on the host system, in /home/user/test/mywork
-
-
-Delila-PY
+Delila-Py Scripts
 -----------
-    Delila-PY is a pipeline to make it quick and easy to run various Delila software packages
-    in order to construct a binding site logo.
 
-    Delila-PY uses programs developed in the lab of Tom Schneider and more information can be
-    found at his website:  http://users.fred.net/tds/lab/
+1) The script directory must be manually chaged within the program
 
-    Delila-PY uses standard (often default) values and allows the user to quickly process a
-    file consisting of genomic locations to identify a potential logo. To use the pipeline
-    directly, a few steps are required before you can begin:
+    Define the script directory by editing the "scriptDir" varible in the delila_pipeline.py file.
 
-    	1) The script directory must be manually chaged within the program
+    scriptDir = '/home/<userName>/bin/delila/' or wherever it is located.
 
-        Define the script directory by editing the "scriptDir" varible in the delila_pipeline.py file.
-
-        scriptDir = '/home/<userName>/bin/delila/' or wherever it is located.
-
-    	2) The required programs must be compilied from Pascal to C:
-    		- alist
-    		- catal
-    		- comp
-    		- dalvec
-    		- dbbk
-    		- delila
-    		- encode
-    		- makelogo
-    		- malign
-    		- malin
-    		- mkdb
-    		- ri
-    		- rseq
-    	3) The required GenBank file must be downloaded from NCBI and the genomic location file
-    	must be constructed as indicated below
+2) The required programs must be compilied from Pascal to C:
+        
+    - alist
+    - catal
+    - comp
+    - dalvec
+    - dbbk
+    - delila
+    - encode
+    - makelogo
+    - malign
+    - malin
+    - mkdb
+    - ri
+    - rseq
+    
+    
+3) The required GenBank file must be downloaded from NCBI and the genomic location file must be constructed as indicated below.
 
     We have provided example files in the Git repository as a guide both to how to run the Delila-PY
     and the format of the required files. The example files represent genomic coordiates for binding
@@ -195,15 +242,15 @@ Delila-PY
 Create logo
 -----------
 
-    You need to provide the following:
+You need to provide the following:
 
-    1) genbank file for your genome of interest 
-    2) sites file which is tab delimited with columns: 
+1) genbank file for your genome of interest 
+2) sites file which is tab delimited with columns: 
         
-        chromosome name : must match the chromosome names in genbank file
-        name : unique identifier for site
-        strand :  forward or reverse 
-        position :  base pair position of site
+    chromosome name : must match the chromosome names in genbank file
+    name : unique identifier for site
+    strand :  forward or reverse 
+    position :  base pair position of site
 
     example:
     NC_007493.2   site_1   forward   409225
@@ -213,9 +260,9 @@ Create logo
     forward is the strand 
     409225 is the base position of the site
 
-    To run delila and create a logo:
+To run delila and create a logo:
 
-    delila_pipeline.py -g Rsphaeroides_GenBank.gbff -l -10 -r -10 -s Location_File_Example.txt
+    `delila_pipeline.py -g Rsphaeroides_GenBank.gbff -l -10 -r -10 -s Location_File_Example.txt`
     
 Running individual Delila programs
 ----------------------------------
