@@ -1,8 +1,8 @@
 Delila-PY
 -----------
-Delila-PY is a custom pipeline to make it quick and easy to run various Delila software packages in order to construct a binding site logo.
+Delila-PY is a custom pipeline to make it quick and easy to run the Delila software packages required to construct a binding site logo while providing the high level of flexibilty and control present in the Deilia software.
 
-Delila-PY uses programs developed in the lab of Tom Schneider and more information can be found at his website:  http://users.fred.net/tds/lab/
+Delila-PY uses programs developed in the lab of Tom Schneider and more information can be found at his [website](http://users.fred.net/tds/lab/) and in the references at the end of this readme.
 
 Delila-PY uses standard (often default) values and allows the user to quickly and reproducibly process a file consisting of genomic locations to identify a potential logo.
 
@@ -10,24 +10,24 @@ You can download and compile the individual programs and run the Python script o
 
 Either way, Delila-PY requires two files:
 
-1) genbank file for your genome of interest (obtained from NCBI)
-2) sites file which is tab delimited with columns: 
+1) GenBank file for your genome of interest (obtained from [NCBI GenBank](https://www.ncbi.nlm.nih.gov/genbank/))
+2) A sites file which is tab delimited with four columns (no column names): 
         
         chromosome name : must match the chromosome names in genbank file
         name : unique identifier for site
-        strand :  forward or reverse 
+        strand :  forward or reverse (must use the words)
         position :  base pair position of site
 
         example:
         NC_007493.2   site_1   forward   409225
 
         where
-        NC_007493.2 is a R.sphaeroides chromosome name
+        NC_007493.2 is a _R.sphaeroides_ chromosome name
         site_1 is the name
         forward is the strand 
         409225 is the base position of the site
 
-The following command can be used to run Delila-PY:
+The following basic command is used to run Delila-PY:
 
         delila_pipeline.py -g Rsphaeroides_GenBank.gbff -l -10 -r -10 -s Location_File_Example.txt
 
@@ -37,11 +37,31 @@ The following command can be used to run Delila-PY:
         -l is the distance upstream to use as a boundary
         -r is the distance downstream to use as a boundary
 
+Understanding Left and Right boundaries, which are always on the given strand from the sites file (forward or reverse):
+   
+    scenario 1 - searching around the given positions for a logo
+    Left = -10 
+    Right = +10 
+    For site position 100, the bounds to find a logo are position 90 (Left) and position 110 (Right)
+
+    scenario 2 - searching for the -10 promoter element upstream from a transcription start site position
+    Left = -20
+    Right = 0 (no sign required)
+    For site position 100,  the bounds to find a logo are position 80 (Left) and position 100 (Right)
+
+    
+    scenario 3 - searching for the -35 promoter element upstream from a transcription start site position
+    Left = +5
+    Right = +25
+    For site position 100,  the bounds to find a logo are position 105 (Left) and position 125 (Right)
+
+Delila-PY has been tested on MacOS and Linux (Ubuntu and CentOS). The descriptions here are for running Delila-PY on one of these operating systems. Some additional work may be required to run Delila-PY on other operating systems.
+
 Delila-PY Docker Image
 ------------
-The easiest way to use Delila-PY is to download and run the Docker image. This allows the usere to run the pipeline without the need to install and compile all the individual programs and with minimal command line experience. Further, the Delila-PY Docker image can be used across varios computing platforms.
+The recommended way to use Delila-PY is to download and run the Docker image. While you will need to install [Docker](https://docs.docker.com/engine/install/), this allows the user to run the pipeline without the need to install and compile all the individual programs and with minimal command line experience. Further, the Delila-PY Docker image can be used across varios computing platforms.
     
-You can download the Delila-PY Docker image here:  https://hub.docker.com/r/glbrc/delila
+You can download the Delila-PY Docker image from the [Docker Hub](https://hub.docker.com/r/glbrc/delila)
 
 Here is a step by step guide to running the Delila-PY Docker image for analysis
 
@@ -49,11 +69,11 @@ Here is a step by step guide to running the Delila-PY Docker image for analysis
 
     https://docs.docker.com/engine/install/
 
-    Test your Docker installation:
+    Test your Docker installation by running the following command:
 
         sudo docker run hello-world
 
-    You should see something like:
+    You should see something like in your terminal window:
 
         Hello from Docker!
         This message shows that your installation appears to be working correctly 
@@ -63,7 +83,7 @@ Here is a step by step guide to running the Delila-PY Docker image for analysis
 
         sudo docker pull glbrc/delila
 
-    You should see something like the following in your Terminal window:
+    You should see something like the following in your terminal window:
 
         Using default tag: latest
         latest: Pulling from glbrc/delila
@@ -90,11 +110,11 @@ Here is a step by step guide to running the Delila-PY Docker image for analysis
         glbrc/delila        latest              90845438bd28        6 days ago          620MB
         hello-world         latest              bf756fb1ae65        12 months ago       13.3kB
 
-    You will see the hello-world image listed because you tested the docker install right!
+    You will see the hello-world image listed because you used it to make sure that Docker was installed correctly!
 
-4) It's highly recommended that you run the Delila-PY using the provided example files to ensure everything is working correctly.
+4) It's highly recommended that you first run the Delila-PY using the provided example files to ensure everything is working correctly.
     
-    In the terminal, type the following command to make it possible to share data between the Docker environment and your local machine:
+    In the terminal, type the following command to make it possible to share data between the Docker environment and your local computer:
 
         sudo docker run -dit -P --name delila -v /home/user/test/delila/container-data:/opt/delila/example/container-data  glbrc/delila
            
@@ -106,33 +126,35 @@ Here is a step by step guide to running the Delila-PY Docker image for analysis
     
     -v attach a volume for sharing data with host system
 
-    The first directory path (prior to the ":") is the directory path on your local machine, where you can your Delila-PY input files (see below), they will be visible in the Docker container and can be used.
+    The first directory path (prior to the ":") is the directory path on your local computer, where you can your Delila-PY input files (see below), they will be visible in the Docker container and can be used.
     
     In this example this path is:
                 
         "/home/user/test/delila/container-data"
         
-    if this doesn't exit it will be created
+    if this doesn't exit it will be created.
+
+    Also note that this path may need to be changed to match the file system on your local computer.
                 
-    The second directory path (after the ":") is working directory within the docker container. 
+    The second directory path (after the ":") is working directory within the Docker container. 
     
     In this example the path is:   
 
         "/opt/delila/example/container-data"
 
-    glbrc/delila is the image used for the container
+    glbrc/delila is the image used for the Docker container
 
-    After running the docker run command you should see a container ID written in the terminal.
+    After running the `sudo docker run` above command you should see a container ID written in the terminal.
     
     It will look something like the following (the actual digits and letters may be different):
 
         22d098e7b4cacdc346f5cadaea561a0f2d9f7bcb1833b301c603c598b409a355
 
-    Check that the container is running using the following command:
+    You can check that the container is running using the following command:
 
         sudo docker ps -a
 
-    And you should see something like this, which lists the Docker images that are running:
+    And you should see something like this in the terminal window, which lists the Docker images that are running:
 
         CONTAINER ID     IMAGE         COMMAND     CREATED          STATUS         PORTS   NAMES
         22d098e7b4ca   glbrc/delila   "/bin/bash"  42 seconds ago   Up 41 seconds          delila
@@ -149,21 +171,21 @@ Here is a step by step guide to running the Delila-PY Docker image for analysis
 
         root@aaab660630ab:/#
 
-    Your Terminal is now pointing to the Delila-PY Docker image.
+    Your terminal is now pointing to the Delila-PY Docker image.
     
     You can run `ls` to show the directory structure of the image, which should look something like this:
 
         bin  boot  dev  etc  home  lib  lib32  lib64  libx32  media  mnt  opt ....
 
-    Navigate to the folder containing the example files to run with Delila-PY using the following command:
+    Navigate to the folder you created above using the following command:
 
-        cd /opt/delila/example
+        cd /opt/delila/example/containter-data
         
     Finally, we can run Delila using the example files using the following command:
 
-        ../delila_pipeline.py -g Rsphaeroides_GenBank.gbff -s Location_File_Example.txt  -l -10 -r +10
+        python3 /opt/delila/delila_pipeline.py -g opt/delila/example/Rsphaeroides_GenBank.gbff -s opt/delila/example/Location_File_Example.txt  -l -10 -r +10
     
-    This will produce the following files & directories:
+    This will produce the following files & directories within the `container-data` directory within the Docker image:
 
         R.sphaeroides-2.4.1-initial.logo 
         delila_pipeline.log
@@ -177,7 +199,11 @@ Here is a step by step guide to running the Delila-PY Docker image for analysis
         instructions/
         books/
    
-    You may detach from a running container and leave it running by entering `^P^Q` and reattach with:
+    You can then exit the Docker image command line using the `exit` command.
+
+    This will then copy all the contents from the `/opt/delila/example/container-data` directory to your local computer directory `/home/user/test/delila/container-data` where you can view the resulting logo that was created.
+    
+    You can restart the same Delila-PY Docker image using the following commands:
 
        sudo docker start delila
        sudo docker attach delila
@@ -192,27 +218,34 @@ Here is a step by step guide to running the Delila-PY Docker image for analysis
 
     Once coppied, you can start the Delila-PY container using detached mode as above using the following commands:
 
-        sudo docker run -dit -P --name delila -v /home/user/test/mywork:/opt/delila/example/container-data  glbrc/delila
+        sudo docker run -dit -P --name delila -v /mywork:/opt/delila/test/mywork glbrc/delila
+
+    The path before the `:` is the path to the mywork directory on your local computer and the path after the `:` is the path to where the directory will be created within the Delila-PY Docker image.
 
         sudo docker attach delila
 
     Finally, you can run the Delila-PY
 
-        ../delila_pipeline.py -g GenBank_File.gbff -s Location_File.txt  -l -10 -r +10
+        cd /opt/delila/test/mywork
+        python3 /opt/delila/delila_pipeline.py -g opt/delila/mywork/GenBank.gbff -s opt/delila/mywork/Location_File.txt  -l -10 -r +10
+
+    Where the -l and -r can be changed to whatever values you prefer for your data.
     
-    The results file will be placed on the host system, in `/home/user/test/mywork`
+    After exiting the Delila-PY Docker image, the results file will be placed on your local computer, in the `mywork` directory.
 
 
 Delila-PY Scripts
 -----------
 
-1) The script directory must be manually chaged within the program
+You are also able to download the individual scripts and run the Delila-PY script independent of Docker. Note this requires downloading and compiling the required programs and compiling them from Pascal to C. You can download the required programs from the [Delila website](http://users.fred.net/tds/lab/delila/delilaprograms.html). This requires extensive knowledge of programing and experience with the command line. You can find all the scripts within this GitHub repository.
+
+1) The script directory must be manually chaged within the `delila_pipeline.py` file
 
     Define the script directory by editing the "scriptDir" varible in the delila_pipeline.py file.
 
-    scriptDir = '/home/<userName>/bin/delila/' or wherever it is located.
+    scriptDir = '/home/<userName>/bin/delila/' to match the path on your local computer.
 
-2) The required programs must be compilied from Pascal to C:
+2) The required programs must be compilied from Pascal to C. Programs can be found at the [Delila website](http://users.fred.net/tds/lab/delila/delilaprograms.html):
         
     - alist
     - catal
@@ -229,7 +262,7 @@ Delila-PY Scripts
     - rseq
     
     
-3) The required GenBank file must be downloaded from NCBI and the genomic location file must be constructed as indicated below.
+3) The required GenBank file must be downloaded from [NCBI GenBank](https://www.ncbi.nlm.nih.gov/genbank/) and the genomic location file must be constructed as indicated below and matching the example files included in this repository.
 
     We have provided example files in the Git repository as a guide both to how to run the Delila-PY
     and the format of the required files. The example files represent genomic coordiates for binding
@@ -237,15 +270,15 @@ Delila-PY Scripts
     	- Location_File_Example.txt is the genmoic location example file
     	- Rsphaeroides_GenBank.gbff is the *R. sphaeroides* GenBank file from NCBI
 
-    Script assumes ps2pdf is installed
+Finally, the Delila-PY script requires [ps2pdf](http://web.mit.edu/ghostscript/www/Ps2pdf.htm) to be installed on your local comptuer. If it is not, you must install it before running Delila-PY.
 
 Create logo
 -----------
 
 You need to provide the following:
 
-1) genbank file for your genome of interest 
-2) sites file which is tab delimited with columns: 
+1) GenBank file for your genome of interest 
+2) A sites file which is tab delimited with columns: 
         
     chromosome name : must match the chromosome names in genbank file
     name : unique identifier for site
@@ -262,7 +295,7 @@ You need to provide the following:
 
 To run delila and create a logo:
 
-    `delila_pipeline.py -g Rsphaeroides_GenBank.gbff -l -10 -r -10 -s Location_File_Example.txt`
+    delila_pipeline.py -g Rsphaeroides_GenBank.gbff -l -10 -r -10 -s Location_File_Example.txt
     
 Running individual Delila programs
 ----------------------------------
@@ -271,7 +304,7 @@ It is possible to run each C program on it's own outside of the pipeline.
 To show a program's help, just run the program without any parameters.
 This is not recommended as the pipeline aims to reduce the complexity of
 Delila programs.  If you desire to do this, read the help for each 
-program and refer to the original delila website for detailed information.
+program and refer to the original [Delila website](http://users.fred.net/tds/lab/delila/delilaprograms.html) for detailed information and instructions.
 
 Note only the following delila programs are available in this repository:
     
@@ -290,7 +323,7 @@ Notes
 The programs used in this pipeline have been converted from Pascal to C, by
 Oliver Giramma.  They were then modified to use command line arguments.
     
-(From the Delila Documentation, http://users.fred.net/tds/lab/software.html)
+The descriptions are all from the [Delila Documentation](http://users.fred.net/tds/lab/software.html) and it is highly recommended users consult that website for complete information.
     
 > DELILA stands for DEoxyribnucleaic-acid LIbrary LAnguage.
 > 
@@ -317,37 +350,12 @@ Oliver Giramma.  They were then modified to use command line arguments.
 > all of it is implemented. There are also tutorials on building Delila libraries
 > and using Delila instructions. 
 > 
-Understanding Left and Right boundaries:
-Delila positioning, bounds will be set by LEFT and RIGHT.
-
-    scenario 1:
-    Left = -10 
-    Right = +10 
-    site example:
-    Site position 100, then the bounds are Left = position 90, Right = position 110
-    cmd: delila_pipeline.py -g genome.gbff -l -20 -r +10 -t sites_for_delila.txt
-
-    scenario 2, looking for the -10 position upstream from a transcription start site position.
-    Left = -20
-    Right = 0
-    site example:
-    TSS at position 100,  Left = position 80, Right = position 100
-    cmd: delila_pipeline.py -g enome.gbff -l -20 -r 0 -t sites_for_delila.txt
-
-    
-    scenario 3, looking for the -35 position upstream from a transcription start site
-    Left = +5
-    Right = +25
-    site example:
-    TSS at position 100, Left = position 105, Right = position 125
- 
 > Delila is a modular set of programs which produce results that feed into the next
 > program.  It is highly configurable using parameter files.  The delila programs
 > used are listed below with general descripbtions.
 > 
-> Delila programs used to make logo (descriptions from the Delila documentation)
-> ------------------------------------------------------------------------------
-> 
+Delila programs used to make logo (descriptions from the [Delila Documentation](http://users.fred.net/tds/lab/software.html))
+------------------------------------------------------------------------------
 > dbbk: 
 > Convert GenBank flat file format to Delila format, which is called a `book'
 > (db = database, bk = book). This produces an 'l1' file which contains the book.
@@ -365,7 +373,7 @@ Delila positioning, bounds will be set by LEFT and RIGHT.
 > instructions (inst file) and those are used to create the subset desired. 
 > For a logo, generally one makes instructions that look like this:
 > 
->     get from 5600 -200 to same +200 direction +;
+> get from 5600 -200 to same +200 direction +;
 > 
 > This means to get 200 bases before position 5600 to 200 bases afterwards, 
 > for a total of 401 bases. I recommend that you use a wide range like this to
@@ -435,7 +443,7 @@ Delila positioning, bounds will be set by LEFT and RIGHT.
 > as aligned by the instructions, according to the frequency table given in
 > the rsdata file.  The program calculates the Ri(b,l) table:
 > 
->     Ri(b,l) := 2 - (- log2( f(b,l)))
+> Ri(b,l) := 2 - (- log2( f(b,l)))
 > 
 > and sums this up for each sequence.  Ri is defined so that the average of
 > the Ri's for a set of sequences is Rsequence.
@@ -443,7 +451,7 @@ Delila positioning, bounds will be set by LEFT and RIGHT.
 > makelogo:
 > Finally! Make the sequence logo!
 > 
-Steps
+Steps of Delila-PY when running the `delila_pipeline.py` script
 ------
 
 1. dbbk    -- convert genbank file into a delila book
@@ -463,213 +471,170 @@ Steps
 1. repeat steps 3 through 11 with filtered sites
 1. make final logo 
     
-Parameters
+Parameters of Delila-PY when running the `delila_pipeline.py` script
 ----------
 
-g : str
+    g : str
     A genbank file for a genome.
 
-s : str
+    s : str
     Transcription start site information file.
 
     NC_007488.2	site_24	forward	24419
     NC_007490.2	site_25	forward	51745
     NC_007494.2	site_23	reverse	78076
 
-l : int
+    l : int
     Left boundary relative to center of the site, defaults to -10
 
-r : int
+    r : int
     Right boundary relative to the center of the site, defaults to +10
 
 Example
 -------
-usage:
+general usage:
 
     delila_pipeline.py -g Rsphaeroides_GenBank.gbff -s Location_File_Example.txt -l -10  -r +10
-
-References
-----------
-
-http://users.fred.net/tds/lab/delila.html
-
-A design for computer nucleic-acid-sequence storage, retrieval, and manipulation
-Thomas D. Schneider, Gary D. Stormo, Jeffrey S. Haemer, Larry Gold
-Nucleic Acids Research, Volume 10, Issue 9, 11 May 1982, Pages 3013–3024, 
-https://doi.org/10.1093/nar/10.9.3013
-
-Delila system tools, Thomas D. Schneider, Gary D. Stormo, M.A. Yarus,
-Larry Gold, Nucleic Acids Research, Volume 12, 11 Jan 1984, Pages 129-140,
-doi: 10.1093/nar/12.1part1.129
-
-GenBank Flat File format information :  https://www.ncbi.nlm.nih.gov/Sitemap/samplerecord.html
-
-Source of *R. sphaeroides* binding locations : Dufour YS, Kiley PJ, Donohue TJ. 2010. Reconstruction of the core and extended regulons of global transcription factors. PLoS Genet 6:e1001027.
-
-Primary pipeline script
---------------
-
-`delila_pipline.py`  -- Primary script, runs delila
-
-Create a sequence logo for sequence sites using the Delila package.
-
-The original delila site: http://users.fred.net/tds/lab/software.html
-
-To Run:
-
-    delila_pipeline.py -g Rsphaeroides_GenBank.gbff -s Location_File_Example.txt -l -10 -r +10
-
--g genome genbank file 
--l left boundary relative to site, defaults to -10
--s site information file
--r right boundary relative to site, defaults to +10
-
-Site information file provides chromosome, name, strand, position in a tab delimited format.
-
-    NC_007488.2	site_24	forward	24419
-    NC_007490.2	site_25	forward	51745
-
-Primary output :
-
-Logo postscript file
-Logo pdf 
-position weight matrix file 
-
-`delila_instructions.py`
-
-Writes delila instruction files.  If multiple chromosomes are present, these will be split
-into separate files.  Called by delila_pipeline.py
-
 
 Other scripts which are part of the pipeline
 ----------------------------------------------
 delila_instructions.py
 
-    delila_instructions.py -f <TSS_site_file.txt> -l <int> -r <int>
+- Split site files by chromosome
 
-Split TSS file by chromosome.
 
-optional arguments:
-    -h, --help       Show this help message and exit
-    -f, --file       Text file, containing TSS sites
-    -l, --left       Left boundary base position
-    -o, --organism   Organism
-    -r, --right      Right boundary base position
+        delila_instructions.py -f <sites_file.txt> -l <int> -r <int>
+
+        optional arguments:
+        -h, --help       Show this help message and exit
+        -f, --file       Text file, containing site positions
+        -l, --left       Left boundary base position
+        -o, --organism   Organism
+        -r, --right      Right boundary base position
 
 merge_books.py
 
-    merge_books.py -f <input.txt>
+- Merge Delila chromosme book files
 
-Merge Delila chromosome book files.
+        merge_books.py -f <input.txt>
 
-optional arguments:
-    -h, --help   Show this help message and exit
-    -f, --file   Delila book file to parse.
+        optional arguments:
+        -h, --help   Show this help message and exit
+        -f, --file   Delila book file to parse.
 
 merge_instructions.py
 
-    merge_instructions.py -f <input.txt>
+- Merge Delila instruction files.
 
-Merge Delila instruction files.
+        merge_instructions.py -f <input.txt>
 
-optional arguments:
-    -h, --help   Show this help message and exit
-    -f, --file   List of delila instruction files to parse.
+        optional arguments:
+        -h, --help   Show this help message and exit
+        -f, --file   List of delila instruction files to parse.
 
 organizing_ri_delila_results.py
 
-    organizing_ri_delila_results.py -f <fastq file list.txt> [optional args: -a -r -d -ref ]
+- Removal of sites with negative Ri values in Delila.
 
-Removal of sites with negative Ri values in Delila.
+        organizing_ri_delila_results.py -f <fastq file list.txt> [optional args: -a -r -d -ref ]
 
-optional arguments:
-    -h, --help          Show this help message and exit
-    -l, --malign_list   Malign_list file from Delila pipeline.
-    -r, --rixyin_file   Rixyin results file from Ri in the Delila pipeline
-    -d, --detail        Print a more detailed description of program.
-    -o, --output        Output file name. Default is
-                        "positive_Ri_updated_locations.txt".
+        optional arguments:
+        -h, --help          Show this help message and exit
+        -l, --malign_list   Malign_list file from Delila pipeline.
+        -r, --rixyin_file   Rixyin results file from Ri in the Delila pipeline
+        -d, --detail        Print a more detailed description of program.
+        -o, --output        Output file name. Default is "positive_Ri_updated_locations.txt".
 
 removeRI_books.py
 
-    removeRI_books.py -f <input.txt> -r <RI_out.txt>
+- Filter book file by ri score.
 
-Filter book file by ri score.
+        removeRI_books.py -f <input.txt> -r <RI_out.txt>
 
-optional arguments:
-    -h, --help   Show this help message and exit
-    -f, --file   Merged delila book file to parse.
-    -r, --ri     RI_out.txt file
+        optional arguments:
+        -h, --help   Show this help message and exit
+        -f, --file   Merged delila book file to parse.
+        -r, --ri     RI_out.txt file
 
 removeRI_instructions.py
 
-    removeRI_instructions.py -f <input.txt> -r <RI_out.txt>
+- Filter instructions file by ri score.
 
-Filter instructions file by ri score.
+        removeRI_instructions.py -f <input.txt> -r <RI_out.txt>
 
-optional arguments:
-    -h, --help   Show this help message and exit
-    -f, --file   Merged instructions file to parse.
-    -r, --ri     RI_out.txt file
+        optional arguments:
+        -h, --help   Show this help message and exit
+        -f, --file   Merged instructions file to parse.
+        -r, --ri     RI_out.txt file
 
 rename_lib1.py
 
-    rename_lib1.py 
+- Rename chromosome & piece tags in lib1 file.
 
-Rename chromosome & piece tags in lib1 file.
+        rename_lib1.py 
 
-optional arguments:
-    -h, --help  show this help message and exit
+        optional arguments:
+        -h, --help  show this help message and exit
 
 Useful Python scripts not in pipeline 
 -------------------------------------
 
 filter_sites.py 
 
-Not part of the pipeline, but can be used prior to running delila_pipeline.py
-to remove overlapping sites.
+
+- Not part of the pipeline, but can be used prior to running `delila_pipeline.py` to remove overlapping sites.
+- Remove sites with x <int> number of bases overlap, file MUST BE SORTED by site position.
 
 To Run:
 
-    filter_sites.py -f <site_file.txt> -n <int>
+        filter_sites.py -f <site_file.txt> -n <int>
 
-Remove sites with x number of bases overlap, file MUST BE SORTED.
-
-arguments:
-    -h, --help     Show this help message and exit
-    -f, --file     Text file, containing sites
-    -n, --number   Number of base overlap, default(15)
+        arguments:
+        -h, --help     Show this help message and exit
+        -f, --file     Text file, containing sites
+        -n, --number   Number of base overlap, default(15)
 
 
 define_site_position.py
 
-Read sites file line by line.  Parse each line and shift
-the position by +/- value taking account of the strand.
+- Read sites file line by line.  Parse each line and shift the position by +/- value taking account of the strand.
 
 To Run:
 
-    filter_Sites.py -f <site_file.txt> -n <int>
-        
-arguments:
--h, --help      show this help message and exit
--f , --file     Text file, containing sites
--n , --number   Number of base to shift (negative = upstream)
+        filter_Sites.py -f <site_file.txt> -n <int>
+            
+        arguments:
+        -h, --help      show this help message and exit
+        -f , --file     Text file, containing sites
+        -n , --number   Number of base to shift (negative = upstream)
 
-example input file:
+        example input file:
 
-    NC_007488.2     RSP_4039_1700   forward 1700
-    NC_007488.2     RSP_4038_2627   forward 2627
+        NC_007488.2     RSP_4039_1700   forward 1700
+        NC_007488.2     RSP_4038_2627   forward 2627
 
 example command:
 
-    define_site_position.py -f input.txt -n -10  
+        define_site_position.py -f input.txt -n -10  
 
 This results in a site file of the same format as the input.
 All sites shifted upstream by 10 bases.
 
 alternatively:
 
-    define_site_position.py -f input.txt -n 10
+        define_site_position.py -f input.txt -n 10
 
 This results in a site file of the same format as the input.
 All sites shifted downstream by 10 bases.
+
+References
+----------------------------------------------
+1. Schneider TD, Stormo GD, Haemer JS, Gold L. 1982. A design for computer nucleic-acid-sequence storage, retrieval, and manipulation. Nucleic Acids Res 10:3013-24.
+1. Schneider TD, Stormo GD, Yarus MA, Gold L. 1984. Delila system tools. Nucleic Acids Res 12:129-40.
+1. Schneider TD, Stephens RM. 1990. Sequence logos: a new way to display consensus sequences. Nucleic Acids Res 18:6097-100.
+1. Schneider TD. 2006. Twenty Years of Delila and Molecular Information Theory: The Altenberg-Austin Workshop in Theoretical Biology Biological Information, Beyond Metaphor: Causality, Explanation, and Unification Altenberg, Austria, 11-14 July 2002. Biol Theory 1:250-260.
+1. Schneider TD. 2010. A brief review of molecular information theory. Nano Commun Netw 1:173-180.
+1. Dufour YS, Kiley PJ, Donohue TJ. 2010. Reconstruction of the core and extended regulons of global transcription factors. PLoS Genet 6:e1001027.
+1. Delila Software:  http://users.fred.net/tds/lab/delila.html
+1. GenBank Flat File format information:  https://www.ncbi.nlm.nih.gov/Sitemap/samplerecord.html
+
