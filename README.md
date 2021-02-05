@@ -2,7 +2,7 @@ Delila-PY
 -----------
 Delila-PY is a custom pipeline to make it quick and easy to run the Delila software packages required to construct a binding site logo while providing the high level of flexibilty and control present in the Deilia software.
 
-Delila-PY uses programs developed in the lab of Tom Schneider and more information can be found at his [website](http://users.fred.net/tds/lab/) and in the references at the end of this readme.
+Delila-PY uses programs developed in the lab of Tom Schneider and more information can be found at his [website](https://alum.mit.edu/www/toms/) and in the references at the end of this readme.
 
 Delila-PY uses standard (often default) values and allows the user to quickly and reproducibly process a file consisting of genomic locations to identify a potential logo.
 
@@ -237,7 +237,7 @@ Here is a step by step guide to running the Delila-PY Docker image for analysis
 Delila-PY Scripts
 -----------
 
-You are also able to download the individual scripts and run the Delila-PY script independent of Docker. Note this requires downloading and compiling the required programs and compiling them from Pascal to C. You can download the required programs from the [Delila website](http://users.fred.net/tds/lab/delila/delilaprograms.html). This requires extensive knowledge of programing and experience with the command line. You can find all the scripts within this GitHub repository.
+You are also able to download the individual scripts and run the Delila-PY script independent of Docker. Note this requires downloading and compiling the required programs and compiling them from Pascal to C. You can download the required programs from the [Delila website](https://alum.mit.edu/www/toms/delila/delilaprograms.html). This requires extensive knowledge of programing and experience with the command line. You can find all the scripts within this GitHub repository.
 
 1) The script directory must be manually chaged within the `delila_pipeline.py` file
 
@@ -245,7 +245,7 @@ You are also able to download the individual scripts and run the Delila-PY scrip
 
     scriptDir = '/home/<userName>/bin/delila/' to match the path on your local computer.
 
-2) The required programs must be compilied from Pascal to C. Programs can be found at the [Delila website](http://users.fred.net/tds/lab/delila/delilaprograms.html):
+2) The required programs must be compilied from Pascal to C. Programs can be found at the [Delila website](https://alum.mit.edu/www/toms/delila/delilaprograms.html):
         
     - alist
     - catal
@@ -304,7 +304,7 @@ It is possible to run each C program on it's own outside of the pipeline.
 To show a program's help, just run the program without any parameters.
 This is not recommended as the pipeline aims to reduce the complexity of
 Delila programs.  If you desire to do this, read the help for each 
-program and refer to the original [Delila website](http://users.fred.net/tds/lab/delila/delilaprograms.html) for detailed information and instructions.
+program and refer to the original [Delila website](https://alum.mit.edu/www/toms/delila/delilaprograms.html) for detailed information and instructions.
 
 Note only the following delila programs are available in this repository:
     
@@ -323,7 +323,7 @@ Notes
 The programs used in this pipeline have been converted from Pascal to C, by
 Oliver Giramma.  They were then modified to use command line arguments.
     
-The descriptions are all from the [Delila Documentation](http://users.fred.net/tds/lab/software.html) and it is highly recommended users consult that website for complete information.
+The descriptions are all from the [Delila Documentation](https://alum.mit.edu/www/toms/software.html) and it is highly recommended users consult that website for complete information.
     
 > DELILA stands for DEoxyribnucleaic-acid LIbrary LAnguage.
 > 
@@ -354,7 +354,7 @@ The descriptions are all from the [Delila Documentation](http://users.fred.net/t
 > program.  It is highly configurable using parameter files.  The delila programs
 > used are listed below with general descripbtions.
 > 
-Delila programs used to make logo (descriptions from the [Delila Documentation](http://users.fred.net/tds/lab/software.html))
+Delila programs used to make logo (descriptions from the [Delila Documentation](https://alum.mit.edu/www/toms/software.html))
 ------------------------------------------------------------------------------
 > dbbk: 
 > Convert GenBank flat file format to Delila format, which is called a `book'
@@ -635,6 +635,6 @@ References
 1. Schneider TD. 2006. Twenty Years of Delila and Molecular Information Theory: The Altenberg-Austin Workshop in Theoretical Biology Biological Information, Beyond Metaphor: Causality, Explanation, and Unification Altenberg, Austria, 11-14 July 2002. Biol Theory 1:250-260.
 1. Schneider TD. 2010. A brief review of molecular information theory. Nano Commun Netw 1:173-180.
 1. Dufour YS, Kiley PJ, Donohue TJ. 2010. Reconstruction of the core and extended regulons of global transcription factors. PLoS Genet 6:e1001027.
-1. Delila Software:  http://users.fred.net/tds/lab/delila.html
+1. Delila Software:  https://alum.mit.edu/www/toms/delila.html
 1. GenBank Flat File format information:  https://www.ncbi.nlm.nih.gov/Sitemap/samplerecord.html
 
