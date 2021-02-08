@@ -202,11 +202,12 @@ General bacterial promoter positioning
 
 
 """
+from posix import listdir
+from datetime import date
 import argparse        # command line args
 import glob
 import logging         
 import os
-from posix import listdir
 import re              # regex 
 import subprocess      # call external programs, delila's programs in this case 
 import sys
@@ -923,7 +924,7 @@ class delilaPipe( object ):
             out.write("1\n")
             out.write("1\n")
             out.write("-1000 5.2 1\n")
-            out.write("{}\n".format(self.prefix))  # Logo label      
+            out.write("{} {}\n".format(self.prefix, date.today().strftime("%d/%m/%Y")))  # Logo label      
     
     def runMAKELOGO(self, symvec, output ):
         '''
@@ -1110,7 +1111,8 @@ class delilaPipe( object ):
             os.mkdir('parameters')
         # move parameter file
         [ os.rename( cwd + par, cwd + 'parameters/' +  par) for par in os.listdir(cwd) if par.endswith('p') ]
-        
+        os.rename(cwd + 'wave', cwd + 'parameters/' + 'wave' )
+
         if not os.path.exists('other'):
             os.mkdir('other')
         # move cat1,cat2,cat3
