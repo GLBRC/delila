@@ -884,16 +884,20 @@ class delilaPipe( object ):
 
     def makeWaveFile(self):
         '''
-        Make a wave input file
+        Make a wave input file, empty file means no sine wave
         '''
-        with open('wave', 'w') as out:
-            out.write("h\n")
-            out.write("0\n")
-            out.write("2.0\n")
-            out.write("0.5\n")
-            out.write("10.6\n")
-            out.write("0.2\n")
-            out.write("0\n")  
+        with open("wave", 'w') as f:
+            pass
+        f.close()
+        
+        #with open('wave', 'w') as out:
+        #    out.write("h\n")
+        #    out.write("0\n")
+        #    out.write("2.0\n")
+        #    out.write("0.5\n")
+        #    out.write("10.6\n")
+        #    out.write("0.2\n")
+        #    out.write("0\n")  
 
     def makeLOGOp(self):
         '''
@@ -919,7 +923,7 @@ class delilaPipe( object ):
             out.write("1\n")
             out.write("1\n")
             out.write("-1000 5.2 1\n")
-            out.write("1\n")            
+            out.write("{}\n".format(self.prefix))  # Logo label      
     
     def runMAKELOGO(self, symvec, output ):
         '''
@@ -1155,7 +1159,7 @@ class delilaPipe( object ):
         
         # list files to remove
         removalList = [ 'malign_list_organized.txt', 'ri_results_organized.txt', 'RI_out.txt', 'uncert',
-        'wave', 'values', 'catin', 'namelist', 'namebook', 'list', 'colors', 'clist','avalues', 'marks',
+        'values', 'catin', 'namelist', 'namebook', 'list', 'colors', 'clist','avalues', 'marks',
         'instructions.list', 'mybooks.txt','distribution', 'catalparameters' ]
         # remove files
         for f in removalList:
