@@ -202,8 +202,6 @@ General bacterial promoter positioning
 
 
 """
-from posix import listdir
-from datetime import date
 import argparse        # command line args
 import glob
 import logging         
@@ -235,7 +233,7 @@ class delilaPipe( object ):
     """
     Methods and data structures for delila pipeline
     """
-    def __init__(self, genbank, prefix, sites, left, right):
+    def __init__(self, genbank, prefix, sites, left, right, title):
         """
         Set up delilaPipe object
 
@@ -266,7 +264,8 @@ class delilaPipe( object ):
         cat1,cat2,cat3  catalog file names 
         instructions    list of instruction files, one for each chromosome
         delilaBook      list of books from the Delila program output
-        sites             sites input file
+        sites           sites input file
+        title           title for logo
         left,right      input left and right window around site
         """
         self.cat1        = 'cat1'              # cat1, cat2, cat3 required by delila, only cat1 has info
@@ -284,7 +283,8 @@ class delilaPipe( object ):
         self.lib2        = 'lib2'
         self.lib3        = 'lib3'
         self.prefix      = prefix
-        self.sites         = sites                 # Transcription Start Site information file name
+        self.sites       = sites                 # Transcription Start Site information file name
+        self.title       = title
         self.left        = left                # left bound number, +/-
         self.right       = right               # right bound number, +/-
         # Set shift parameter which is used in malignp, 
@@ -924,7 +924,7 @@ class delilaPipe( object ):
             out.write("1\n")
             out.write("1\n")
             out.write("-1000 5.2 1\n")
-            out.write("{} {}\n".format(self.prefix, date.today().strftime("%d/%m/%Y")))  # Logo label      
+            out.write("{}\n".format(self.title))  # Logo label      
     
     def runMAKELOGO(self, symvec, output ):
         '''
@@ -1187,10 +1187,12 @@ def main():
                             help='Print script information to stdout') 
     cmdparser.add_argument('-l', '-left', action='store', dest='LEFT', metavar='',
                             help='Left (upstream) boundary from site, defaults to -10')
-    cmdparser.add_argument('-s', '--sites',  action='store', dest='SITES',  
-                            help='Site information text file.', metavar='')    
     cmdparser.add_argument('-r', '--right', action='store', dest='RIGHT', metavar='',
                             help='Upper (downstream) boundary from site, defaults to +10')
+    cmdparser.add_argument('-s', '--sites',  action='store', dest='SITES',  
+                            help='Site information text file.', metavar='') 
+    cmdparser.add_argument('-t', '--title',  action='store', dest='TITLE',  
+                            help='Logo Title in Quotes, defaults to species name.', metavar='')
     cmdResults = vars(cmdparser.parse_args())
 
     # if no args print help
@@ -1209,12 +1211,13 @@ def main():
         print("    The original delila site: http://users.fred.net/tds/lab/software.html")
         print("")
         print("To Run:\n")
-        print("delila_pipeline.py -g genome.gnbk -s sites_info.txt -l -10 -r +5")
+        print("delila_pipeline.py -g genome.gnbk -s sites_info.txt -l -10 -r +5 -t \"My Awesome Logo\" ")
         print("")
         print("    -g genome genbank file ")
         print("    -l left boundary relative to site, defaults to -10")
         print("    -s site information file")
         print("    -r right boundary relative to site, defaults to +10")
+        print("    -t title, should be within quotes.")
         print("")
         print("    Site information file provides chromosome, name, strand, position in a tab delimited format.")
         print("")
@@ -1308,7 +1311,13 @@ def main():
     else:
         print('\n\tStart Site file missing')
         cmdparser.print_help()
-        sys.exit(1)       
+        sys.exit(1) 
+
+    # get user defined LOGO title, if none provided use species in logo
+    if cmdResults['TITLE'] is not None:
+        title = cmdResults['TITLE']  
+    else:
+        title = prefix      
     
     # log program start
     logger.info("Running delila_pipeline ")
@@ -1320,7 +1329,7 @@ def main():
     logger.info('Right Bound      : {}\n'.format(right))
 
     # create delila object and get to work
-    pipe = delilaPipe(inFile, prefix, sitesFile, left, right)
+    pipe = delilaPipe(inFile, prefix, sitesFile, left, right, title)
     
     # converts GenBank and EMBL data base entries into a book of delila entries.
     pipe.makeDBBK()          
