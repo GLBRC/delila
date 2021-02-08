@@ -36,6 +36,7 @@ The following basic command is used to run Delila-PY:
         -s indicates the sites file
         -l is the distance upstream to use as a boundary
         -r is the distance downstream to use as a boundary
+        -t Logo Title in Quotes i.e. "My Cool Logo", otherwise defaults to species name.
 
 Understanding Left and Right boundaries, which are always on the given strand from the sites file (forward or reverse):
    
@@ -49,7 +50,6 @@ Understanding Left and Right boundaries, which are always on the given strand fr
     Right = 0 (no sign required)
     For site position 100,  the bounds to find a logo are position 80 (Left) and position 100 (Right)
 
-    
     scenario 3 - searching for the -35 promoter element upstream from a transcription start site position
     Left = +5
     Right = +25
