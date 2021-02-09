@@ -233,6 +233,7 @@ Here is a step by step guide to running the Delila-PY Docker image for analysis
     
     After exiting the Delila-PY Docker image, the results file will be placed on your local computer, in the `mywork` directory.
 
+NOTE:  Delila has an option to add a [sine wave](https://alum.mit.edu/www/toms/delila/makelogo.html) onto the final logo to simulate the DNA major and minor grooves. This involves changing the wave file. You can add a wave file to a directory and Delila-PY will use that instead of the default wave file to add a sine wave onto the motif. Please see the [makelogo site](https://alum.mit.edu/www/toms/delila/makelogo.html) for more information on how to make this file. 
 
 Delila-PY Scripts
 -----------
@@ -297,8 +298,6 @@ To run delila and create a logo:
 
     delila_pipeline.py -g Rsphaeroides_GenBank.gbff -l -10 -r -10 -s Location_File_Example.txt
     
-NOTE:  Delila has an option to add a [sine wave](https://alum.mit.edu/www/toms/delila/makelogo.html) onto the final logo to similuate the DNA major and minor grooves. This involves changing the wave file. You can add a wave file to a directory and Delila-PY will use that instead of the default wave file to add a sine wave onto the motif. Please see the [makelogo site](https://alum.mit.edu/www/toms/delila/makelogo.html) for more information on how to make this file. 
-
 Running individual Delila programs
 ----------------------------------
 
