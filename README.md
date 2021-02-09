@@ -29,14 +29,14 @@ Either way, Delila-PY requires two files:
 
 The following basic command is used to run Delila-PY:
 
-        delila_pipeline.py -g Rsphaeroides_GenBank.gbff -l -10 -r -10 -s Location_File_Example.txt
+        delila_pipeline.py -g Rsphaeroides_GenBank.gbff -l -10 -r -10 -s Location_File_Example.txt -t "Logo Title"
 
         where 
         -g indicates the genbank file
         -s indicates the sites file
         -l is the distance upstream to use as a boundary
         -r is the distance downstream to use as a boundary
-        -t Logo Title in Quotes i.e. "My Cool Logo", otherwise defaults to species name.
+        -t Logo Title in Quotes i.e. "My Cool Logo", otherwise defaults to species name. Note this must be in quotes.
 
 Understanding Left and Right boundaries, which are always on the given strand from the sites file (forward or reverse):
    
@@ -183,7 +183,7 @@ Here is a step by step guide to running the Delila-PY Docker image for analysis
         
     Finally, we can run Delila using the example files using the following command:
 
-        python3 /opt/delila/delila_pipeline.py -g opt/delila/example/Rsphaeroides_GenBank.gbff -s opt/delila/example/Location_File_Example.txt  -l -10 -r +10
+        python3 /opt/delila/delila_pipeline.py -g opt/delila/example/Rsphaeroides_GenBank.gbff -s opt/delila/example/Location_File_Example.txt  -l -10 -r +10 -t "Example Logo"
     
     This will produce the following files & directories within the `container-data` directory within the Docker image:
 
@@ -227,7 +227,7 @@ Here is a step by step guide to running the Delila-PY Docker image for analysis
     Finally, you can run the Delila-PY
 
         cd /opt/delila/test/mywork
-        python3 /opt/delila/delila_pipeline.py -g opt/delila/mywork/GenBank.gbff -s opt/delila/mywork/Location_File.txt  -l -10 -r +10
+        python3 /opt/delila/delila_pipeline.py -g opt/delila/mywork/GenBank.gbff -s opt/delila/mywork/Location_File.txt  -l -10 -r +10 -t "Logo Title"
 
     Where the -l and -r can be changed to whatever values you prefer for your data.
     
@@ -295,7 +295,7 @@ You need to provide the following:
 
 To run delila and create a logo:
 
-    delila_pipeline.py -g Rsphaeroides_GenBank.gbff -l -10 -r -10 -s Location_File_Example.txt
+    delila_pipeline.py -g Rsphaeroides_GenBank.gbff -l -10 -r -10 -s Location_File_Example.txt -t "Logo Title"
     
 NOTE:  Delila has an option to add a [sine wave](https://alum.mit.edu/www/toms/delila/makelogo.html) onto the final logo to similuate the DNA major and minor grooves. This involves changing the wave file. You can add a wave file to a directory and Delila-PY will use that instead of the default wave file to add a sine wave onto the motif. Please see the [makelogo site](https://alum.mit.edu/www/toms/delila/makelogo.html) for more information on how to make this file. 
 
@@ -496,7 +496,7 @@ Example
 -------
 general usage:
 
-    delila_pipeline.py -g Rsphaeroides_GenBank.gbff -s Location_File_Example.txt -l -10  -r +10
+    delila_pipeline.py -g Rsphaeroides_GenBank.gbff -s Location_File_Example.txt -l -10  -r +10 -t "Logo Title"
 
 Other scripts which are part of the pipeline
 ----------------------------------------------
